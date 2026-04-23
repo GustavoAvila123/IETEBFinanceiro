@@ -1885,6 +1885,39 @@ async function lerNF() {
   }
 }
 
+// Pré-processamento leve para NFs impressas (sem boost de contraste térmico)
+async function preprocessImageForNF(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('img load error')); };
+    img.onload  = () => {
+      URL.revokeObjectURL(url);
+      try {
+        const maxSide = Math.max(img.width, img.height);
+        const scale   = maxSide < 2500 ? 2500 / maxSide : 1;
+        const canvas  = document.createElement('canvas');
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imageData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i], g = d[i + 1], b = d[i + 2];
+          // Grayscale puro — NFs impressas não precisam do boost térmico
+          const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+          d[i] = d[i + 1] = d[i + 2] = gray;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } catch (err) { reject(err); }
+    };
+    img.src = url;
+  });
+}
+
 async function extrairDaImagemSaida() {
   setOcrStatusSaida(true, 'Iniciando reconhecimento de texto...');
   if (typeof Tesseract === 'undefined') {
@@ -1893,7 +1926,7 @@ async function extrairDaImagemSaida() {
   setOcrStatusSaida(true, 'Processando imagem...');
   let fileParaOcr = currentFileSaida;
   try {
-    fileParaOcr = await preprocessImageForOcr(currentFileSaida);
+    fileParaOcr = await preprocessImageForNF(currentFileSaida);
   } catch (e) {
     console.warn('[OCR NF] Pré-processamento falhou, usando original:', e);
   }
@@ -1934,18 +1967,25 @@ function extractFieldsFromNF(text) {
   const full   = text;
   const lower  = full.toLowerCase();
 
-  // ── VALOR: padrões específicos + fallback pelo maior número XX,XX ─────────
+  // ── VALOR: padrões específicos + fallback pelo maior número (suporta milhar) ─
+  const _parseValor = raw => {
+    // Remove separador de milhar (ponto antes de 3 dígitos) e normaliza vírgula
+    const n = parseFloat(raw.trim().replace(/\.(?=\d{3}(?:,|$))/g, '').replace(',', '.'));
+    return isNaN(n) ? null : n;
+  };
   const vExato =
-    full.match(/valor\s+(?:total|pago|a\s+pagar)\s+r?[s$5]?\s*([0-9]{1,6}[,\.][0-9]{2})/i) ||
-    full.match(/total\s+(?:a\s+pagar|geral)?\s*r?[s$5]?\s*[:\-]?\s*([0-9]{1,6}[,\.][0-9]{2})/i) ||
-    full.match(/r?\$\s*([0-9]{1,6}[,\.][0-9]{2})/i);
+    full.match(/valor\s+(?:total|pago|a\s+pagar)\s+r?[s$5]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
+    full.match(/total\s+(?:a\s+pagar|geral|nf[ae]?)?\s*r?[s$5]?\s*[:\-]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
+    full.match(/r?[$s5]\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})\b/i);
   if (vExato) {
-    result.valor = 'R$ ' + vExato[1].trim();
-  } else {
-    // Fallback: pega TODOS os valores no formato XX,XX e usa o MAIOR (total)
-    const todos = [...full.matchAll(/\b([0-9]{1,6},[0-9]{2})\b/g)]
-      .map(m => parseFloat(m[1].replace(',', '.')))
-      .filter(v => v > 1);
+    const n = _parseValor(vExato[1]);
+    if (n) result.valor = 'R$ ' + n.toFixed(2).replace('.', ',');
+  }
+  if (!result.valor) {
+    // Fallback: todos os valores com ou sem separador de milhar, usa o MAIOR
+    const todos = [...full.matchAll(/\b([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})\b/g)]
+      .map(m => _parseValor(m[1]))
+      .filter(v => v !== null && v > 1);
     if (todos.length) {
       const maior = Math.max(...todos);
       result.valor = 'R$ ' + maior.toFixed(2).replace('.', ',');
@@ -1983,19 +2023,34 @@ function extractFieldsFromNF(text) {
   // ── FORNECEDOR: múltiplas estratégias em cascata ─────────────────────────
   {
     let nome = null;
+    const _lines = full.split(/\n/).map(l => l.trim()).filter(Boolean);
 
-    // 1. Nome antes do CNPJ na mesma linha
+    // 1. Nome antes da palavra CNPJ/CPF na mesma linha
     const m1 = full.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'"|-]{3,60})\s+(?:CNPJ|CPF)\s*[:.]?\s*[\d]/i);
-    // 2. Nome após número de CNPJ na mesma linha: "CNPJ: XX... NOME"
-    const m2 = full.match(/(?:CNPJ|CPF)\s*[:.]?\s*[\d.\/\-]+\s+([A-Z][A-Z0-9 &.,']{3,60})/i);
-    // 3. Razão Social explícita
+    // 2. Razão Social com label explícito
     const m3 = full.match(/raz[aã]o\s+social\s*[:\-]?\s*([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'|-]{2,60})/i);
-    // 4. Nome com sufixo jurídico (LTDA, ME, EIRELI, S.A., etc.)
-    const m4 = full.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,']{2,55}(?:\s+(?:LTDA|ME|EPP|EIRELI|S\.?A\.?|S\/A|MICROEMPRESA)))/i);
+    // 3. Sufixo jurídico longo (ME e EPP removidos — muito curtos, geram falso positivo)
+    const m4 = full.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,']{4,55}(?:\s+(?:LTDA|EIRELI|S\.A\.|S\/A|MICROEMPRESA)))/i);
+    // 4. Linha imediatamente anterior ao número de CNPJ (padrão mais confiável para NFs)
+    const _cnpjRe = /\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\s\/]?\d{4}[\s\-]?\d{2}/;
+    let m5 = null;
+    for (let i = 0; i < Math.min(_lines.length, 25); i++) {
+      if (/CNPJ/i.test(_lines[i]) || _cnpjRe.test(_lines[i])) {
+        // Tenta extrair nome na mesma linha antes do CNPJ
+        const sl = _lines[i].match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,']{3,60}?)\s+(?:CNPJ|\d{2}[\.\s]?\d{3})/i);
+        if (sl && sl[1].trim().length >= 4) { m5 = sl[1].trim(); break; }
+        // Linha anterior ao bloco de CNPJ
+        if (i > 0) {
+          const prev = _lines[i - 1];
+          if (prev.length >= 4 && /[A-Za-zÀ-ÿ]{2,}/.test(prev) && !/^\d{2}[\/\.]/.test(prev))
+            { m5 = prev; break; }
+        }
+      }
+    }
 
     if      (m1) nome = m1[1];
-    else if (m2) nome = m2[1];
     else if (m3) nome = m3[1];
+    else if (m5) nome = m5;
     else if (m4) nome = m4[1];
 
     if (nome) {

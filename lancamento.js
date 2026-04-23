@@ -73,7 +73,7 @@ function showPage(page) {
   const titles = { home: 'Home', lancamentos: 'Entradas', saidas: 'Saídas', relatorios: 'Relatórios', caixa: 'Caixa', dashboard: 'Dashboard' };
   document.getElementById('topbarTitle').textContent = titles[page] || 'IETEB';
 
-  if (page === 'home')       initHome();
+  if (page === 'home')       { window.scrollTo(0, 0); initHome(); }
   if (page === 'relatorios') carregarRelatorio();
   if (page === 'caixa')      initCaixa();
   if (page === 'dashboard')  initDashboard();
@@ -2240,6 +2240,7 @@ function confirmarLogout() {
       <div class="ls-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Todos os direitos reservados</div>
     </div>`;
   document.body.appendChild(ls);
+  window.scrollTo(0, 0);
   requestAnimationFrame(() => {
     requestAnimationFrame(() => ls.classList.remove('ls--exit'));
   });
@@ -2255,7 +2256,7 @@ function handleLogin(e) {
     sessionStorage.setItem('ieteb_auth', '1');
     const screen = document.getElementById('loginScreen');
     screen.classList.add('ls--exit');
-    setTimeout(() => screen.remove(), 520);
+    setTimeout(() => { screen.remove(); window.scrollTo(0, 0); }, 520);
   } else {
     errEl.textContent = 'Usuário ou senha incorretos. Tente novamente.';
     const card = document.getElementById('loginCard');

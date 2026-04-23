@@ -2360,11 +2360,24 @@ body {
 
 /* ── Footer ── */
 .home-footer {
+  position: fixed;
+  bottom: 0;
+  left: var(--sidebar-w);
+  right: 0;
   text-align: center;
   font-size: .72rem;
   color: var(--text-light);
-  padding: 12px 0 4px;
+  padding: 10px 16px;
   letter-spacing: .04em;
+  background: var(--gray-100);
+  border-top: 1px solid var(--gray-200);
+  z-index: 50;
+}
+
+#pageHome { padding-bottom: 52px; }
+
+@media (max-width: 768px) {
+  .home-footer { left: 0; }
 }
 
 /* ── Responsive ── */

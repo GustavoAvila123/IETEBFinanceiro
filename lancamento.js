@@ -1934,12 +1934,17 @@ function extractFieldsFromNF(text) {
   const full   = text;
   const lower  = full.toLowerCase();
 
-  // ── VALOR: prioridade "valor total/pago R$", depois fallback ────────────
-  const valorMatch =
+  // ── VALOR: prioridade "valor total/pago", depois último R$ no doc ────────
+  const vExato =
     full.match(/valor\s+(?:total|pago|a\s+pagar)\s+r?\$?\s*([\d.,]+)/i) ||
-    full.match(/total\s+(?:a\s+pagar|geral)?\s*r?\$?\s*[:\-]?\s*([\d.,]+)/i) ||
-    full.match(/R\$\s*([\d.,]+)/i);
-  if (valorMatch) result.valor = 'R$ ' + valorMatch[1].trim();
+    full.match(/total\s+(?:a\s+pagar|geral)?\s*r?\$?\s*[:\-]?\s*([\d.,]+)/i);
+  if (vExato) {
+    result.valor = 'R$ ' + vExato[1].trim();
+  } else {
+    // Pega TODOS os valores monetários e usa o último (geralmente o total da NF)
+    const todos = [...full.matchAll(/R?\$\s*([\d]{1,6}[.,]\d{2})/g)];
+    if (todos.length) result.valor = 'R$ ' + todos[todos.length - 1][1].trim();
+  }
 
   // Data
   const dataMatch =
@@ -1958,25 +1963,51 @@ function extractFieldsFromNF(text) {
     }
   }
 
-  // Hora
+  // ── HORA: prioriza timestamp NF (DD/MM/YYYY HH:MM) ──────────────────────
   const horaMatch =
-    full.match(/\b(\d{1,2})h(\d{2})\b/i)                     ||
-    full.match(/[àa]s\s+(\d{1,2}):(\d{2})/i)                 ||
-    full.match(/\d{2}\/\d{2}\/\d{4}[T\s,]+(\d{2}):(\d{2})/) ||
+    full.match(/\d{2}\/\d{2}\/\d{4}[\sT,]+(\d{2}):(\d{2})/) ||  // NF: "18/04/2026 20:54"
+    full.match(/\d{4}-\d{2}-\d{2}[\sT]+(\d{2}):(\d{2})/)    ||  // ISO
+    full.match(/\b(\d{1,2})h(\d{2})\b/i)                     ||  // "10h39"
+    full.match(/[àa]s\s+(\d{1,2}):(\d{2})/i)                 ||  // "às 17:26"
     full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i);
   if (horaMatch && horaMatch[1] && horaMatch[2]) {
     result.hora = String(horaMatch[1]).padStart(2,'0') + ':' + String(horaMatch[2]).padStart(2,'0');
   }
 
-  // ── FORNECEDOR: nome antes OU depois do CNPJ / Razão Social ─────────────
-  const fornecedorMatch =
-    full.match(/([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'"|-]{3,60})\s+(?:CNPJ|CNPE|CNPI)\s*[:.]?\s*\d/i) ||
-    full.match(/CNPJ\s*[:.]?\s*[\d.\/\-]+\s+([A-Z][A-Z0-9 &.,']{3,60})/i)                           ||
-    full.match(/([A-Z][A-Z0-9 &.,'-]{2,60})\s*\n[\s\S]{0,80}?(?:CNPJ|CNPI)/im)                      ||
-    full.match(/raz[aã]o\s+social\s*[:\-]?\s*([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'|-]{2,60})/i);
-  if (fornecedorMatch && fornecedorMatch[1]) {
-    const nome = fornecedorMatch[1].trim().replace(/^[\s|;"'(]+|[\s|;"')=]+$/g, '');
-    if (nome.length >= 2) result.fornecedor = toTitleCase(nome);
+  // ── FORNECEDOR: múltiplas estratégias em cascata ─────────────────────────
+  {
+    const lines = full.split(/\n/).map(l => l.trim()).filter(Boolean);
+    let nome = null;
+
+    // 1. Nome antes do CNPJ na mesma linha
+    const m1 = full.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'"|-]{3,60})\s+(?:CNPJ|CPF)\s*[:.]?\s*[\d]/i);
+    // 2. Nome após número de CNPJ na mesma linha: "CNPJ: XX... NOME"
+    const m2 = full.match(/(?:CNPJ|CPF)\s*[:.]?\s*[\d.\/\-]+\s+([A-Z][A-Z0-9 &.,']{3,60})/i);
+    // 3. Razão Social explícita
+    const m3 = full.match(/raz[aã]o\s+social\s*[:\-]?\s*([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'|-]{2,60})/i);
+    // 4. Nome com sufixo jurídico (LTDA, ME, EIRELI, S.A., etc.)
+    const m4 = full.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,']{2,55}(?:\s+(?:LTDA|ME|EPP|EIRELI|S\.?A\.?|S\/A|MICROEMPRESA)))/i);
+
+    if      (m1) nome = m1[1];
+    else if (m2) nome = m2[1];
+    else if (m3) nome = m3[1];
+    else if (m4) nome = m4[1];
+    else {
+      // 5. Fallback: primeira linha das 6 iniciais que parece nome de empresa
+      //    (≥2 palavras, maiúsculas, sem números sozinhos)
+      for (const line of lines.slice(0, 6)) {
+        if (line.length >= 4 && /^[A-ZÀ-ÿ]/i.test(line) && !/^\d/.test(line) &&
+            line.split(/\s+/).length >= 2 && !/^\s*\d{2}[.\/]/.test(line)) {
+          nome = line;
+          break;
+        }
+      }
+    }
+
+    if (nome) {
+      const n = nome.trim().replace(/^[\s|;"'(]+|[\s|;"')=]+$/g, '');
+      if (n.length >= 3) result.fornecedor = toTitleCase(n);
+    }
   }
 
   // ── FORMA DE PAGAMENTO: cartão crédito/débito, pix, dinheiro ─────────────

@@ -2231,6 +2231,14 @@ body {
   .btn-camera { display: flex; }
 }
 
+/* ── Campo Hora (type=time): força mesma altura dos outros inputs ── */
+@media (max-width: 1024px) {
+  input[type="time"].form-input {
+    min-height: 44px;
+    line-height: 1.4;
+  }
+}
+
 /* ── Evita zoom automático em campos no iOS/Android ── */
 @media (max-width: 1024px) {
   input, select, textarea, button {

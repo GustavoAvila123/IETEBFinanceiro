@@ -83,6 +83,54 @@ function saveToFirestore(colName, data) {
   }
 }
 
+function deleteFromFirestore(colName, id) {
+  if (!_db) return;
+  _db.collection(colName).doc(String(id)).delete()
+    .catch(e => console.warn('Firestore delete error:', e));
+}
+
+async function loadFromFirestore() {
+  if (!_db) { initHome(); return; }
+  try {
+    const [entSnap, saiSnap] = await Promise.all([
+      _db.collection('Entradas').get(),
+      _db.collection('Saídas').get()
+    ]);
+
+    // Entradas — preserva comprovantes locais
+    const localEnt = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
+    const localEntMap = {};
+    localEnt.forEach(r => { localEntMap[r.id] = r; });
+
+    const fsEntradas = entSnap.docs.map(d => {
+      const doc = d.data();
+      if (localEntMap[doc.id] && localEntMap[doc.id].comprovante)
+        doc.comprovante = localEntMap[doc.id].comprovante;
+      return doc;
+    });
+    fsEntradas.sort((a, b) => b.id - a.id);
+    localStorage.setItem('ieteb_lancamentos', JSON.stringify(fsEntradas));
+
+    // Saídas — preserva comprovantes locais
+    const localSai = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
+    const localSaiMap = {};
+    localSai.forEach(r => { localSaiMap[r.id] = r; });
+
+    const fsSaidas = saiSnap.docs.map(d => {
+      const doc = d.data();
+      if (localSaiMap[doc.id] && localSaiMap[doc.id].comprovante)
+        doc.comprovante = localSaiMap[doc.id].comprovante;
+      return doc;
+    });
+    fsSaidas.sort((a, b) => b.id - a.id);
+    localStorage.setItem('ieteb_saidas', JSON.stringify(fsSaidas));
+
+  } catch (e) {
+    console.warn('Firestore load error:', e);
+  }
+  initHome();
+}
+
 // ── Estado ────────────────────────────────────────────────────────────────────
 let currentFile       = null;
 let currentFileDataUrl= null;
@@ -1319,10 +1367,12 @@ function pedirExclusao(idx) {
 
 function confirmarExclusao() {
   if (deleteTargetId === null) return;
+  const colName    = tipoRelatorio === 'saidas' ? 'Saídas' : 'Entradas';
   const storageKey = tipoRelatorio === 'saidas' ? 'ieteb_saidas' : 'ieteb_lancamentos';
   const todos = JSON.parse(localStorage.getItem(storageKey) || '[]');
   const novos = todos.filter(l => l.id !== deleteTargetId);
   localStorage.setItem(storageKey, JSON.stringify(novos));
+  deleteFromFirestore(colName, deleteTargetId);
   deleteTargetId = null;
   closeDeleteModal();
   carregarRelatorio();
@@ -2318,7 +2368,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initFirebase();
   initAlunosContainer();
-  initHome();
+  loadFromFirestore();
 
   // Esc fecha modal e sidebar
   document.addEventListener('keydown', e => {

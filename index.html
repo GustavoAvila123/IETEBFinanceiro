@@ -85,7 +85,7 @@
 
       </form>
 
-      <div class="ls-footer">IETEB &copy; 2025 &nbsp;·&nbsp; Todos os direitos reservados</div>
+      <div class="ls-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Todos os direitos reservados</div>
 
     </div>
   </div>
@@ -104,7 +104,15 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item nav-item--active" id="navLancamentos" onclick="showPage('lancamentos')">
+      <button class="nav-item nav-item--active" id="navHome" onclick="showPage('home')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </button>
+
+      <button class="nav-item" id="navLancamentos" onclick="showPage('lancamentos')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
         </svg>
@@ -176,9 +184,163 @@
     </header>
 
     <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: HOME
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="page-content" id="pageHome">
+
+      <!-- Hero -->
+      <div class="home-hero">
+        <div class="home-hero-left">
+          <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="home-hero-logo" />
+          <div class="home-hero-text">
+            <h1 class="home-greeting" id="homeGreeting">Olá!</h1>
+            <p class="home-date" id="homeDate">—</p>
+          </div>
+        </div>
+        <span class="home-hero-badge">Sistema Financeiro</span>
+      </div>
+
+      <!-- Stats do mês -->
+      <div class="home-stats">
+        <div class="home-stat home-stat--entrada">
+          <div class="home-stat-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+            </svg>
+          </div>
+          <div>
+            <div class="home-stat-label">Entradas do Mês</div>
+            <div class="home-stat-value" id="homeStatEntradas">R$ 0,00</div>
+          </div>
+        </div>
+        <div class="home-stat home-stat--saida">
+          <div class="home-stat-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+            </svg>
+          </div>
+          <div>
+            <div class="home-stat-label">Saídas do Mês</div>
+            <div class="home-stat-value" id="homeStatSaidas">R$ 0,00</div>
+          </div>
+        </div>
+        <div class="home-stat home-stat--saldo">
+          <div class="home-stat-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+          </div>
+          <div>
+            <div class="home-stat-label">Saldo do Mês</div>
+            <div class="home-stat-value" id="homeStatSaldo">R$ 0,00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Módulos -->
+      <h2 class="home-section-title">Módulos do Sistema</h2>
+      <div class="home-modules">
+
+        <div class="home-module-card" onclick="showPage('lancamentos')">
+          <div class="home-module-icon home-module-icon--entrada">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+          </div>
+          <div class="home-module-body">
+            <h3 class="home-module-title">Entradas</h3>
+            <p class="home-module-desc">Registre comprovantes e pagamentos recebidos</p>
+          </div>
+          <div class="home-module-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="home-module-card" onclick="showPage('saidas')">
+          <div class="home-module-icon home-module-icon--saida">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+            </svg>
+          </div>
+          <div class="home-module-body">
+            <h3 class="home-module-title">Saídas</h3>
+            <p class="home-module-desc">Lance despesas, NF de fornecedores e professores</p>
+          </div>
+          <div class="home-module-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="home-module-card" onclick="showPage('relatorios')">
+          <div class="home-module-icon home-module-icon--relatorio">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+          </div>
+          <div class="home-module-body">
+            <h3 class="home-module-title">Relatórios</h3>
+            <p class="home-module-desc">Consulte e exporte relatórios de entradas e saídas</p>
+          </div>
+          <div class="home-module-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="home-module-card" onclick="showPage('caixa')">
+          <div class="home-module-icon home-module-icon--caixa">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+          </div>
+          <div class="home-module-body">
+            <h3 class="home-module-title">Caixa</h3>
+            <p class="home-module-desc">Controle o saldo mensal em mãos e em conta</p>
+          </div>
+          <div class="home-module-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="home-module-card" onclick="showPage('dashboard')">
+          <div class="home-module-icon home-module-icon--dashboard">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </div>
+          <div class="home-module-body">
+            <h3 class="home-module-title">Dashboard</h3>
+            <p class="home-module-desc">Visualize gráficos de entradas por curso e despesas</p>
+          </div>
+          <div class="home-module-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </div>
+        </div>
+
+      </div><!-- /home-modules -->
+
+      <div class="home-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Centro Educacional Teológico</div>
+
+    </main>
+    <!-- /pageHome -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
          PÁGINA: LANÇAMENTOS
     ════════════════════════════════════════════════════════════════════════ -->
-    <main class="page-content" id="pageLancamentos">
+    <main class="page-content page-content--hidden" id="pageLancamentos">
       <div class="content-header">
         <h1 class="page-title">Lançamento de Entradas</h1>
         <p class="page-desc">Registre manualmente ou envie o comprovante de pagamento.</p>

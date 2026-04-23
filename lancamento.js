@@ -64,23 +64,50 @@ let nextAlunoId       = 0;
 // NAVEGAÇÃO
 // ═══════════════════════════════════════════════════════════════════════════════
 function showPage(page) {
-  document.getElementById('pageLancamentos').classList.toggle('page-content--hidden', page !== 'lancamentos');
-  document.getElementById('pageSaidas').classList.toggle('page-content--hidden', page !== 'saidas');
-  document.getElementById('pageRelatorios').classList.toggle('page-content--hidden', page !== 'relatorios');
-  document.getElementById('pageCaixa').classList.toggle('page-content--hidden', page !== 'caixa');
-  document.getElementById('pageDashboard').classList.toggle('page-content--hidden', page !== 'dashboard');
-  document.getElementById('navLancamentos').classList.toggle('nav-item--active', page === 'lancamentos');
-  document.getElementById('navSaidas').classList.toggle('nav-item--active', page === 'saidas');
-  document.getElementById('navRelatorios').classList.toggle('nav-item--active', page === 'relatorios');
-  document.getElementById('navCaixa').classList.toggle('nav-item--active', page === 'caixa');
-  document.getElementById('navDashboard').classList.toggle('nav-item--active', page === 'dashboard');
-  const titles = { lancamentos: 'Entradas', saidas: 'Saídas', relatorios: 'Relatórios', caixa: 'Caixa', dashboard: 'Dashboard' };
+  ['home','lancamentos','saidas','relatorios','caixa','dashboard'].forEach(p => {
+    document.getElementById('page' + p.charAt(0).toUpperCase() + p.slice(1))
+      .classList.toggle('page-content--hidden', p !== page);
+    document.getElementById('nav'  + p.charAt(0).toUpperCase() + p.slice(1))
+      .classList.toggle('nav-item--active', p === page);
+  });
+  const titles = { home: 'Home', lancamentos: 'Entradas', saidas: 'Saídas', relatorios: 'Relatórios', caixa: 'Caixa', dashboard: 'Dashboard' };
   document.getElementById('topbarTitle').textContent = titles[page] || 'IETEB';
 
+  if (page === 'home')       initHome();
   if (page === 'relatorios') carregarRelatorio();
   if (page === 'caixa')      initCaixa();
   if (page === 'dashboard')  initDashboard();
   closeSidebar();
+}
+
+function initHome() {
+  const now  = new Date();
+  const h    = now.getHours();
+  const gr   = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  document.getElementById('homeGreeting').textContent = `${gr}, Admin!`;
+  document.getElementById('homeDate').textContent = now.toLocaleDateString('pt-BR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+
+  const year  = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const ini   = `${year}-${month}-01`;
+  const fim   = `${year}-${month}-${String(new Date(year, now.getMonth() + 1, 0).getDate()).padStart(2, '0')}`;
+
+  const entradas = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]')
+    .filter(i => i.dataDeposito >= ini && i.dataDeposito <= fim);
+  const saidas   = JSON.parse(localStorage.getItem('ieteb_saidas')      || '[]')
+    .filter(i => i.data >= ini && i.data <= fim);
+
+  const totalE = entradas.reduce((s, i) => s + parseBRL(i.valor), 0);
+  const totalS = saidas.reduce((s, i) => s + parseBRL(i.valor), 0);
+  const saldo  = totalE - totalS;
+
+  document.getElementById('homeStatEntradas').textContent = `R$ ${formatBRL(totalE)}`;
+  document.getElementById('homeStatSaidas').textContent   = `R$ ${formatBRL(totalS)}`;
+  const saldoEl = document.getElementById('homeStatSaldo');
+  saldoEl.textContent = `R$ ${formatBRL(saldo)}`;
+  saldoEl.style.color = saldo >= 0 ? '' : 'var(--danger)';
 }
 
 function openSidebar() {
@@ -2210,7 +2237,7 @@ function confirmarLogout() {
           </svg>
         </button>
       </form>
-      <div class="ls-footer">IETEB &copy; 2025 &nbsp;·&nbsp; Todos os direitos reservados</div>
+      <div class="ls-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Todos os direitos reservados</div>
     </div>`;
   document.body.appendChild(ls);
   requestAnimationFrame(() => {
@@ -2255,6 +2282,7 @@ function toggleLoginPw() {
 document.addEventListener('DOMContentLoaded', () => {
 
   initAlunosContainer();
+  initHome();
 
   // Esc fecha modal e sidebar
   document.addEventListener('keydown', e => {

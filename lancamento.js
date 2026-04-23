@@ -286,7 +286,7 @@ function unlockPayment() {
 }
 
 function selectPayment(btn) {
-  document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('payment-btn--active'));
+  document.querySelectorAll('#paymentTypes .payment-btn').forEach(b => b.classList.remove('payment-btn--active'));
   btn.classList.add('payment-btn--active');
   document.getElementById('formaPagamento').value = btn.dataset.value;
   document.getElementById('pagamentoError').textContent = '';
@@ -797,7 +797,7 @@ function confirmarOcr() {
     document.getElementById('valorEntrada').value = ocrExtracted.valor.replace('R$ ', '');
   }
   if (ocrExtracted.formaPagamento) {
-    document.querySelectorAll('.payment-btn').forEach(btn => {
+    document.querySelectorAll('#paymentTypes .payment-btn').forEach(btn => {
       if (btn.dataset.value === ocrExtracted.formaPagamento) selectPayment(btn);
     });
   }

@@ -1934,16 +1934,22 @@ function extractFieldsFromNF(text) {
   const full   = text;
   const lower  = full.toLowerCase();
 
-  // ── VALOR: prioridade "valor total/pago", depois último R$ no doc ────────
+  // ── VALOR: padrões específicos + fallback pelo maior número XX,XX ─────────
   const vExato =
-    full.match(/valor\s+(?:total|pago|a\s+pagar)\s+r?\$?\s*([\d.,]+)/i) ||
-    full.match(/total\s+(?:a\s+pagar|geral)?\s*r?\$?\s*[:\-]?\s*([\d.,]+)/i);
+    full.match(/valor\s+(?:total|pago|a\s+pagar)\s+r?[s$5]?\s*([0-9]{1,6}[,\.][0-9]{2})/i) ||
+    full.match(/total\s+(?:a\s+pagar|geral)?\s*r?[s$5]?\s*[:\-]?\s*([0-9]{1,6}[,\.][0-9]{2})/i) ||
+    full.match(/r?\$\s*([0-9]{1,6}[,\.][0-9]{2})/i);
   if (vExato) {
     result.valor = 'R$ ' + vExato[1].trim();
   } else {
-    // Pega TODOS os valores monetários e usa o último (geralmente o total da NF)
-    const todos = [...full.matchAll(/R?\$\s*([\d]{1,6}[.,]\d{2})/g)];
-    if (todos.length) result.valor = 'R$ ' + todos[todos.length - 1][1].trim();
+    // Fallback: pega TODOS os valores no formato XX,XX e usa o MAIOR (total)
+    const todos = [...full.matchAll(/\b([0-9]{1,6},[0-9]{2})\b/g)]
+      .map(m => parseFloat(m[1].replace(',', '.')))
+      .filter(v => v > 1);
+    if (todos.length) {
+      const maior = Math.max(...todos);
+      result.valor = 'R$ ' + maior.toFixed(2).replace('.', ',');
+    }
   }
 
   // Data
@@ -1976,7 +1982,6 @@ function extractFieldsFromNF(text) {
 
   // ── FORNECEDOR: múltiplas estratégias em cascata ─────────────────────────
   {
-    const lines = full.split(/\n/).map(l => l.trim()).filter(Boolean);
     let nome = null;
 
     // 1. Nome antes do CNPJ na mesma linha
@@ -1992,17 +1997,6 @@ function extractFieldsFromNF(text) {
     else if (m2) nome = m2[1];
     else if (m3) nome = m3[1];
     else if (m4) nome = m4[1];
-    else {
-      // 5. Fallback: primeira linha das 6 iniciais que parece nome de empresa
-      //    (≥2 palavras, maiúsculas, sem números sozinhos)
-      for (const line of lines.slice(0, 6)) {
-        if (line.length >= 4 && /^[A-ZÀ-ÿ]/i.test(line) && !/^\d/.test(line) &&
-            line.split(/\s+/).length >= 2 && !/^\s*\d{2}[.\/]/.test(line)) {
-          nome = line;
-          break;
-        }
-      }
-    }
 
     if (nome) {
       const n = nome.trim().replace(/^[\s|;"'(]+|[\s|;"')=]+$/g, '');
@@ -2026,11 +2020,10 @@ function parseAndShowOcrSaida(text) {
   ocrExtractedSaida = extracted;
 
   const labels = {
-    fornecedor:    'Fornecedor',
-    valor:         'Valor',
-    data:          'Data',
-    hora:          'Hora',
-    formaPagamento:'Forma de Pagamento',
+    fornecedor: 'Fornecedor',
+    valor:      'Valor',
+    data:       'Data',
+    hora:       'Hora',
   };
 
   document.getElementById('ocrSummarySaida').innerHTML = Object.keys(labels).map(k =>
@@ -2049,11 +2042,6 @@ function confirmarOcrSaida() {
   if (ocrExtractedSaida.valor)          document.getElementById('saidaValor').value = ocrExtractedSaida.valor.replace('R$ ', '');
   if (ocrExtractedSaida.data)           setInput('saidaData', isoToDateInput(ocrExtractedSaida.data));
   if (ocrExtractedSaida.hora)           setInput('saidaHora', ocrExtractedSaida.hora);
-  if (ocrExtractedSaida.formaPagamento) {
-    document.querySelectorAll('#paymentTypesSaida .payment-btn').forEach(btn => {
-      if (btn.dataset.value === ocrExtractedSaida.formaPagamento) selectPaymentSaida(btn);
-    });
-  }
   switchTabSaida('manual');
   showToast('Formulário preenchido! Revise os dados e salve.', 'success');
 }

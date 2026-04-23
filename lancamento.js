@@ -88,11 +88,39 @@ async function uploadComprovante(colName, id, dataUrl) {
   }
 }
 
-function saveToFirestore(colName, data) {
+// Comprime imagem para caber no limite de 1 MB do Firestore.
+// Tenta 800px/65% primeiro; se ainda for grande, 600px/50%.
+function compressImage(dataUrl) {
+  const LIMIT = 400000;
+  if (!dataUrl) return Promise.resolve(null);
+  if (dataUrl.startsWith('data:application/pdf'))
+    return Promise.resolve(dataUrl.length < LIMIT ? dataUrl : null);
+  const tryC = (maxW, q) => new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      const s = Math.min(1, maxW / Math.max(img.width, 1));
+      c.width  = Math.round(img.width  * s);
+      c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      const out = c.toDataURL('image/jpeg', q);
+      res(out.length < LIMIT ? out : null);
+    };
+    img.onerror = () => res(null);
+    img.src = dataUrl;
+  });
+  return tryC(800, 0.65).then(r => r || tryC(600, 0.50));
+}
+
+async function saveToFirestore(colName, data) {
   if (!_db) return;
   try {
     const { comprovante, ...doc } = data;
-    if (comprovante) doc.temComprovante = true;
+    doc.temComprovante = !!comprovante;
+    if (comprovante) {
+      const compressed = await compressImage(comprovante);
+      if (compressed) doc.comprovante = compressed;
+    }
     _db.collection(colName).doc(String(doc.id)).set(doc)
       .catch(e => console.warn('Firestore write error:', e));
   } catch (e) {
@@ -988,10 +1016,7 @@ function salvarLancamento() {
 
   novosRegistros.forEach(r => existing.unshift(r));
   localStorage.setItem('ieteb_lancamentos', JSON.stringify(existing));
-  novosRegistros.forEach(r => {
-    saveToFirestore('Entradas', r);
-    if (r.comprovante) uploadComprovante('Entradas', r.id, r.comprovante);
-  });
+  novosRegistros.forEach(r => saveToFirestore('Entradas', r));
 
   const msg = alunos.length > 1
     ? `${alunos.length} lançamentos salvos com sucesso!`
@@ -2053,7 +2078,6 @@ function salvarSaida() {
   existing.unshift(registro);
   localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
   saveToFirestore('Saídas', registro);
-  if (registro.comprovante) uploadComprovante('Saídas', registro.id, registro.comprovante);
 
   showToast('Saída salva com sucesso!', 'success');
   limparSaida();

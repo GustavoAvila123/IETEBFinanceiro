@@ -1849,8 +1849,11 @@ function handleFileSaida(file) {
     };
     reader.readAsDataURL(file);
   } else {
+    // PDF: ler como data URL para salvar no registro e sincronizar via Firestore
     img.style.display = 'none';
-    currentFileDataUrlSaida = null;
+    const reader = new FileReader();
+    reader.onload = e => { currentFileDataUrlSaida = e.target.result; };
+    reader.readAsDataURL(file);
   }
 
   document.getElementById('btnLerNF').style.display = 'flex';

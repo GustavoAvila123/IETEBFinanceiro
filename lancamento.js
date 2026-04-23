@@ -199,13 +199,17 @@ function showPage(page) {
     document.getElementById('nav'  + p.charAt(0).toUpperCase() + p.slice(1))
       .classList.toggle('nav-item--active', p === page);
   });
-  const titles = { home: 'Home', lancamentos: 'Entradas', saidas: 'Saídas', relatorios: 'Relatórios', caixa: 'Caixa', dashboard: 'Dashboard' };
+  const titles = { home: 'Home', lancamentos: 'Entradas', saidas: 'Saídas', relatorios: 'Relatórios', caixa: 'Tesouraria', dashboard: 'Dashboard' };
   document.getElementById('topbarTitle').textContent = titles[page] || 'IETEB';
 
-  if (page === 'home')       { window.scrollTo(0, 0); initHome(); }
-  if (page === 'relatorios') carregarRelatorio();
-  if (page === 'caixa')      initCaixa();
-  if (page === 'dashboard')  initDashboard();
+  window.scrollTo(0, 0);
+
+  if (page === 'home')        initHome();
+  if (page === 'lancamentos') { switchTab('manual'); removeFile(); }
+  if (page === 'saidas')      { switchTabSaida('manual'); removeFileSaida(); }
+  if (page === 'relatorios')  carregarRelatorio();
+  if (page === 'caixa')       initCaixa();
+  if (page === 'dashboard')   initDashboard();
   closeSidebar();
 }
 
@@ -1731,12 +1735,12 @@ function renderCaixa() {
   // Card Saldo Anterior
   document.getElementById('caixaSaldoAnteriorDisplay').innerHTML = `
     <div class="caixa-anterior-item">
-      <div class="caixa-saldo-item-label">Em Mãos (Dinheiro)</div>
+      <div class="caixa-saldo-item-label">Dinheiro Físico</div>
       <div class="caixa-saldo-item-value ${cls(antMaos)}" style="font-size:1.1rem">R$ ${formatBRL(antMaos)}</div>
     </div>
     <div class="caixa-anterior-sep"></div>
     <div class="caixa-anterior-item">
-      <div class="caixa-saldo-item-label">Em Conta (Pix / Déb / Créd)</div>
+      <div class="caixa-saldo-item-label">C/C (Pix / Déb / Créd)</div>
       <div class="caixa-saldo-item-value ${cls(antConta)}" style="font-size:1.1rem">R$ ${formatBRL(antConta)}</div>
     </div>
     <div class="caixa-anterior-sep"></div>
@@ -1762,11 +1766,11 @@ function renderCaixa() {
   // Card Saldo Atual
   document.getElementById('caixaSaldoAtual').innerHTML = `
     <div class="caixa-saldo-item">
-      <div class="caixa-saldo-item-label">Em Mãos (Dinheiro)</div>
+      <div class="caixa-saldo-item-label">Dinheiro Físico</div>
       <div class="caixa-saldo-item-value ${cls(saldoMaos)}">R$ ${formatBRL(saldoMaos)}</div>
     </div>
     <div class="caixa-saldo-item">
-      <div class="caixa-saldo-item-label">Em Conta (Pix / Débito / Crédito)</div>
+      <div class="caixa-saldo-item-label">C/C (Pix / Débito / Crédito)</div>
       <div class="caixa-saldo-item-value ${cls(saldoConta)}">R$ ${formatBRL(saldoConta)}</div>
     </div>
     <div class="caixa-saldo-item caixa-saldo-item--total">

@@ -1947,14 +1947,55 @@ async function extrairDoPdfSaida() {
   }
   const arrayBuffer = await currentFileSaida.arrayBuffer();
   const pdf         = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  let   fullText    = '';
+
+  // 1. Tenta extração de texto nativo (funciona para PDFs digitais)
+  let fullText = '';
   for (let i = 1; i <= pdf.numPages; i++) {
     const page    = await pdf.getPage(i);
     const content = await page.getTextContent();
     fullText += content.items.map(item => item.str).join(' ') + '\n';
   }
+
+  if (fullText.trim().length > 50) {
+    // PDF com texto nativo — usar diretamente
+    setOcrStatusSaida(false);
+    parseAndShowOcrSaida(fullText);
+    return;
+  }
+
+  // 2. PDF é imagem escaneada (WhatsApp scan, foto convertida) — renderizar e fazer OCR
+  setOcrStatusSaida(true, 'Processando imagem do PDF...');
+  const page     = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale: 2.5 });
+  const canvas   = document.createElement('canvas');
+  canvas.width   = viewport.width;
+  canvas.height  = viewport.height;
+  const ctx = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+
+  // Converte para grayscale para melhorar OCR
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const d = imgData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const gray = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+    d[i] = d[i + 1] = d[i + 2] = gray;
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  if (typeof Tesseract === 'undefined') {
+    await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+  }
+  setOcrStatusSaida(true, 'Lendo nota fiscal...');
+  const result = await Tesseract.recognize(canvas, 'por', {
+    logger: m => {
+      if (m.status === 'recognizing text') {
+        const pct = Math.round((m.progress || 0) * 100);
+        setOcrStatusSaida(true, `Lendo nota fiscal... ${pct}%`);
+      }
+    }
+  });
   setOcrStatusSaida(false);
-  parseAndShowOcrSaida(fullText);
+  parseAndShowOcrSaida(result.data.text);
 }
 
 function extractFieldsFromNF(text) {

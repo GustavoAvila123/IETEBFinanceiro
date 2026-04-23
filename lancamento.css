@@ -2098,3 +2098,36 @@ body {
 }
 
 .logout-confirm-btn:hover { background: #c53030; }
+
+/* ── Botão câmera (somente mobile < 1024px) ── */
+.btn-camera {
+  display: none; /* oculto em desktop */
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 13px 18px;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+  border: 1.5px solid rgba(212,175,55,.35);
+  border-radius: var(--radius);
+  color: var(--white);
+  font-size: .92rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, transform .12s, box-shadow .18s;
+  box-shadow: 0 3px 14px rgba(6,15,46,.18);
+}
+
+.btn-camera:hover {
+  border-color: var(--gold);
+  box-shadow: 0 4px 18px rgba(212,175,55,.22);
+  transform: translateY(-1px);
+}
+
+.btn-camera:active { transform: translateY(0); }
+
+@media (max-width: 1024px) {
+  .btn-camera { display: flex; }
+}

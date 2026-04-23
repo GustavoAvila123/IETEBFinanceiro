@@ -1742,6 +1742,14 @@ body {
   .caixa-saldo-anterior-body { flex-direction: column; }
 }
 
+@media (max-width: 1024px) {
+  .caixa-month-nav {
+    flex-direction: column;
+    align-items: center;
+  }
+  .caixa-day-filter { justify-content: center; }
+}
+
 /* ─── DASHBOARD ─── */
 .dash-summary {
   display: grid;

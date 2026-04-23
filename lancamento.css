@@ -2067,7 +2067,7 @@ body {
 .ls-eye:hover { color: var(--gold); }
 .ls-eye svg { width: 17px; height: 17px; }
 
-/* ── Error ── */
+/* ── Error geral ── */
 .ls-error {
   min-height: 20px;
   font-size: .82rem;
@@ -2075,6 +2075,17 @@ body {
   font-weight: 500;
   text-align: center;
   letter-spacing: .01em;
+}
+
+/* ── Erro por campo ── */
+.ls-field-error {
+  display: block;
+  font-size: .74rem;
+  color: #fc8181;
+  font-weight: 500;
+  margin-top: 5px;
+  min-height: 1em;
+  padding-left: 2px;
 }
 
 /* ── Button ── */

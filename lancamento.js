@@ -1831,9 +1831,8 @@ function onFileSelectedSaida(input) {
 }
 
 function handleFileSaida(file) {
-  const allowed = ['image/png','image/jpeg','image/jpg','image/gif','image/webp','application/pdf'];
-  if (!allowed.includes(file.type)) {
-    showToast('Formato não suportado. Use imagem ou PDF.', 'error');
+  if (file.type !== 'application/pdf') {
+    showToast('Envie o PDF da Nota Fiscal. Imagens não são suportadas nesta seção.', 'error');
     return;
   }
   currentFileSaida = file;
@@ -1871,16 +1870,12 @@ function removeFileSaida() {
 
 async function lerNF() {
   if (!currentFileSaida) return;
-  setOcrStatusSaida(true, 'Carregando arquivo...');
+  setOcrStatusSaida(true, 'Lendo PDF...');
   try {
-    if (currentFileSaida.type === 'application/pdf') {
-      await extrairDoPdfSaida();
-    } else {
-      await extrairDaImagemSaida();
-    }
+    await extrairDoPdfSaida();
   } catch (err) {
     setOcrStatusSaida(false);
-    showToast('Não foi possível ler a Nota Fiscal. Preencha manualmente.', 'error');
+    showToast('Não foi possível ler o PDF. Verifique o arquivo e tente novamente.', 'error');
     console.error(err);
   }
 }

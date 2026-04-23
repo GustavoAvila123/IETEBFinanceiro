@@ -633,7 +633,7 @@ function parseAndShowOcr(text) {
     </div>`
   ).join('');
 
-  document.getElementById('ocrModal').style.display = 'flex';
+  openModal('ocrModal');
 }
 
 function extractFieldsFromText(text) {
@@ -858,10 +858,7 @@ function confirmarOcr() {
   showToast('Formulário preenchido! Revise os dados e salve.', 'success');
 }
 
-function closeOcrModal(e) {
-  if (e && e.target !== document.getElementById('ocrModal')) return;
-  document.getElementById('ocrModal').style.display = 'none';
-}
+function closeOcrModal() { closeModal('ocrModal'); }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ALUNOS DINÂMICOS
@@ -1415,7 +1412,7 @@ function pedirExclusao(idx) {
   const item = filteredData[idx];
   if (!item) return;
   deleteTargetId = item.id;
-  document.getElementById('deleteModal').style.display = 'flex';
+  openModal('deleteModal');
 }
 
 function confirmarExclusao() {
@@ -1432,11 +1429,7 @@ function confirmarExclusao() {
   showToast('Registro excluído.', 'success');
 }
 
-function closeDeleteModal(e) {
-  if (e && e.target !== document.getElementById('deleteModal')) return;
-  document.getElementById('deleteModal').style.display = 'none';
-  deleteTargetId = null;
-}
+function closeDeleteModal() { closeModal('deleteModal'); deleteTargetId = null; }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MODAL COMPROVANTE
@@ -1445,7 +1438,6 @@ function verComprovante(idx) {
   const item = filteredData[idx];
   if (!item || !item.comprovante) return;
 
-  const modal   = document.getElementById('imgModal');
   const imgEl   = document.getElementById('imgModalImg');
   const pdfEl   = document.getElementById('imgModalPdf');
   const emptyEl = document.getElementById('imgModalEmpty');
@@ -1464,12 +1456,11 @@ function verComprovante(idx) {
     emptyEl.style.display = 'flex';
   }
 
-  modal.style.display = 'flex';
+  openModal('imgModal');
 }
 
-function closeImgModal(e) {
-  if (e && e.target !== document.getElementById('imgModal')) return;
-  document.getElementById('imgModal').style.display = 'none';
+function closeImgModal() {
+  closeModal('imgModal');
   document.getElementById('imgModalImg').src = '';
   document.getElementById('imgModalPdf').src = '';
 }
@@ -1506,14 +1497,32 @@ function setOcrStatus(show, text) {
   if (text) document.getElementById('ocrStatusText').textContent = text;
 }
 
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className   = 'toast' + (type ? ` toast--${type}` : '');
-  t.classList.add('toast--show');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('toast--show'), 3200);
+// ── Helpers de modal (scroll-lock + abertura/fechamento centralizado) ─────────
+function openModal(id) {
+  document.getElementById(id).style.display = 'flex';
+  document.body.classList.add('modal-open');
 }
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+  if (!document.querySelector('.modal-overlay[style*="flex"]')) {
+    document.body.classList.remove('modal-open');
+  }
+}
+
+// ── Modal de notificação (substitui toast) ────────────────────────────────────
+function showNotif(msg, type) {
+  const header = document.getElementById('notifModalHeader');
+  const title  = document.getElementById('notifModalTitle');
+  header.className = 'modal-header' + (type === 'error' ? ' modal-header--danger' : '');
+  title.textContent = type === 'error' ? 'Atenção' : type === 'success' ? 'Concluído' : 'Aviso';
+  document.getElementById('notifModalMsg').textContent = msg;
+  openModal('notifModal');
+}
+
+function closeNotifModal() { closeModal('notifModal'); }
+
+function showToast(msg, type = '') { showNotif(msg, type); }
 
 function escHtml(str) {
   return String(str)
@@ -1932,12 +1941,12 @@ async function extrairDaImagemSaida() {
   } catch (e) {
     console.warn('[OCR NF] Pré-processamento falhou, usando original:', e);
   }
-  setOcrStatusSaida(true, 'Lendo nota fiscal...');
+  setOcrStatusSaida(true, 'Lendo documento...');
   const result = await Tesseract.recognize(fileParaOcr, 'por', {
     logger: m => {
       if (m.status === 'recognizing text') {
         const pct = Math.round((m.progress || 0) * 100);
-        setOcrStatusSaida(true, `Lendo nota fiscal... ${pct}%`);
+        setOcrStatusSaida(true, `Lendo documento... ${pct}%`);
       }
     }
   });
@@ -1992,12 +2001,12 @@ async function extrairDoPdfSaida() {
   if (typeof Tesseract === 'undefined') {
     await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
   }
-  setOcrStatusSaida(true, 'Lendo nota fiscal...');
+  setOcrStatusSaida(true, 'Lendo documento...');
   const result = await Tesseract.recognize(canvas, 'por', {
     logger: m => {
       if (m.status === 'recognizing text') {
         const pct = Math.round((m.progress || 0) * 100);
-        setOcrStatusSaida(true, `Lendo nota fiscal... ${pct}%`);
+        setOcrStatusSaida(true, `Lendo documento... ${pct}%`);
       }
     }
   });
@@ -2133,7 +2142,7 @@ function parseAndShowOcrSaida(text) {
     </div>`
   ).join('');
 
-  document.getElementById('ocrModalSaida').style.display = 'flex';
+  openModal('ocrModalSaida');
 }
 
 function confirmarOcrSaida() {
@@ -2146,10 +2155,7 @@ function confirmarOcrSaida() {
   showToast('Formulário preenchido! Revise os dados e salve.', 'success');
 }
 
-function closeOcrModalSaida(e) {
-  if (e && e.target !== document.getElementById('ocrModalSaida')) return;
-  document.getElementById('ocrModalSaida').style.display = 'none';
-}
+function closeOcrModalSaida() { closeModal('ocrModalSaida'); }
 
 function setOcrStatusSaida(show, text) {
   const el = document.getElementById('ocrStatusSaida');
@@ -2424,18 +2430,15 @@ function renderChartSaidas(porCategoria) {
 })();
 
 function openLogoutModal() {
-  document.getElementById('logoutModal').style.display = 'flex';
+  openModal('logoutModal');
   closeSidebar();
 }
 
-function closeLogoutModal(e) {
-  if (e && e.target !== document.getElementById('logoutModal')) return;
-  document.getElementById('logoutModal').style.display = 'none';
-}
+function closeLogoutModal() { closeModal('logoutModal'); }
 
 function confirmarLogout() {
   sessionStorage.removeItem('ieteb_auth');
-  document.getElementById('logoutModal').style.display = 'none';
+  closeModal('logoutModal');
 
   // Reconstrói a tela de login e exibe com fade-in
   const ls = document.createElement('div');
@@ -2560,13 +2563,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       document.getElementById('churchDropdown').classList.remove('church-dropdown--open');
-      document.getElementById('ocrModal').style.display = 'none';
-      document.getElementById('ocrModalSaida').style.display = 'none';
+      closeModal('ocrModal');
+      closeModal('ocrModalSaida');
       closeImgModal();
       closeDeleteModal();
+      closeNotifModal();
       fecharFiltroDataModal();
-      document.getElementById('caixaDataModal').style.display = 'none';
-      document.getElementById('logoutModal').style.display = 'none';
+      closeModal('caixaDataModal');
+      closeLogoutModal();
       closeSidebar();
     }
   });

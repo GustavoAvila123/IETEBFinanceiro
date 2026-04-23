@@ -1162,6 +1162,8 @@ body {
 .toast--error   { border-left-color: var(--danger); }
 
 /* ─── MODAL ─── */
+body.modal-open { overflow: hidden; touch-action: none; }
+
 .modal-overlay {
   position: fixed;
   inset: 0;

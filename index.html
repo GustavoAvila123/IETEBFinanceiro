@@ -1103,7 +1103,7 @@
   </div>
 
   <!-- MODAL LOGOUT -->
-  <div class="modal-overlay" id="logoutModal" style="display:none" onclick="closeLogoutModal(event)">
+  <div class="modal-overlay" id="logoutModal" style="display:none">
     <div class="modal-card modal-card--sm logout-modal-card" onclick="event.stopPropagation()">
       <div class="logout-modal-icon">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -1134,7 +1134,7 @@
   <div class="toast" id="toast"></div>
 
   <!-- MODAL OCR SAÍDAS -->
-  <div class="modal-overlay" id="ocrModalSaida" style="display:none" onclick="closeOcrModalSaida(event)">
+  <div class="modal-overlay" id="ocrModalSaida" style="display:none">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h2 class="modal-title">Confirmar dados da Nota Fiscal</h2>
@@ -1149,7 +1149,7 @@
   </div>
 
   <!-- MODAL OCR -->
-  <div class="modal-overlay" id="ocrModal" style="display:none" onclick="closeOcrModal(event)">
+  <div class="modal-overlay" id="ocrModal" style="display:none">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h2 class="modal-title">Confirmar dados lidos</h2>
@@ -1164,7 +1164,7 @@
   </div>
 
   <!-- MODAL VISUALIZAR COMPROVANTE -->
-  <div class="modal-overlay" id="imgModal" style="display:none" onclick="closeImgModal(event)">
+  <div class="modal-overlay" id="imgModal" style="display:none">
     <div class="modal-img-card" onclick="event.stopPropagation()">
       <div class="modal-img-header">
         <span class="modal-img-title">Comprovante</span>
@@ -1183,7 +1183,7 @@
   </div>
 
   <!-- MODAL CONFIRMAÇÃO EXCLUSÃO -->
-  <div class="modal-overlay" id="deleteModal" style="display:none" onclick="closeDeleteModal(event)">
+  <div class="modal-overlay" id="deleteModal" style="display:none">
     <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
       <div class="modal-header modal-header--danger">
         <h2 class="modal-title">Excluir lançamento</h2>
@@ -1203,6 +1203,19 @@
           </svg>
           Excluir
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL NOTIFICAÇÃO (substitui toast) -->
+  <div class="modal-overlay" id="notifModal" style="display:none">
+    <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
+      <div class="modal-header" id="notifModalHeader">
+        <h2 class="modal-title" id="notifModalTitle">Aviso</h2>
+      </div>
+      <div style="padding:22px 26px 18px;font-size:.92rem;color:#4a5470;line-height:1.55" id="notifModalMsg"></div>
+      <div class="modal-footer" style="justify-content:center">
+        <button class="btn-primary" onclick="closeNotifModal()">Entendi</button>
       </div>
     </div>
   </div>

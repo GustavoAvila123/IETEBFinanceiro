@@ -2010,7 +2010,8 @@ function extractFieldsFromNF(text) {
     return isNaN(n) ? null : n;
   };
   const vExato =
-    full.match(/valor\s+(?:total|pago|[aà]\s+pagar)\s+r?[s$5]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
+    full.match(/valor\s+[aà]\s+pagar\s+r?[s$5]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
+    full.match(/valor\s+(?:total|pago)\s+r?[s$5]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
     full.match(/total\s+(?:[aà]\s+pagar|geral|nf[ae]?)?\s*r?[s$5]?\s*[:\-]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
     full.match(/r?[$s5]\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})\b/i);
   if (vExato) {

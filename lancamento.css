@@ -1286,68 +1286,6 @@ body {
   .report-export-btns { width: 100%; }
   .btn-export { flex: 1; justify-content: center; }
 
-  /* ─── TABELA → CARDS MOBILE ─── */
-  .table-wrap {
-    background: transparent;
-    box-shadow: none;
-    border-radius: 0;
-    overflow-x: visible;
-  }
-
-  .report-table { display: block; }
-  .report-table thead { display: none; }
-  .report-table tbody { display: flex; flex-direction: column; gap: 12px; }
-
-  .report-table tbody tr {
-    display: block;
-    background: var(--white);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    border: 1px solid var(--gray-200);
-    overflow: hidden;
-  }
-
-  .report-table td {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--gray-100);
-    white-space: normal;
-    word-break: break-word;
-    gap: 10px;
-    font-size: .84rem;
-    text-align: right;
-  }
-
-  .report-table td:last-child { border-bottom: none; }
-
-  .report-table td[data-label]::before {
-    content: attr(data-label);
-    font-size: .65rem;
-    font-weight: 700;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    flex-shrink: 0;
-    text-align: left;
-    min-width: 90px;
-  }
-
-  .report-table td.col-valor {
-    text-align: right;
-    font-size: .92rem;
-    font-weight: 700;
-    background: var(--gray-50);
-    color: var(--navy);
-  }
-
-  .report-table td:not([data-label]) {
-    justify-content: flex-end;
-    gap: 8px;
-    padding: 10px 14px 12px;
-  }
-
   .table-empty { padding: 32px 16px; }
 }
 
@@ -1357,6 +1295,148 @@ body {
   .ocr-row-label { min-width: unset; }
   .modal-card { margin: 0 4px; }
   .page-content { padding: 16px 12px 40px; }
+}
+
+/* ─── RELATÓRIOS: CARDS MOBILE/TABLET (≤1024px) ─── */
+@media (max-width: 1024px) {
+  /* Desfaz truncamentos do desktop */
+  .report-table td[data-label="Aluno"],
+  .report-table td[data-label="Curso"],
+  .report-table td[data-label="Igreja"],
+  .report-table td[data-label="Depositante"],
+  .report-table td[data-label="Recebedor"],
+  .report-table td[data-label="Fornecedor"],
+  .report-table td[data-label="Categoria"] {
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  /* Container */
+  .table-wrap {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    overflow-x: visible;
+  }
+
+  .report-table          { display: block; }
+  .report-table thead    { display: none; }
+  .report-table tbody    { display: flex; flex-direction: column; gap: 14px; }
+
+  /* Card */
+  .report-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 12px rgba(6,15,46,.10);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+  }
+
+  /* Base de todos os tds */
+  .report-table td {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--gray-100);
+    white-space: normal;
+    word-break: break-word;
+    gap: 12px;
+    font-size: .875rem;
+    text-align: right;
+    max-width: none;
+    overflow: visible;
+  }
+
+  /* Label (::before) */
+  .report-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: .67rem;
+    font-weight: 700;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    flex-shrink: 0;
+    text-align: left;
+    min-width: 100px;
+    padding-top: 2px;
+  }
+
+  /* Header: Data (60%) + Hora (40%) lado a lado */
+  .report-table td[data-label="Data"] {
+    width: 60%;
+    background: var(--navy);
+    color: #fff;
+    border-bottom: 2px solid var(--gold);
+    padding: 11px 16px;
+    font-size: .92rem;
+    font-weight: 700;
+    letter-spacing: .01em;
+    justify-content: flex-start;
+  }
+
+  .report-table td[data-label="Hora"] {
+    width: 40%;
+    background: var(--navy);
+    color: rgba(255,255,255,.72);
+    border-bottom: 2px solid var(--gold);
+    padding: 11px 16px;
+    font-size: .84rem;
+    font-weight: 600;
+    justify-content: flex-end;
+  }
+
+  /* Sem label-prefix no cabeçalho */
+  .report-table td[data-label="Data"]::before,
+  .report-table td[data-label="Hora"]::before {
+    display: none;
+  }
+
+  /* Valor: destaque dourado */
+  .report-table td.col-valor {
+    background: linear-gradient(90deg, var(--gold-bg) 0%, rgba(212,175,55,.08) 100%);
+    border-left: 4px solid var(--gold);
+    font-size: 1.08rem;
+    font-weight: 800;
+    color: var(--navy);
+    text-align: right;
+    justify-content: space-between;
+  }
+
+  .report-table td.col-valor::before {
+    content: "Valor";
+    font-size: .67rem;
+    font-weight: 700;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    flex-shrink: 0;
+    text-align: left;
+    min-width: 100px;
+    padding-top: 2px;
+  }
+
+  /* Linha de ações (sem data-label) */
+  .report-table td:not([data-label]) {
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-100);
+    border-bottom: none;
+  }
+
+  /* Último td com data-label não precisa de borda inferior visível antes das ações */
+  .report-table tbody tr > td:last-child { border-bottom: none; }
+
+  .table-empty { padding: 32px 16px; }
 }
 
 /* ─── CAIXA ─── */

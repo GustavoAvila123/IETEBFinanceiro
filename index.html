@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IETEB — Lançamento de Entradas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lancamento.css">
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       TELA DE LOGIN
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="loginScreen" class="ls">
+
+    <!-- Fundo animado -->
+    <div class="ls-bg">
+      <div class="ls-orb ls-orb--1"></div>
+      <div class="ls-orb ls-orb--2"></div>
+      <div class="ls-orb ls-orb--3"></div>
+      <div class="ls-grid"></div>
+    </div>
+
+    <!-- Card -->
+    <div class="ls-card" id="loginCard">
+
+      <div class="ls-card-accent"></div>
+
+      <!-- Logo -->
+      <div class="ls-logo-ring">
+        <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="ls-logo" />
+      </div>
+
+      <!-- Cabeçalho -->
+      <div class="ls-header">
+        <h1 class="ls-title">Bem-vindo</h1>
+        <p class="ls-subtitle">Sistema de Gestão Financeira</p>
+      </div>
+
+      <!-- Formulário -->
+      <form class="ls-form" onsubmit="handleLogin(event)" novalidate>
+
+        <div class="ls-field">
+          <label class="ls-label">Usuário</label>
+          <div class="ls-input-wrap">
+            <svg class="ls-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <input type="text" id="loginUsuario" class="ls-input" placeholder="Digite seu usuário"
+                   autocomplete="username" spellcheck="false" />
+          </div>
+        </div>
+
+        <div class="ls-field">
+          <label class="ls-label">Senha</label>
+          <div class="ls-input-wrap">
+            <svg class="ls-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="loginSenha" class="ls-input ls-input--pw"
+                   placeholder="Digite sua senha" autocomplete="current-password" />
+            <button type="button" class="ls-eye" id="loginEyeBtn" onclick="toggleLoginPw()" title="Mostrar/ocultar senha">
+              <svg id="loginEyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="ls-error" id="loginError"></div>
+
+        <button type="submit" class="ls-btn" id="loginBtn">
+          <span id="loginBtnText">Entrar</span>
+          <svg class="ls-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+
+      </form>
+
+      <div class="ls-footer">IETEB &copy; 2025 &nbsp;·&nbsp; Todos os direitos reservados</div>
+
+    </div>
+  </div>
+
+  <!-- ── OVERLAY MOBILE ── -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="sidebar-logo" />
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">IETEB</span>
+        <span class="sidebar-brand-sub">Financeiro</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item nav-item--active" id="navLancamentos" onclick="showPage('lancamentos')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        <span>Entradas</span>
+      </button>
+
+      <button class="nav-item" id="navSaidas" onclick="showPage('saidas')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+        </svg>
+        <span>Saídas</span>
+      </button>
+
+      <button class="nav-item" id="navRelatorios" onclick="showPage('relatorios')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span>Relatórios</span>
+      </button>
+
+      <button class="nav-item" id="navCaixa" onclick="showPage('caixa')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+        <span>Caixa</span>
+      </button>
+
+      <button class="nav-item" id="navDashboard" onclick="showPage('dashboard')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span>Dashboard</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="sidebar-logout-btn" onclick="openLogoutModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Sair</span>
+      </button>
+      <span class="sidebar-footer-text">Centro Educacional Teológico</span>
+    </div>
+  </aside>
+
+  <!-- ── WRAPPER PRINCIPAL ── -->
+  <div class="page-wrapper">
+
+    <!-- ── TOPBAR MOBILE ── -->
+    <header class="topbar">
+      <button class="topbar-menu-btn" onclick="openSidebar()" aria-label="Abrir menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="topbar-brand">
+        <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="topbar-logo" />
+        <span class="topbar-title" id="topbarTitle">Lançamentos</span>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: LANÇAMENTOS
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="page-content" id="pageLancamentos">
+      <div class="content-header">
+        <h1 class="page-title">Lançamento de Entradas</h1>
+        <p class="page-desc">Registre manualmente ou envie o comprovante de pagamento.</p>
+      </div>
+
+      <div class="form-card">
+
+        <!-- ABAS -->
+        <div class="tab-bar" role="tablist">
+          <button class="tab-btn tab-btn--active" id="tabManual" role="tab"
+            aria-selected="true" aria-controls="panelManual"
+            onclick="switchTab('manual')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Lançamento de Entradas
+          </button>
+          <button class="tab-btn" id="tabUpload" role="tab"
+            aria-selected="false" aria-controls="panelUpload"
+            onclick="switchTab('upload')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+            </svg>
+            Enviar Comprovante
+          </button>
+        </div>
+
+        <!-- ── PAINEL UPLOAD ── -->
+        <div id="panelUpload" class="tab-panel tab-panel--hidden" role="tabpanel">
+
+          <div class="upload-area" id="dropZone"
+            ondragover="onDragOver(event)" ondragleave="onDragLeave(event)"
+            ondrop="onDrop(event)" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+            </div>
+            <p class="upload-title">Arraste o comprovante aqui</p>
+            <p class="upload-hint">ou clique para selecionar</p>
+            <p class="upload-formats">PIX · Depósito · Débito · Crédito · PDF ou Imagem</p>
+            <input type="file" id="fileInput" accept="image/*,application/pdf"
+              style="display:none" onchange="onFileSelected(this)" />
+          </div>
+
+          <div id="uploadPreview" class="upload-preview" style="display:none">
+            <div class="preview-header">
+              <div class="preview-file-info">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span id="previewFileName" class="preview-filename"></span>
+              </div>
+              <button class="preview-remove" onclick="removeFile()" title="Remover arquivo">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                Remover
+              </button>
+            </div>
+            <img id="previewImg" class="preview-img" style="display:none" alt="Comprovante" />
+          </div>
+
+          <div id="ocrStatus" class="ocr-status" style="display:none">
+            <div class="ocr-spinner"></div>
+            <span id="ocrStatusText">Lendo comprovante...</span>
+          </div>
+
+          <button class="btn-primary btn-read" id="btnLerComprovante"
+            style="display:none" onclick="lerComprovante()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            Ler e Preencher Formulário
+          </button>
+        </div>
+
+        <!-- ── PAINEL MANUAL ── -->
+        <div id="panelManual" class="tab-panel" role="tabpanel">
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>
+              Dados do Curso
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="curso">Curso <span class="required">*</span></label>
+                <select class="form-select" id="curso" required>
+                  <option value="">Selecione o curso</option>
+                  <option value="CFAM">CFAM</option>
+                  <option value="Básico Teologia">Básico em Teologia</option>
+                  <option value="Bacharel em Teologia">Bacharel em Teologia</option>
+                  <option value="Capacitação de Professor">Capacitação de Professor</option>
+                </select>
+                <span class="field-error" id="cursoError"></span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="igreja">Igreja <span class="required">*</span></label>
+                <div class="select-search-wrap">
+                  <input type="text" class="form-input" id="igrejaSearch"
+                    placeholder="Buscar ou selecionar igreja..."
+                    autocomplete="off"
+                    oninput="filterChurches(this.value)"
+                    onfocus="openChurchDropdown()" />
+                  <input type="hidden" id="igreja" />
+                  <div class="church-dropdown" id="churchDropdown"></div>
+                </div>
+                <span class="field-error" id="igrejaError"></span>
+              </div>
+            </div>
+          </div><!-- /form-section Curso -->
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+              Forma de Pagamento
+            </div>
+
+            <div class="payment-types" id="paymentTypes">
+              <button type="button" class="payment-btn" data-value="Pix" onclick="selectPayment(this)">
+                <span class="payment-icon">⚡</span><span>PIX</span>
+              </button>
+              <button type="button" class="payment-btn" data-value="Débito" onclick="selectPayment(this)">
+                <span class="payment-icon">💳</span><span>Débito</span>
+              </button>
+              <button type="button" class="payment-btn" data-value="Crédito" onclick="selectPayment(this)">
+                <span class="payment-icon">💳</span><span>Crédito</span>
+              </button>
+              <button type="button" class="payment-btn" data-value="Dinheiro" onclick="selectPayment(this)">
+                <span class="payment-icon">💵</span><span>Dinheiro</span>
+              </button>
+            </div>
+            <input type="hidden" id="formaPagamento" />
+            <span class="field-error" id="pagamentoError"></span>
+          </div><!-- /form-section Pagamento -->
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+              Dados da Transação
+            </div>
+
+          <!-- ALUNOS DINÂMICOS -->
+          <div id="alunosContainer" class="alunos-container"></div>
+          <span class="field-error" id="alunosError"></span>
+
+          <div class="form-row" id="rowDepositanteRecebedor" style="margin-top:16px">
+            <div class="form-group" id="grupoNomeDepositante">
+              <label class="form-label" id="labelNomeDepositante" for="nomeDepositante">Nome do Depositante <span class="required">*</span></label>
+              <input type="text" class="form-input" id="nomeDepositante" placeholder="Quem realizou o pagamento" />
+              <span class="field-error" id="nomeDepositanteError"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="labelNomeRecebedor" for="nomeRecebedor">Nome de Quem Recebeu <span class="required">*</span></label>
+              <input type="text" class="form-input" id="nomeRecebedor" placeholder="Quem recebeu o valor" />
+              <span class="field-error" id="nomeRecebedorError"></span>
+            </div>
+          </div>
+
+          <div class="form-row" id="rowBancos">
+            <div class="form-group" id="grupoBancoDepositante">
+              <label class="form-label" for="bancoDepositante">Banco Depositante <span class="required">*</span></label>
+              <input type="text" class="form-input" id="bancoDepositante" placeholder="Ex: Nubank, Itaú, Bradesco..." />
+              <span class="field-error" id="bancoDepositanteError"></span>
+            </div>
+            <div class="form-group" id="grupoBancoRecebedor">
+              <label class="form-label" for="bancoRecebedor">Banco Recebedor <span class="required">*</span></label>
+              <input type="text" class="form-input" id="bancoRecebedor" placeholder="Ex: Caixa, Banco do Brasil..." />
+              <span class="field-error" id="bancoRecebedorError"></span>
+            </div>
+          </div>
+
+          <div class="form-row form-row--3">
+            <div class="form-group">
+              <label class="form-label" for="valorEntrada">Valor (R$) <span class="required">*</span></label>
+              <input type="text" class="form-input" id="valorEntrada" placeholder="0,00" oninput="maskCurrency(this)" />
+              <span class="field-error" id="valorError"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="dataDeposito" id="labelDataDeposito">Data do Depósito <span class="required">*</span></label>
+              <input type="text" class="form-input" id="dataDeposito" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this)" />
+              <span class="field-error" id="dataError"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" id="labelHoraDeposito" for="horaDeposito">Hora do Depósito</label>
+              <input type="time" class="form-input" id="horaDeposito" />
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:8px">
+            <label class="form-label" for="observacao">Observação</label>
+            <textarea class="form-input form-textarea" id="observacao"
+              placeholder="Informações adicionais (opcional)" rows="3"></textarea>
+          </div>
+          </div><!-- /form-section Transação -->
+
+        </div>
+        <!-- /panelManual -->
+
+        <!-- RODAPÉ -->
+        <div class="form-footer">
+          <button class="btn-secondary" id="btnLimpar" type="button" onclick="limparFormulario()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
+            </svg>
+            Limpar
+          </button>
+          <button class="btn-primary" type="button" id="btnSalvar" onclick="salvarLancamento()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Salvar Lançamento
+          </button>
+        </div>
+
+      </div>
+      <!-- /form-card -->
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: SAÍDAS
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="page-content page-content--hidden" id="pageSaidas">
+      <div class="content-header">
+        <h1 class="page-title">Lançamento de Saídas</h1>
+        <p class="page-desc">Registre pagamentos a professores, compras de material e demais despesas.</p>
+      </div>
+
+      <div class="form-card">
+
+        <!-- ABAS -->
+        <div class="tab-bar" role="tablist">
+          <button class="tab-btn tab-btn--active" id="tabSaidaManual" role="tab"
+            aria-selected="true" aria-controls="panelSaidaManual"
+            onclick="switchTabSaida('manual')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Lançamento Manual
+          </button>
+          <button class="tab-btn" id="tabSaidaUpload" role="tab"
+            aria-selected="false" aria-controls="panelSaidaUpload"
+            onclick="switchTabSaida('upload')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+            </svg>
+            Enviar Nota Fiscal
+          </button>
+        </div>
+
+        <!-- ── PAINEL UPLOAD NF ── -->
+        <div id="panelSaidaUpload" class="tab-panel tab-panel--hidden" role="tabpanel">
+
+          <div class="upload-area" id="dropZoneSaida"
+            ondragover="onDragOverSaida(event)" ondragleave="onDragLeaveSaida(event)"
+            ondrop="onDropSaida(event)" onclick="document.getElementById('fileInputSaida').click()">
+            <div class="upload-icon">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+            </div>
+            <p class="upload-title">Arraste a Nota Fiscal aqui</p>
+            <p class="upload-hint">ou clique para selecionar</p>
+            <p class="upload-formats">Imagem ou PDF</p>
+            <input type="file" id="fileInputSaida" accept="image/*,application/pdf"
+              style="display:none" onchange="onFileSelectedSaida(this)" />
+          </div>
+
+          <div id="uploadPreviewSaida" class="upload-preview" style="display:none">
+            <div class="preview-header">
+              <div class="preview-file-info">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span id="previewFileNameSaida" class="preview-filename"></span>
+              </div>
+              <button class="preview-remove" onclick="removeFileSaida()" title="Remover arquivo">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                Remover
+              </button>
+            </div>
+            <img id="previewImgSaida" class="preview-img" style="display:none" alt="Nota Fiscal" />
+          </div>
+
+          <div id="ocrStatusSaida" class="ocr-status" style="display:none">
+            <div class="ocr-spinner"></div>
+            <span id="ocrStatusTextSaida">Lendo nota fiscal...</span>
+          </div>
+
+          <button class="btn-primary btn-read" id="btnLerNF"
+            style="display:none" onclick="lerNF()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            Ler e Preencher Formulário
+          </button>
+        </div>
+
+        <!-- ── PAINEL MANUAL ── -->
+        <div id="panelSaidaManual" class="tab-panel" role="tabpanel">
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              Dados da Saída
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="saidaCategoria">Categoria <span class="required">*</span></label>
+                <select class="form-select" id="saidaCategoria">
+                  <option value="">Selecione a categoria</option>
+                  <option value="Pagamento de Professor">Pagamento de Professor</option>
+                  <option value="Material de Escritório">Material de Escritório</option>
+                  <option value="Serviços">Serviços</option>
+                  <option value="Outros">Outros</option>
+                </select>
+                <span class="field-error" id="saidaCategoriaError"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="saidaFornecedor">Fornecedor / Beneficiário <span class="required">*</span></label>
+                <input type="text" class="form-input" id="saidaFornecedor"
+                  placeholder="Nome do fornecedor ou professor" />
+                <span class="field-error" id="saidaFornecedorError"></span>
+              </div>
+            </div>
+          </div><!-- /form-section Dados da Saída -->
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+              </svg>
+              Forma de Pagamento
+            </div>
+
+            <div class="payment-types" id="paymentTypesSaida">
+              <button type="button" class="payment-btn" data-value="Dinheiro" onclick="selectPaymentSaida(this)">
+                <span class="payment-icon">💵</span><span>Dinheiro</span>
+              </button>
+              <button type="button" class="payment-btn" data-value="Pix" onclick="selectPaymentSaida(this)">
+                <span class="payment-icon">⚡</span><span>PIX</span>
+              </button>
+            </div>
+            <input type="hidden" id="saidaFormaPagamento" />
+            <span class="field-error" id="saidaPagamentoError"></span>
+          </div><!-- /form-section Pagamento -->
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+              Dados da Transação
+            </div>
+
+            <div class="form-row form-row--3">
+              <div class="form-group">
+                <label class="form-label" for="saidaValor">Valor (R$) <span class="required">*</span></label>
+                <input type="text" class="form-input" id="saidaValor" placeholder="0,00" oninput="maskCurrency(this)" />
+                <span class="field-error" id="saidaValorError"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="saidaData">Data <span class="required">*</span></label>
+                <input type="text" class="form-input" id="saidaData" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this)" />
+                <span class="field-error" id="saidaDataError"></span>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="saidaHora">Hora</label>
+                <input type="time" class="form-input" id="saidaHora" />
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:8px">
+              <label class="form-label" for="saidaObservacao">Observação</label>
+              <textarea class="form-input form-textarea" id="saidaObservacao"
+                placeholder="Informações adicionais (opcional)" rows="3"></textarea>
+            </div>
+          </div><!-- /form-section Transação -->
+
+        </div><!-- /panelSaidaManual -->
+
+        <!-- RODAPÉ -->
+        <div class="form-footer">
+          <button class="btn-secondary" id="btnLimparSaida" type="button" onclick="limparSaida()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
+            </svg>
+            Limpar
+          </button>
+          <button class="btn-primary" type="button" onclick="salvarSaida()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Salvar Saída
+          </button>
+        </div>
+
+      </div><!-- /form-card -->
+    </main>
+    <!-- /pageSaidas -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: RELATÓRIOS
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="page-content page-content--hidden" id="pageRelatorios">
+      <div class="content-header">
+        <h1 class="page-title">Relatórios</h1>
+        <p class="page-desc">Consulte, filtre e exporte todos os lançamentos registrados.</p>
+      </div>
+
+      <!-- TIPO DE RELATÓRIO -->
+      <div class="report-tipo-selector">
+        <button class="tipo-btn" id="tipoBtnEntradas" onclick="onTipoRelatorioChange('entradas')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+          </svg>
+          Entradas
+        </button>
+        <button class="tipo-btn" id="tipoBtnSaidas" onclick="onTipoRelatorioChange('saidas')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+          </svg>
+          Saídas
+        </button>
+      </div>
+
+      <div id="reportTipoPrompt" class="report-tipo-prompt">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <line x1="3" y1="9" x2="21" y2="9"/>
+          <line x1="9" y1="21" x2="9" y2="9"/>
+        </svg>
+        <span>Selecione o tipo de relatório acima para visualizar os dados.</span>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="report-filters" id="reportFilters" style="display:none">
+        <div class="filter-group">
+          <label class="form-label" for="filtroDataDe">De</label>
+          <input type="text" class="form-input filter-input" id="filtroDataDe" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onFiltroDeChange')" />
+        </div>
+        <div class="filter-group">
+          <label class="form-label" for="filtroDataAte">Até</label>
+          <input type="text" class="form-input filter-input" id="filtroDataAte" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onFiltroAteChange')" />
+        </div>
+        <div class="filter-group" id="filtroCursoGrupo">
+          <label class="form-label" for="filtroCurso">Curso</label>
+          <select class="form-select filter-input" id="filtroCurso" onchange="aplicarFiltros()">
+            <option value="">Todos</option>
+            <option value="CFAM">CFAM</option>
+            <option value="Básico Teologia">Básico em Teologia</option>
+            <option value="Bacharel em Teologia">Bacharel em Teologia</option>
+            <option value="Capacitação de Professor">Capacitação de Professor</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="form-label" for="filtroPagamento">Pagamento</label>
+          <select class="form-select filter-input" id="filtroPagamento" onchange="aplicarFiltros()">
+            <option value="">Todos</option>
+            <option value="Pix">PIX</option>
+            <option value="Débito">Débito</option>
+            <option value="Crédito">Crédito</option>
+            <option value="Dinheiro">Dinheiro</option>
+          </select>
+        </div>
+        <button class="btn-ghost" onclick="limparFiltros()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
+          </svg>
+          Limpar filtros
+        </button>
+      </div>
+
+      <!-- AÇÕES DE EXPORTAÇÃO -->
+      <div class="report-actions" id="reportActions" style="display:none">
+        <span class="report-count" id="reportCount">0 registros</span>
+        <div class="report-export-btns">
+          <button class="btn-export btn-export--pdf" onclick="exportarPDF()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Imprimir PDF
+          </button>
+          <button class="btn-export btn-export--excel" onclick="exportarExcel()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>
+            </svg>
+            Exportar Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- TABELA -->
+      <div class="table-wrap" id="tableWrap" style="display:none">
+        <table class="report-table" id="reportTable">
+          <thead id="reportThead">
+            <tr>
+              <th>Data</th>
+              <th>Hora</th>
+              <th>Aluno</th>
+              <th>Curso</th>
+              <th>Igreja</th>
+              <th>Pagamento</th>
+              <th>Parcela</th>
+              <th>Depositante</th>
+              <th>Recebedor</th>
+              <th>Banco Dep.</th>
+              <th>Banco Rec.</th>
+              <th class="col-valor">Valor</th>
+              <th>Obs.</th>
+              <th>Comprovante</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody"></tbody>
+        </table>
+        <div class="table-empty" id="tableEmpty" style="display:none">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span>Nenhum lançamento encontrado</span>
+        </div>
+      </div>
+
+      <!-- PAGINAÇÃO -->
+      <div class="pagination" id="pagination" style="display:none"></div>
+
+    </main>
+    <!-- /pageRelatorios -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: CAIXA
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="page-content page-content--hidden" id="pageCaixa">
+      <div class="content-header">
+        <h1 class="page-title">Caixa</h1>
+        <p class="page-desc">Controle financeiro mensal — entradas, saídas e saldo disponível.</p>
+      </div>
+
+      <!-- Navegação de mês + filtro de dia -->
+      <div class="caixa-month-nav">
+        <div class="caixa-month-controls">
+          <button class="caixa-month-btn" onclick="caixaMesNavegar(-1)" title="Mês anterior">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div class="caixa-month-label" id="caixaMesLabel">—</div>
+          <button class="caixa-month-btn" onclick="caixaMesNavegar(1)" title="Próximo mês">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+        <div class="caixa-day-filter">
+          <div class="filter-group" style="margin:0">
+            <label class="form-label" for="caixaDiaFiltroDE">De</label>
+            <input type="text" class="form-input filter-input" id="caixaDiaFiltroDE" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onCaixaFiltroDeBlur')" />
+          </div>
+          <div class="filter-group" style="margin:0">
+            <label class="form-label" for="caixaDiaFiltroATE">Até</label>
+            <input type="text" class="form-input filter-input" id="caixaDiaFiltroATE" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onCaixaFiltroAteBlur')" />
+          </div>
+          <button class="btn-ghost" id="caixaDiaLimpar" onclick="clearCaixaDia()" style="display:none;align-self:flex-end">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
+            </svg>
+            Limpar filtro
+          </button>
+        </div>
+      </div>
+
+      <!-- Saldo do Mês Anterior (calculado automaticamente) -->
+      <div class="caixa-card caixa-card--anterior" style="margin-bottom:16px">
+        <div class="caixa-card-header">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
+          </svg>
+          Saldo do Mês Anterior
+          <span class="caixa-auto-badge">calculado automaticamente</span>
+        </div>
+        <div class="caixa-anterior-body" id="caixaSaldoAnteriorDisplay"></div>
+      </div>
+
+      <!-- Cards de resumo -->
+      <div class="caixa-cards">
+
+        <!-- Entradas -->
+        <div class="caixa-card caixa-card--entrada">
+          <div class="caixa-card-header" id="caixaEntradasHeader">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+            </svg>
+            Entradas do Mês
+          </div>
+          <div class="caixa-card-body" id="caixaEntradas"></div>
+        </div>
+
+        <!-- Saídas -->
+        <div class="caixa-card caixa-card--saida">
+          <div class="caixa-card-header" id="caixaSaidasHeader">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+            </svg>
+            Saídas do Mês
+          </div>
+          <div class="caixa-card-body" id="caixaSaidas"></div>
+        </div>
+
+        <!-- Saldo Atual -->
+        <div class="caixa-card caixa-card--saldo">
+          <div class="caixa-card-header">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+            Saldo Atual
+          </div>
+          <div class="caixa-card-body" id="caixaSaldoAtual"></div>
+        </div>
+
+      </div><!-- /caixa-cards -->
+
+
+    </main>
+    <!-- /pageCaixa -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: DASHBOARD
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="page-content page-content--hidden" id="pageDashboard">
+      <div class="content-header">
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-desc">Visualização gráfica das entradas e despesas do mês.</p>
+      </div>
+
+      <!-- Navegação de mês -->
+      <div class="caixa-month-nav">
+        <div class="caixa-month-controls">
+          <button class="caixa-month-btn" onclick="dashMesNavegar(-1)" title="Mês anterior">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div class="caixa-month-label" id="dashMesLabel">—</div>
+          <button class="caixa-month-btn" onclick="dashMesNavegar(1)" title="Próximo mês">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cards de resumo -->
+      <div class="dash-summary">
+        <div class="dash-summary-card dash-summary-card--entrada">
+          <div class="dash-summary-label">Total Entradas</div>
+          <div class="dash-summary-value" id="dashTotalEntradas">R$ 0,00</div>
+        </div>
+        <div class="dash-summary-card dash-summary-card--saida">
+          <div class="dash-summary-label">Total Despesas</div>
+          <div class="dash-summary-value" id="dashTotalSaidas">R$ 0,00</div>
+        </div>
+        <div class="dash-summary-card dash-summary-card--saldo">
+          <div class="dash-summary-label">Saldo do Mês</div>
+          <div class="dash-summary-value" id="dashSaldoMes">R$ 0,00</div>
+        </div>
+      </div>
+
+      <!-- Gráficos -->
+      <div class="dash-charts">
+
+        <!-- Entradas por Curso -->
+        <div class="dash-chart-card">
+          <div class="dash-chart-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+            Entradas por Curso
+          </div>
+          <div class="dash-chart-wrap" id="wrapEntradasCurso">
+            <canvas id="chartEntradasCurso"></canvas>
+          </div>
+        </div>
+
+        <!-- Despesas por Categoria -->
+        <div class="dash-chart-card">
+          <div class="dash-chart-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            Despesas por Categoria
+          </div>
+          <div class="dash-chart-wrap" id="wrapDespesasCategoria">
+            <canvas id="chartDespesasCategoria"></canvas>
+          </div>
+        </div>
+
+      </div><!-- /dash-charts -->
+
+    </main>
+    <!-- /pageDashboard -->
+
+  </div>
+  <!-- /page-wrapper -->
+
+  <!-- MODAL FILTRO DATA INVÁLIDA -->
+  <div class="modal-overlay" id="filtroDataModal" style="display:none">
+    <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Data inválida</h2>
+      </div>
+      <div style="padding:22px 26px;font-size:.9rem;color:var(--text);line-height:1.55">
+        O campo <strong>Data Até</strong> deve ser igual ou maior que o campo <strong>Data De</strong>.
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="fecharFiltroDataModal()">Entendi</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="caixaDataModal" style="display:none">
+    <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Data inválida</h2>
+      </div>
+      <div style="padding:22px 26px;font-size:.9rem;color:var(--text);line-height:1.55">
+        O campo <strong>Data Até</strong> deve ser igual ou maior que o campo <strong>Data De</strong>.
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="document.getElementById('caixaDataModal').style.display='none';document.getElementById('caixaDiaFiltroATE').focus()">Entendi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LOGOUT -->
+  <div class="modal-overlay" id="logoutModal" style="display:none" onclick="closeLogoutModal(event)">
+    <div class="modal-card modal-card--sm logout-modal-card" onclick="event.stopPropagation()">
+      <div class="logout-modal-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </div>
+      <div class="modal-header" style="border:none;padding-top:0">
+        <h2 class="modal-title">Deseja realmente sair?</h2>
+        <p class="modal-desc" style="margin-top:6px">Você será redirecionado para a tela de login.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeLogoutModal()">Cancelar</button>
+        <button class="btn-primary logout-confirm-btn" onclick="confirmarLogout()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Sair
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- MODAL OCR SAÍDAS -->
+  <div class="modal-overlay" id="ocrModalSaida" style="display:none" onclick="closeOcrModalSaida(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Confirmar dados da Nota Fiscal</h2>
+        <p class="modal-desc">Verifique as informações extraídas antes de preencher o formulário.</p>
+      </div>
+      <div id="ocrSummarySaida" class="ocr-summary"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeOcrModalSaida()">Cancelar</button>
+        <button class="btn-primary" onclick="confirmarOcrSaida()">Confirmar e Preencher</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL OCR -->
+  <div class="modal-overlay" id="ocrModal" style="display:none" onclick="closeOcrModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Confirmar dados lidos</h2>
+        <p class="modal-desc">Verifique as informações extraídas antes de preencher o formulário.</p>
+      </div>
+      <div id="ocrSummary" class="ocr-summary"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeOcrModal()">Cancelar</button>
+        <button class="btn-primary" onclick="confirmarOcr()">Confirmar e Preencher</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VISUALIZAR COMPROVANTE -->
+  <div class="modal-overlay" id="imgModal" style="display:none" onclick="closeImgModal(event)">
+    <div class="modal-img-card" onclick="event.stopPropagation()">
+      <div class="modal-img-header">
+        <span class="modal-img-title">Comprovante</span>
+        <button class="modal-img-close" onclick="closeImgModal()" title="Fechar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-img-body">
+        <img id="imgModalImg" src="" alt="Comprovante" style="display:none" />
+        <iframe id="imgModalPdf" src="" style="display:none" width="100%" height="500"></iframe>
+        <div id="imgModalEmpty" style="display:none" class="img-modal-empty">Comprovante não disponível</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMAÇÃO EXCLUSÃO -->
+  <div class="modal-overlay" id="deleteModal" style="display:none" onclick="closeDeleteModal(event)">
+    <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
+      <div class="modal-header modal-header--danger">
+        <h2 class="modal-title">Excluir lançamento</h2>
+        <p class="modal-desc">Esta ação não pode ser desfeita.</p>
+      </div>
+      <div style="padding:22px 26px;font-size:.9rem;color:#4a5470">
+        Tem certeza que deseja excluir este lançamento?
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
+        <button class="btn-danger" id="btnConfirmDelete" onclick="confirmarExclusao()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4h6v2"/>
+          </svg>
+          Excluir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL IMPRESSÃO PDF -->
+  <div id="printArea" class="print-area"></div>
+
+  <script src="lancamento.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Env
+.env
+.env.*
+
+# Build/deploy artifacts
+.netlify/
+assets/media/

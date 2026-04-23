@@ -2010,8 +2010,8 @@ function extractFieldsFromNF(text) {
     return isNaN(n) ? null : n;
   };
   const vExato =
-    full.match(/valor\s+(?:total|pago|a\s+pagar)\s+r?[s$5]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
-    full.match(/total\s+(?:a\s+pagar|geral|nf[ae]?)?\s*r?[s$5]?\s*[:\-]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
+    full.match(/valor\s+(?:total|pago|[aà]\s+pagar)\s+r?[s$5]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
+    full.match(/total\s+(?:[aà]\s+pagar|geral|nf[ae]?)?\s*r?[s$5]?\s*[:\-]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
     full.match(/r?[$s5]\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})\b/i);
   if (vExato) {
     const n = _parseValor(vExato[1]);
@@ -2051,7 +2051,8 @@ function extractFieldsFromNF(text) {
     full.match(/\d{4}-\d{2}-\d{2}[\sT]+(\d{2}):(\d{2})/)    ||  // ISO
     full.match(/\b(\d{1,2})h(\d{2})\b/i)                     ||  // "10h39"
     full.match(/[àa]s\s+(\d{1,2}):(\d{2})/i)                 ||  // "às 17:26"
-    full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i);
+    full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i) ||  // label "hora:"
+    full.match(/\b((?:[01]\d|2[0-3])):([0-5]\d)(?::\d{2})?\b/);  // fallback HH:MM standalone
   if (horaMatch && horaMatch[1] && horaMatch[2]) {
     result.hora = String(horaMatch[1]).padStart(2,'0') + ':' + String(horaMatch[2]).padStart(2,'0');
   }
@@ -2061,8 +2062,8 @@ function extractFieldsFromNF(text) {
     let nome = null;
     const _lines = full.split(/\n/).map(l => l.trim()).filter(Boolean);
 
-    // 1. Nome antes da palavra CNPJ/CPF na mesma linha
-    const m1 = full.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'"|-]{3,60})\s+(?:CNPJ|CPF)\s*[:.]?\s*[\d]/i);
+    // 1. Nome antes da palavra CNPJ/CPF na mesma linha (CNFJ = leitura OCR de CNPJ)
+    const m1 = full.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'"|-]{3,60})\s+(?:CN[PF]J|CPF)\s*[:.]?\s*[\d]/i);
     // 2. Razão Social com label explícito
     const m3 = full.match(/raz[aã]o\s+social\s*[:\-]?\s*([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'|-]{2,60})/i);
     // 3. Sufixo jurídico longo (ME e EPP removidos — muito curtos, geram falso positivo)
@@ -2071,9 +2072,9 @@ function extractFieldsFromNF(text) {
     const _cnpjRe = /\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\s\/]?\d{4}[\s\-]?\d{2}/;
     let m5 = null;
     for (let i = 0; i < Math.min(_lines.length, 25); i++) {
-      if (/CNPJ/i.test(_lines[i]) || _cnpjRe.test(_lines[i])) {
-        // Tenta extrair nome na mesma linha antes do CNPJ
-        const sl = _lines[i].match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,']{3,60}?)\s+(?:CNPJ|\d{2}[\.\s]?\d{3})/i);
+      if (/CN[PF]J/i.test(_lines[i]) || _cnpjRe.test(_lines[i])) {
+        // Tenta extrair nome na mesma linha antes do CNPJ (CN[PF]J cobre leitura OCR "CNFJ")
+        const sl = _lines[i].match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,']{3,60}?)\s+(?:CN[PF]J|\d{2}[\.\s]?\d{3})/i);
         if (sl && sl[1].trim().length >= 4) { m5 = sl[1].trim(); break; }
         // Linha anterior ao bloco de CNPJ
         if (i > 0) {

@@ -59,15 +59,32 @@ const _fbConfig = {
   appId:             '1:514664099454:web:72177a3d36afc85782b22f',
 };
 
-let _db = null;
+let _db      = null;
+let _storage = null;
 
 function initFirebase() {
   try {
     if (typeof firebase === 'undefined') return;
     if (!firebase.apps.length) firebase.initializeApp(_fbConfig);
-    _db = firebase.firestore();
+    _db      = firebase.firestore();
+    _storage = firebase.storage();
   } catch (e) {
     console.warn('Firebase init:', e);
+  }
+}
+
+async function uploadComprovante(colName, id, dataUrl) {
+  if (!_db || !_storage || !dataUrl) return;
+  try {
+    const res  = await fetch(dataUrl);
+    const blob = await res.blob();
+    const ext  = blob.type.includes('pdf') ? 'pdf' : 'jpg';
+    const ref  = _storage.ref(`comprovantes/${colName}/${id}.${ext}`);
+    await ref.put(blob);
+    const url = await ref.getDownloadURL();
+    await _db.collection(colName).doc(String(id)).update({ comprovanteUrl: url, temComprovante: true });
+  } catch (e) {
+    console.warn('Storage upload error:', e);
   }
 }
 
@@ -103,9 +120,10 @@ async function loadFromFirestore() {
     localEnt.forEach(r => { localEntMap[r.id] = r; });
 
     const fsEntradas = entSnap.docs.map(d => {
-      const doc = d.data();
-      if (localEntMap[doc.id] && localEntMap[doc.id].comprovante)
-        doc.comprovante = localEntMap[doc.id].comprovante;
+      const doc   = d.data();
+      const local = localEntMap[doc.id];
+      if (local && local.comprovante)          doc.comprovante = local.comprovante;
+      else if (!doc.comprovante && doc.comprovanteUrl) doc.comprovante = doc.comprovanteUrl;
       return doc;
     });
     fsEntradas.sort((a, b) => b.id - a.id);
@@ -117,9 +135,10 @@ async function loadFromFirestore() {
     localSai.forEach(r => { localSaiMap[r.id] = r; });
 
     const fsSaidas = saiSnap.docs.map(d => {
-      const doc = d.data();
-      if (localSaiMap[doc.id] && localSaiMap[doc.id].comprovante)
-        doc.comprovante = localSaiMap[doc.id].comprovante;
+      const doc   = d.data();
+      const local = localSaiMap[doc.id];
+      if (local && local.comprovante)          doc.comprovante = local.comprovante;
+      else if (!doc.comprovante && doc.comprovanteUrl) doc.comprovante = doc.comprovanteUrl;
       return doc;
     });
     fsSaidas.sort((a, b) => b.id - a.id);
@@ -488,6 +507,8 @@ async function preprocessImageForOcr(file) {
           } else {
             gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
           }
+          // Boost de contraste (melhora leitura de cupons térmicos amassados)
+          gray = Math.min(255, Math.max(0, (gray - 128) * 1.8 + 128));
           d[i] = d[i + 1] = d[i + 2] = gray;
         }
         ctx.putImageData(imageData, 0, 0);
@@ -967,7 +988,10 @@ function salvarLancamento() {
 
   novosRegistros.forEach(r => existing.unshift(r));
   localStorage.setItem('ieteb_lancamentos', JSON.stringify(existing));
-  novosRegistros.forEach(r => saveToFirestore('Entradas', r));
+  novosRegistros.forEach(r => {
+    saveToFirestore('Entradas', r);
+    if (r.comprovante) uploadComprovante('Entradas', r.id, r.comprovante);
+  });
 
   const msg = alunos.length > 1
     ? `${alunos.length} lançamentos salvos com sucesso!`
@@ -1885,9 +1909,10 @@ function extractFieldsFromNF(text) {
   const full   = text;
   const lower  = full.toLowerCase();
 
-  // Valor total da NF
+  // ── VALOR: prioridade "valor total/pago R$", depois fallback ────────────
   const valorMatch =
-    full.match(/total\s+(?:a\s+pagar|nf[e-]?|geral|r\$)?\s*[:\-]?\s*R?\$?\s*([\d.,]+)/i) ||
+    full.match(/valor\s+(?:total|pago|a\s+pagar)\s+r?\$?\s*([\d.,]+)/i) ||
+    full.match(/total\s+(?:a\s+pagar|geral)?\s*r?\$?\s*[:\-]?\s*([\d.,]+)/i) ||
     full.match(/R\$\s*([\d.,]+)/i);
   if (valorMatch) result.valor = 'R$ ' + valorMatch[1].trim();
 
@@ -1918,9 +1943,10 @@ function extractFieldsFromNF(text) {
     result.hora = String(horaMatch[1]).padStart(2,'0') + ':' + String(horaMatch[2]).padStart(2,'0');
   }
 
-  // Fornecedor: nome antes do CNPJ / Razão Social
+  // ── FORNECEDOR: nome antes OU depois do CNPJ / Razão Social ─────────────
   const fornecedorMatch =
-    full.match(/([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'"|-]{1,60})\s+(?:CNPJ|CNPE|CNPI)\s*[:.]?\s*\d/i) ||
+    full.match(/([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'"|-]{3,60})\s+(?:CNPJ|CNPE|CNPI)\s*[:.]?\s*\d/i) ||
+    full.match(/CNPJ\s*[:.]?\s*[\d.\/\-]+\s+([A-Z][A-Z0-9 &.,']{3,60})/i)                           ||
     full.match(/([A-Z][A-Z0-9 &.,'-]{2,60})\s*\n[\s\S]{0,80}?(?:CNPJ|CNPI)/im)                      ||
     full.match(/raz[aã]o\s+social\s*[:\-]?\s*([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'|-]{2,60})/i);
   if (fornecedorMatch && fornecedorMatch[1]) {
@@ -1928,9 +1954,11 @@ function extractFieldsFromNF(text) {
     if (nome.length >= 2) result.fornecedor = toTitleCase(nome);
   }
 
-  // Forma de pagamento
-  if      (lower.includes('pix'))      result.formaPagamento = 'Pix';
-  else if (lower.includes('dinheiro')) result.formaPagamento = 'Dinheiro';
+  // ── FORMA DE PAGAMENTO: cartão crédito/débito, pix, dinheiro ─────────────
+  if      (/cart[aã]o\s+de\s+cr[eé]dito|cr[eé]dito/i.test(lower)) result.formaPagamento = 'Crédito';
+  else if (/cart[aã]o\s+de\s+d[eé]bito|d[eé]bito/i.test(lower))   result.formaPagamento = 'Débito';
+  else if (lower.includes('pix'))                                    result.formaPagamento = 'Pix';
+  else if (lower.includes('dinheiro'))                               result.formaPagamento = 'Dinheiro';
 
   return result;
 }
@@ -2025,6 +2053,7 @@ function salvarSaida() {
   existing.unshift(registro);
   localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
   saveToFirestore('Saídas', registro);
+  if (registro.comprovante) uploadComprovante('Saídas', registro.id, registro.comprovante);
 
   showToast('Saída salva com sucesso!', 'success');
   limparSaida();

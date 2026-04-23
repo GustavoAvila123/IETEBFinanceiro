@@ -49,6 +49,40 @@ const CHURCHES = [
   "Ad Brás Osasco Ypê",
 ];
 
+// ── Firebase ──────────────────────────────────────────────────────────────────
+const _fbConfig = {
+  apiKey:            'AIzaSyAH6mxJzzI1vOryKrw7DXNzODLOq2ZtFls',
+  authDomain:        'ieteb-financeiro.firebaseapp.com',
+  projectId:         'ieteb-financeiro',
+  storageBucket:     'ieteb-financeiro.firebasestorage.app',
+  messagingSenderId: '514664099454',
+  appId:             '1:514664099454:web:72177a3d36afc85782b22f',
+};
+
+let _db = null;
+
+function initFirebase() {
+  try {
+    if (typeof firebase === 'undefined') return;
+    if (!firebase.apps.length) firebase.initializeApp(_fbConfig);
+    _db = firebase.firestore();
+  } catch (e) {
+    console.warn('Firebase init:', e);
+  }
+}
+
+function saveToFirestore(colName, data) {
+  if (!_db) return;
+  try {
+    const { comprovante, ...doc } = data;
+    if (comprovante) doc.temComprovante = true;
+    _db.collection(colName).doc(String(doc.id)).set(doc)
+      .catch(e => console.warn('Firestore write error:', e));
+  } catch (e) {
+    console.warn('Firestore save error:', e);
+  }
+}
+
 // ── Estado ────────────────────────────────────────────────────────────────────
 let currentFile       = null;
 let currentFileDataUrl= null;
@@ -876,17 +910,16 @@ function salvarLancamento() {
   const existing = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
   const baseTime  = Date.now();
 
-  // Um registro por aluno, mantendo o comprovante compartilhado
-  alunos.slice().reverse().forEach((aluno, i) => {
-    existing.unshift({
-      ...baseData,
-      id:        baseTime + (alunos.length - 1 - i),
-      nomeAluno: aluno.nome,
-      parcela:   aluno.parcela,
-    });
-  });
+  const novosRegistros = alunos.slice().reverse().map((aluno, i) => ({
+    ...baseData,
+    id:        baseTime + (alunos.length - 1 - i),
+    nomeAluno: aluno.nome,
+    parcela:   aluno.parcela,
+  }));
 
+  novosRegistros.forEach(r => existing.unshift(r));
   localStorage.setItem('ieteb_lancamentos', JSON.stringify(existing));
+  novosRegistros.forEach(r => saveToFirestore('Entradas', r));
 
   const msg = alunos.length > 1
     ? `${alunos.length} lançamentos salvos com sucesso!`
@@ -1941,6 +1974,7 @@ function salvarSaida() {
   const existing = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
   existing.unshift(registro);
   localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
+  saveToFirestore('Saídas', registro);
 
   showToast('Saída salva com sucesso!', 'success');
   limparSaida();
@@ -2282,6 +2316,7 @@ function toggleLoginPw() {
 // ═══════════════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
 
+  initFirebase();
   initAlunosContainer();
   initHome();
 

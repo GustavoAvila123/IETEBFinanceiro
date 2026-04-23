@@ -2416,7 +2416,6 @@ function handleLogin(e) {
     card.classList.remove('ls-card--shake');
     void card.offsetWidth;
     card.classList.add('ls-card--shake');
-    passEl.value = '';
   }
 }
 

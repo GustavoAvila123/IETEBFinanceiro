@@ -111,6 +111,24 @@ class FirebaseManager {
     localStorage.setItem(localKey, JSON.stringify(merged));
   }
 
+  // Busca manual única (get) para forçar atualização imediata
+  async forceRefresh(onDone) {
+    if (!this._db) { if (onDone) onDone(false); return; }
+    try {
+      const [entSnap, saiSnap] = await Promise.all([
+        this._db.collection('Entradas').get(),
+        this._db.collection('Saídas').get(),
+      ]);
+      this._mergeAndStore('ieteb_lancamentos', entSnap.docs);
+      this._mergeAndStore('ieteb_saidas', saiSnap.docs);
+      if (this._onDataUpdate) this._onDataUpdate();
+      if (onDone) onDone(true);
+    } catch (e) {
+      console.warn('forceRefresh error:', e);
+      if (onDone) onDone(false);
+    }
+  }
+
   // Usa onSnapshot para sincronização em tempo real entre dispositivos
   load(onComplete) {
     if (!this._db) { if (onComplete) onComplete(); return; }

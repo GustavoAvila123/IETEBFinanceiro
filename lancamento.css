@@ -198,7 +198,24 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
 }
+
+.topbar-refresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gold);
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.topbar-refresh-btn:hover { background: rgba(255,255,255,.1); }
+.topbar-refresh-btn.refreshing svg { animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ─── PAGE CONTENT ─── */
 .page-content {

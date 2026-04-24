@@ -115,6 +115,16 @@ window.onCaixaFiltroAteBlur = () => tesouraria.onFiltroAteBlur();
 window.initDashboard   = () => dashboard.init();
 window.dashMesNavegar  = d  => dashboard.navegar(d);
 
+// Atualização manual (busca dados frescos do Firestore)
+window.forceRefresh = () => {
+  const btn = document.getElementById('topbarRefreshBtn');
+  if (btn) btn.classList.add('refreshing');
+  firebase.forceRefresh(ok => {
+    if (btn) btn.classList.remove('refreshing');
+    modal.showToast(ok ? 'Dados atualizados!' : 'Falha ao atualizar. Verifique a conexão.', ok ? 'success' : 'error');
+  });
+};
+
 // maskCurrency, onDateInput, onDateBlur, onlyNumbers, clearFieldError
 // já são globais (function declarations em helpers.js / format.js) — não precisam de wrapper
 

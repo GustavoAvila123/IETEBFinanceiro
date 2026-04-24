@@ -62,7 +62,6 @@ class FirebaseManager {
 
       if (comprovante) {
         doc.comprovanteType = comprovante.startsWith('data:application/pdf') ? 'pdf' : 'image';
-
         if (this._storage) {
           try {
             const ref = this._storage.ref(`comprovantes/${colName}/${doc.id}`);
@@ -92,27 +91,56 @@ class FirebaseManager {
       .catch(e => console.warn('Firestore delete error:', e));
   }
 
+  // UNION: mantém todos os registros locais e atualiza/adiciona os do Firestore.
+  // Nunca descarta dados locais quando o Firestore está vazio.
   _mergeAndStore(localKey, fsDocs) {
-    const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
-    const localMap = {};
-    local.forEach(r => { localMap[r.id] = r; });
+    const local  = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const merged = {};
 
-    const merged = fsDocs.map(d => {
+    local.forEach(r => { merged[r.id] = r; });
+
+    fsDocs.forEach(d => {
       const doc = d.data();
-      const loc = localMap[doc.id];
+      const loc = merged[doc.id];
       if (loc?.comprovante && !loc.comprovante.startsWith('http')) {
         doc.comprovante = loc.comprovante;
       } else if (!doc.comprovante && doc.comprovanteUrl) {
         doc.comprovante = doc.comprovanteUrl;
       }
-      return doc;
+      merged[doc.id] = doc;
     });
-    merged.sort((a, b) => b.id - a.id);
-    localStorage.setItem(localKey, JSON.stringify(merged));
+
+    const result = Object.values(merged).sort((a, b) => b.id - a.id);
+    localStorage.setItem(localKey, JSON.stringify(result));
   }
 
-  // Assina onSnapshot para uma coleção; chama onFirst(ok) na primeira entrega e
-  // _onDataUpdate nas entregas seguintes. Retorna a função de cancelamento.
+  // Envia ao Firestore os registros que existem somente no localStorage.
+  _uploadMissing(colName, fsDocs) {
+    if (!this._db) return;
+    const localKey = colName === 'Entradas' ? 'ieteb_lancamentos' : 'ieteb_saidas';
+    const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const fsIds    = new Set(fsDocs.map(d => d.id));
+
+    local.forEach(item => {
+      if (!item.id || fsIds.has(String(item.id))) return;
+      const { comprovante, ...doc } = item;
+      doc.temComprovante = !!comprovante;
+      const upload = d => {
+        this._db.collection(colName).doc(String(d.id)).set(d)
+          .catch(e => console.warn('uploadMissing error:', e));
+      };
+      if (comprovante && !comprovante.startsWith('http')) {
+        this.compressImage(comprovante).then(compressed => {
+          if (compressed) doc.comprovante = compressed;
+          upload(doc);
+        });
+      } else {
+        upload(doc);
+      }
+    });
+  }
+
+  // Assina onSnapshot; chama onFirst(ok, docs) na primeira entrega.
   _subscribe(colName, localKey, onFirst) {
     let firstFired = false;
     return this._db.collection(colName).onSnapshot(
@@ -120,7 +148,7 @@ class FirebaseManager {
         this._mergeAndStore(localKey, snap.docs);
         if (!firstFired) {
           firstFired = true;
-          if (onFirst) onFirst(true);
+          if (onFirst) onFirst(true, snap.docs);
         } else {
           if (this._onDataUpdate) this._onDataUpdate();
         }
@@ -129,51 +157,60 @@ class FirebaseManager {
         console.warn(colName + ' snapshot error:', e);
         if (!firstFired) {
           firstFired = true;
-          if (onFirst) onFirst(false);
+          if (onFirst) onFirst(false, []);
         }
       }
     );
   }
 
-  // Carga inicial — configura listeners em tempo real
+  // Carga inicial: configura listeners e sobe dados locais que faltam no Firestore.
   load(onComplete) {
     if (!this._db) { if (onComplete) onComplete(); return; }
-
-    let firstEntDone = false, firstSaiDone = false;
-    const checkFirst = () => { if (firstEntDone && firstSaiDone && onComplete) onComplete(); };
 
     if (this._unsubEnt) this._unsubEnt();
     if (this._unsubSai) this._unsubSai();
 
-    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos',
-      () => { firstEntDone = true; checkFirst(); });
-    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas',
-      () => { firstSaiDone = true; checkFirst(); });
+    let firstEntDone = false, firstSaiDone = false;
+    let entDocs = [], saiDocs = [];
+
+    const checkFirst = () => {
+      if (!firstEntDone || !firstSaiDone) return;
+      this._uploadMissing('Entradas', entDocs);
+      this._uploadMissing('Saídas',   saiDocs);
+      if (onComplete) onComplete();
+    };
+
+    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', (_ok, docs) => {
+      entDocs = docs; firstEntDone = true; checkFirst();
+    });
+    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', (_ok, docs) => {
+      saiDocs = docs; firstSaiDone = true; checkFirst();
+    });
   }
 
-  // Reconecta os listeners para forçar busca fresca do servidor
+  // Reconecta os listeners para buscar dados frescos do servidor.
   forceRefresh(onDone) {
-    if (!this._db) { if (onDone) onDone(false); return; }
+    if (!this._db) {
+      if (this._onDataUpdate) this._onDataUpdate();
+      if (onDone) onDone(false);
+      return;
+    }
 
     if (this._unsubEnt) { this._unsubEnt(); this._unsubEnt = null; }
     if (this._unsubSai) { this._unsubSai(); this._unsubSai = null; }
 
-    let entDone = false, saiDone = false, allOk = true;
+    let entDone = false, saiDone = false;
     const check = () => {
       if (!entDone || !saiDone) return;
       if (this._onDataUpdate) this._onDataUpdate();
-      if (onDone) onDone(allOk);
+      if (onDone) onDone(true);
     };
 
-    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', ok => {
-      if (!ok) allOk = false;
-      entDone = true;
-      check();
+    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', () => {
+      entDone = true; check();
     });
-    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', ok => {
-      if (!ok) allOk = false;
-      saiDone = true;
-      check();
+    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', () => {
+      saiDone = true; check();
     });
   }
 }

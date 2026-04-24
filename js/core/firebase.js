@@ -115,7 +115,8 @@ class FirebaseManager {
     localStorage.setItem(localKey, JSON.stringify(result));
   }
 
-  // Envia ao Firestore os registros que existem somente no localStorage.
+  // Envia ao Firestore os registros locais ausentes no Firestore.
+  // Sempre sobe sem comprovante (data URL pode ser muito grande).
   _uploadMissing(colName, fsDocs) {
     if (!this._db) return;
     const localKey = colName === 'Entradas' ? 'ieteb_lancamentos' : 'ieteb_saidas';
@@ -125,19 +126,9 @@ class FirebaseManager {
     local.forEach(item => {
       if (!item.id || fsIds.has(String(item.id))) return;
       const { comprovante, ...doc } = item;
-      doc.temComprovante = !!comprovante;
-      const upload = d => {
-        this._db.collection(colName).doc(String(d.id)).set(d)
-          .catch(e => console.warn('uploadMissing error:', e));
-      };
-      if (comprovante && !comprovante.startsWith('http')) {
-        this.compressImage(comprovante).then(compressed => {
-          if (compressed) doc.comprovante = compressed;
-          upload(doc);
-        });
-      } else {
-        upload(doc);
-      }
+      doc.temComprovante = !!item.comprovante;
+      this._db.collection(colName).doc(String(doc.id)).set(doc)
+        .catch(e => console.warn('uploadMissing error:', colName, e));
     });
   }
 
@@ -165,6 +156,7 @@ class FirebaseManager {
   }
 
   // Carga inicial: configura listeners e sobe dados locais que faltam no Firestore.
+  // Cada coleção faz seu próprio upload independentemente, sem esperar pela outra.
   load(onComplete) {
     if (!this._db) { if (onComplete) onComplete(); return; }
 
@@ -172,20 +164,20 @@ class FirebaseManager {
     if (this._unsubSai) this._unsubSai();
 
     let firstEntDone = false, firstSaiDone = false;
-    let entDocs = [], saiDocs = [];
 
     const checkFirst = () => {
-      if (!firstEntDone || !firstSaiDone) return;
-      this._uploadMissing('Entradas', entDocs);
-      this._uploadMissing('Saídas',   saiDocs);
-      if (onComplete) onComplete();
+      if (firstEntDone && firstSaiDone && onComplete) onComplete();
     };
 
     this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', (_ok, docs) => {
-      entDocs = docs; firstEntDone = true; checkFirst();
+      this._uploadMissing('Entradas', docs);
+      firstEntDone = true;
+      checkFirst();
     });
     this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', (_ok, docs) => {
-      saiDocs = docs; firstSaiDone = true; checkFirst();
+      this._uploadMissing('Saídas', docs);
+      firstSaiDone = true;
+      checkFirst();
     });
   }
 

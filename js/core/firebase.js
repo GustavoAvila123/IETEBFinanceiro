@@ -13,6 +13,8 @@ class FirebaseManager {
     this._db           = null;
     this._storage      = null;
     this._onDataUpdate = null;
+    this._unsubEnt     = null;
+    this._unsubSai     = null;
   }
 
   init() {
@@ -26,7 +28,6 @@ class FirebaseManager {
     }
   }
 
-  // Callback chamado quando Firestore notifica mudança após a carga inicial
   setDataUpdateCallback(fn) {
     this._onDataUpdate = fn;
   }
@@ -91,7 +92,6 @@ class FirebaseManager {
       .catch(e => console.warn('Firestore delete error:', e));
   }
 
-  // Mescla docs do Firestore com localStorage (prioriza data URL local; fallback para URL do Storage)
   _mergeAndStore(localKey, fsDocs) {
     const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
     const localMap = {};
@@ -101,9 +101,9 @@ class FirebaseManager {
       const doc = d.data();
       const loc = localMap[doc.id];
       if (loc?.comprovante && !loc.comprovante.startsWith('http')) {
-        doc.comprovante = loc.comprovante; // data URL local tem prioridade
+        doc.comprovante = loc.comprovante;
       } else if (!doc.comprovante && doc.comprovanteUrl) {
-        doc.comprovante = doc.comprovanteUrl; // fallback para URL do Storage
+        doc.comprovante = doc.comprovanteUrl;
       }
       return doc;
     });
@@ -111,53 +111,69 @@ class FirebaseManager {
     localStorage.setItem(localKey, JSON.stringify(merged));
   }
 
-  // Busca manual única (get) para forçar atualização imediata
-  async forceRefresh(onDone) {
-    if (!this._db) { if (onDone) onDone(false); return; }
-    try {
-      const [entSnap, saiSnap] = await Promise.all([
-        this._db.collection('Entradas').get(),
-        this._db.collection('Saídas').get(),
-      ]);
-      this._mergeAndStore('ieteb_lancamentos', entSnap.docs);
-      this._mergeAndStore('ieteb_saidas', saiSnap.docs);
-      if (this._onDataUpdate) this._onDataUpdate();
-      if (onDone) onDone(true);
-    } catch (e) {
-      console.warn('forceRefresh error:', e);
-      if (onDone) onDone(false);
-    }
+  // Assina onSnapshot para uma coleção; chama onFirst(ok) na primeira entrega e
+  // _onDataUpdate nas entregas seguintes. Retorna a função de cancelamento.
+  _subscribe(colName, localKey, onFirst) {
+    let firstFired = false;
+    return this._db.collection(colName).onSnapshot(
+      snap => {
+        this._mergeAndStore(localKey, snap.docs);
+        if (!firstFired) {
+          firstFired = true;
+          if (onFirst) onFirst(true);
+        } else {
+          if (this._onDataUpdate) this._onDataUpdate();
+        }
+      },
+      e => {
+        console.warn(colName + ' snapshot error:', e);
+        if (!firstFired) {
+          firstFired = true;
+          if (onFirst) onFirst(false);
+        }
+      }
+    );
   }
 
-  // Usa onSnapshot para sincronização em tempo real entre dispositivos
+  // Carga inicial — configura listeners em tempo real
   load(onComplete) {
     if (!this._db) { if (onComplete) onComplete(); return; }
 
     let firstEntDone = false, firstSaiDone = false;
     const checkFirst = () => { if (firstEntDone && firstSaiDone && onComplete) onComplete(); };
 
-    this._db.collection('Entradas').onSnapshot(
-      snap => {
-        this._mergeAndStore('ieteb_lancamentos', snap.docs);
-        if (!firstEntDone) { firstEntDone = true; checkFirst(); }
-        else if (this._onDataUpdate) this._onDataUpdate();
-      },
-      e => {
-        console.warn('Entradas snapshot error:', e);
-        if (!firstEntDone) { firstEntDone = true; checkFirst(); }
-      }
-    );
+    if (this._unsubEnt) this._unsubEnt();
+    if (this._unsubSai) this._unsubSai();
 
-    this._db.collection('Saídas').onSnapshot(
-      snap => {
-        this._mergeAndStore('ieteb_saidas', snap.docs);
-        if (!firstSaiDone) { firstSaiDone = true; checkFirst(); }
-        else if (this._onDataUpdate) this._onDataUpdate();
-      },
-      e => {
-        console.warn('Saídas snapshot error:', e);
-        if (!firstSaiDone) { firstSaiDone = true; checkFirst(); }
-      }
-    );
+    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos',
+      () => { firstEntDone = true; checkFirst(); });
+    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas',
+      () => { firstSaiDone = true; checkFirst(); });
+  }
+
+  // Reconecta os listeners para forçar busca fresca do servidor
+  forceRefresh(onDone) {
+    if (!this._db) { if (onDone) onDone(false); return; }
+
+    if (this._unsubEnt) { this._unsubEnt(); this._unsubEnt = null; }
+    if (this._unsubSai) { this._unsubSai(); this._unsubSai = null; }
+
+    let entDone = false, saiDone = false, allOk = true;
+    const check = () => {
+      if (!entDone || !saiDone) return;
+      if (this._onDataUpdate) this._onDataUpdate();
+      if (onDone) onDone(allOk);
+    };
+
+    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', ok => {
+      if (!ok) allOk = false;
+      entDone = true;
+      check();
+    });
+    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', ok => {
+      if (!ok) allOk = false;
+      saiDone = true;
+      check();
+    });
   }
 }

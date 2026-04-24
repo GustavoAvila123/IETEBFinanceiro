@@ -1,3 +1,4 @@
+
 const _fbConfig = {
   apiKey:            'AIzaSyAH6mxJzzI1vOryKrw7DXNzODLOq2ZtFls',
   authDomain:        'ieteb-financeiro.firebaseapp.com',
@@ -9,8 +10,9 @@ const _fbConfig = {
 
 class FirebaseManager {
   constructor() {
-    this._db      = null;
-    this._storage = null;
+    this._db           = null;
+    this._storage      = null;
+    this._onDataUpdate = null;
   }
 
   init() {
@@ -22,6 +24,11 @@ class FirebaseManager {
     } catch (e) {
       console.warn('Firebase init:', e);
     }
+  }
+
+  // Callback chamado quando Firestore notifica mudança após a carga inicial
+  setDataUpdateCallback(fn) {
+    this._onDataUpdate = fn;
   }
 
   compressImage(dataUrl) {
@@ -51,10 +58,26 @@ class FirebaseManager {
     try {
       const { comprovante, ...doc } = data;
       doc.temComprovante = !!comprovante;
+
       if (comprovante) {
-        const compressed = await this.compressImage(comprovante);
-        if (compressed) doc.comprovante = compressed;
+        doc.comprovanteType = comprovante.startsWith('data:application/pdf') ? 'pdf' : 'image';
+
+        if (this._storage) {
+          try {
+            const ref = this._storage.ref(`comprovantes/${colName}/${doc.id}`);
+            await ref.putString(comprovante, 'data_url');
+            doc.comprovanteUrl = await ref.getDownloadURL();
+          } catch (e) {
+            console.warn('Storage upload falhou, tentando inline:', e);
+            const compressed = await this.compressImage(comprovante);
+            if (compressed) doc.comprovante = compressed;
+          }
+        } else {
+          const compressed = await this.compressImage(comprovante);
+          if (compressed) doc.comprovante = compressed;
+        }
       }
+
       this._db.collection(colName).doc(String(doc.id)).set(doc)
         .catch(e => console.warn('Firestore write error:', e));
     } catch (e) {
@@ -68,45 +91,55 @@ class FirebaseManager {
       .catch(e => console.warn('Firestore delete error:', e));
   }
 
-  async load(onComplete) {
-    if (!this._db) { onComplete(); return; }
-    try {
-      const [entSnap, saiSnap] = await Promise.all([
-        this._db.collection('Entradas').get(),
-        this._db.collection('Saídas').get(),
-      ]);
+  // Mescla docs do Firestore com localStorage (prioriza data URL local; fallback para URL do Storage)
+  _mergeAndStore(localKey, fsDocs) {
+    const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const localMap = {};
+    local.forEach(r => { localMap[r.id] = r; });
 
-      const localEnt    = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
-      const localEntMap = {};
-      localEnt.forEach(r => { localEntMap[r.id] = r; });
+    const merged = fsDocs.map(d => {
+      const doc = d.data();
+      const loc = localMap[doc.id];
+      if (loc?.comprovante && !loc.comprovante.startsWith('http')) {
+        doc.comprovante = loc.comprovante; // data URL local tem prioridade
+      } else if (!doc.comprovante && doc.comprovanteUrl) {
+        doc.comprovante = doc.comprovanteUrl; // fallback para URL do Storage
+      }
+      return doc;
+    });
+    merged.sort((a, b) => b.id - a.id);
+    localStorage.setItem(localKey, JSON.stringify(merged));
+  }
 
-      const fsEntradas = entSnap.docs.map(d => {
-        const doc   = d.data();
-        const local = localEntMap[doc.id];
-        if (local && local.comprovante)               doc.comprovante = local.comprovante;
-        else if (!doc.comprovante && doc.comprovanteUrl) doc.comprovante = doc.comprovanteUrl;
-        return doc;
-      });
-      fsEntradas.sort((a, b) => b.id - a.id);
-      localStorage.setItem('ieteb_lancamentos', JSON.stringify(fsEntradas));
+  // Usa onSnapshot para sincronização em tempo real entre dispositivos
+  load(onComplete) {
+    if (!this._db) { if (onComplete) onComplete(); return; }
 
-      const localSai    = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
-      const localSaiMap = {};
-      localSai.forEach(r => { localSaiMap[r.id] = r; });
+    let firstEntDone = false, firstSaiDone = false;
+    const checkFirst = () => { if (firstEntDone && firstSaiDone && onComplete) onComplete(); };
 
-      const fsSaidas = saiSnap.docs.map(d => {
-        const doc   = d.data();
-        const local = localSaiMap[doc.id];
-        if (local && local.comprovante)               doc.comprovante = local.comprovante;
-        else if (!doc.comprovante && doc.comprovanteUrl) doc.comprovante = doc.comprovanteUrl;
-        return doc;
-      });
-      fsSaidas.sort((a, b) => b.id - a.id);
-      localStorage.setItem('ieteb_saidas', JSON.stringify(fsSaidas));
+    this._db.collection('Entradas').onSnapshot(
+      snap => {
+        this._mergeAndStore('ieteb_lancamentos', snap.docs);
+        if (!firstEntDone) { firstEntDone = true; checkFirst(); }
+        else if (this._onDataUpdate) this._onDataUpdate();
+      },
+      e => {
+        console.warn('Entradas snapshot error:', e);
+        if (!firstEntDone) { firstEntDone = true; checkFirst(); }
+      }
+    );
 
-    } catch (e) {
-      console.warn('Firestore load error:', e);
-    }
-    onComplete();
+    this._db.collection('Saídas').onSnapshot(
+      snap => {
+        this._mergeAndStore('ieteb_saidas', snap.docs);
+        if (!firstSaiDone) { firstSaiDone = true; checkFirst(); }
+        else if (this._onDataUpdate) this._onDataUpdate();
+      },
+      e => {
+        console.warn('Saídas snapshot error:', e);
+        if (!firstSaiDone) { firstSaiDone = true; checkFirst(); }
+      }
+    );
   }
 }

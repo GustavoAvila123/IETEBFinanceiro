@@ -127,6 +127,21 @@ document.addEventListener('DOMContentLoaded', () => {
   entradas.initAlunosContainer();
   entradas.initValidationListeners();
   saidas.initValidationListeners();
+
+  // Re-renderiza a página ativa ao receber atualização em tempo real do Firestore
+  firebase.setDataUpdateCallback(() => {
+    const pagesMap = {
+      pageRelatorios: () => relatorios.carregar(),
+      pageCaixa:      () => tesouraria.render(),
+      pageDashboard:  () => dashboard.render(),
+      pageHome:       () => nav.initHome(),
+    };
+    for (const [pageId, fn] of Object.entries(pagesMap)) {
+      const el = document.getElementById(pageId);
+      if (el && !el.classList.contains('page-content--hidden')) { fn(); break; }
+    }
+  });
+
   firebase.load(() => nav.initHome());
 
   document.addEventListener('keydown', e => {

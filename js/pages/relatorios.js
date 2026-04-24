@@ -168,7 +168,8 @@ class RelatorioPage {
     tbody.innerHTML = page.map((item, idx) => {
       const badge     = badgePagamento(item.formaPagamento);
       const globalIdx = (this.currentPage - 1) * PAGE_SIZE + idx;
-      const imgCell   = item.comprovante
+      const hasComp   = !!(item.comprovante || item.comprovanteUrl);
+      const imgCell   = hasComp
         ? `<button class="btn-comprovante" onclick="verComprovante(${globalIdx})" title="Ver">${viewIcon} Ver</button>`
         : `<span class="no-comprovante">—</span>`;
       const delBtn = `<button class="btn-delete-row" onclick="pedirExclusao(${globalIdx})" title="Excluir">${deleteIcon}</button>`;
@@ -352,7 +353,8 @@ class RelatorioPage {
   // ── Comprovante ───────────────────────────────────────────────────────────────
   verComprovante(idx) {
     const item = this.filteredData[idx];
-    if (!item || !item.comprovante) return;
+    const src  = item && (item.comprovante || item.comprovanteUrl);
+    if (!src) return;
 
     const imgEl   = document.getElementById('imgModalImg');
     const pdfEl   = document.getElementById('imgModalPdf');
@@ -362,12 +364,15 @@ class RelatorioPage {
     pdfEl.style.display   = 'none';
     emptyEl.style.display = 'none';
 
-    if (item.comprovante.startsWith('data:image')) {
-      imgEl.src           = item.comprovante;
-      imgEl.style.display = 'block';
-    } else if (item.comprovante.startsWith('data:application/pdf')) {
-      pdfEl.src           = item.comprovante;
+    const isPdf = src.startsWith('data:application/pdf') || item.comprovanteType === 'pdf';
+    const isImg = src.startsWith('data:image') || item.comprovanteType === 'image' || src.startsWith('http');
+
+    if (isPdf) {
+      pdfEl.src           = src;
       pdfEl.style.display = 'block';
+    } else if (isImg) {
+      imgEl.src           = src;
+      imgEl.style.display = 'block';
     } else {
       emptyEl.style.display = 'flex';
     }

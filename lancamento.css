@@ -2158,6 +2158,30 @@ body.modal-open { overflow: hidden; touch-action: none; }
 
 
 /* ── Sidebar logout button ── */
+.sidebar-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(197,160,78,.08);
+  border: 1px solid rgba(197,160,78,.25);
+  border-radius: var(--radius-sm);
+  color: rgba(255,255,255,.65);
+  font-size: .84rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s;
+  text-align: left;
+}
+.sidebar-refresh-btn:hover {
+  background: rgba(197,160,78,.18);
+  border-color: rgba(197,160,78,.5);
+  color: var(--gold);
+}
+.sidebar-refresh-btn.refreshing svg { animation: spin .7s linear infinite; }
+
 .sidebar-logout-btn {
   display: flex;
   align-items: center;

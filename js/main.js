@@ -117,10 +117,13 @@ window.dashMesNavegar  = d  => dashboard.navegar(d);
 
 // Atualização manual (busca dados frescos do Firestore)
 window.forceRefresh = () => {
-  const btn = document.getElementById('topbarRefreshBtn');
-  if (btn) btn.classList.add('refreshing');
+  const btns = [
+    document.getElementById('topbarRefreshBtn'),
+    document.getElementById('sidebarRefreshBtn'),
+  ].filter(Boolean);
+  btns.forEach(b => b.classList.add('refreshing'));
   firebase.forceRefresh(ok => {
-    if (btn) btn.classList.remove('refreshing');
+    btns.forEach(b => b.classList.remove('refreshing'));
     modal.showToast(ok ? 'Dados atualizados!' : 'Falha ao atualizar. Verifique a conexão.', ok ? 'success' : 'error');
   });
 };

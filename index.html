@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="lancamento.css?v=20260424c">
+  <link rel="stylesheet" href="lancamento.css?v=20260424d">
 </head>
 <body>
 
@@ -156,6 +156,13 @@
     </nav>
 
     <div class="sidebar-footer">
+      <button class="sidebar-refresh-btn" id="sidebarRefreshBtn" onclick="forceRefresh()" title="Atualizar dados">
+        <svg id="sidebarRefreshIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        <span>Atualizar</span>
+      </button>
       <button class="sidebar-logout-btn" onclick="openLogoutModal()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -1234,31 +1241,31 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260424c"></script>
+  <script src="js/config.js?v=20260424d"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260424c"></script>
-  <script src="js/utils/format.js?v=20260424c"></script>
+  <script src="js/utils/helpers.js?v=20260424d"></script>
+  <script src="js/utils/format.js?v=20260424d"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260424c"></script>
-  <script src="js/core/firebase.js?v=20260424c"></script>
+  <script src="js/core/modal.js?v=20260424d"></script>
+  <script src="js/core/firebase.js?v=20260424d"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260424c"></script>
+  <script src="js/ocr/entradas.js?v=20260424d"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260424c"></script>
-  <script src="js/pages/entradas.js?v=20260424c"></script>
-  <script src="js/pages/saidas.js?v=20260424c"></script>
-  <script src="js/pages/relatorios.js?v=20260424c"></script>
-  <script src="js/pages/tesouraria.js?v=20260424c"></script>
-  <script src="js/pages/dashboard.js?v=20260424c"></script>
+  <script src="js/pages/login.js?v=20260424d"></script>
+  <script src="js/pages/entradas.js?v=20260424d"></script>
+  <script src="js/pages/saidas.js?v=20260424d"></script>
+  <script src="js/pages/relatorios.js?v=20260424d"></script>
+  <script src="js/pages/tesouraria.js?v=20260424d"></script>
+  <script src="js/pages/dashboard.js?v=20260424d"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260424c"></script>
+  <script src="js/core/navigation.js?v=20260424d"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260424c"></script>
+  <script src="js/main.js?v=20260424d"></script>
 </body>
 </html>

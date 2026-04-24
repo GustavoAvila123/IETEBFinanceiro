@@ -804,11 +804,11 @@
       <div class="report-filters" id="reportFilters" style="display:none">
         <div class="filter-group">
           <label class="form-label" for="filtroDataDe">De</label>
-          <input type="text" class="form-input filter-input" id="filtroDataDe" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onFiltroDeChange')" />
+          <input type="text" class="form-input filter-input" id="filtroDataDe" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onFiltroDeChange',true)" />
         </div>
         <div class="filter-group">
           <label class="form-label" for="filtroDataAte">Até</label>
-          <input type="text" class="form-input filter-input" id="filtroDataAte" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onFiltroAteChange')" />
+          <input type="text" class="form-input filter-input" id="filtroDataAte" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onFiltroAteChange',true)" />
         </div>
         <div class="filter-group" id="filtroCursoGrupo">
           <label class="form-label" for="filtroCurso">Curso</label>
@@ -925,11 +925,11 @@
         <div class="caixa-day-filter">
           <div class="filter-group" style="margin:0">
             <label class="form-label" for="caixaDiaFiltroDE">De</label>
-            <input type="text" class="form-input filter-input" id="caixaDiaFiltroDE" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onCaixaFiltroDeBlur')" />
+            <input type="text" class="form-input filter-input" id="caixaDiaFiltroDE" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onCaixaFiltroDeBlur',true)" />
           </div>
           <div class="filter-group" style="margin:0">
             <label class="form-label" for="caixaDiaFiltroATE">Até</label>
-            <input type="text" class="form-input filter-input" id="caixaDiaFiltroATE" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onCaixaFiltroAteBlur')" />
+            <input type="text" class="form-input filter-input" id="caixaDiaFiltroATE" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onCaixaFiltroAteBlur',true)" />
           </div>
           <button class="btn-ghost" id="caixaDiaLimpar" onclick="clearCaixaDia()" style="display:none;align-self:flex-end">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1226,6 +1226,33 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-  <script src="lancamento.js"></script>
+
+  <!-- Constantes globais -->
+  <script src="js/config.js"></script>
+
+  <!-- Utilitários -->
+  <script src="js/utils/helpers.js"></script>
+  <script src="js/utils/format.js"></script>
+
+  <!-- Core -->
+  <script src="js/core/modal.js"></script>
+  <script src="js/core/firebase.js"></script>
+
+  <!-- OCR -->
+  <script src="js/ocr/entradas.js"></script>
+
+  <!-- Pages -->
+  <script src="js/pages/login.js"></script>
+  <script src="js/pages/entradas.js"></script>
+  <script src="js/pages/saidas.js"></script>
+  <script src="js/pages/relatorios.js"></script>
+  <script src="js/pages/tesouraria.js"></script>
+  <script src="js/pages/dashboard.js"></script>
+
+  <!-- Navegação (depende das pages) -->
+  <script src="js/core/navigation.js"></script>
+
+  <!-- Entry point -->
+  <script src="js/main.js"></script>
 </body>
 </html>

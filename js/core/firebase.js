@@ -19,10 +19,11 @@ class FirebaseManager {
 
   init() {
     try {
-      if (typeof firebase === 'undefined') return;
-      if (!firebase.apps.length) firebase.initializeApp(_fbConfig);
-      this._db      = firebase.firestore();
-      this._storage = firebase.storage();
+      const fbSDK = window.firebase;
+      if (!fbSDK) return;
+      if (!fbSDK.apps || !fbSDK.apps.length) fbSDK.initializeApp(_fbConfig);
+      this._db      = fbSDK.firestore();
+      this._storage = fbSDK.storage();
     } catch (e) {
       console.warn('Firebase init:', e);
     }

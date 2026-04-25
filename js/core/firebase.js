@@ -105,9 +105,10 @@ class FirebaseManager {
       }
 
       await this._db.collection(colName).doc(String(doc.id)).set(doc);
+      if (window.showToast) window.showToast('✅ Gravado no banco (' + colName + ')', 'success');
     } catch (e) {
       console.error('Firestore save error:', e);
-      if (window.showToast) window.showToast('Erro ao salvar no banco: ' + (e.message || e), 'error');
+      if (window.showToast) window.showToast('❌ Erro ao gravar: ' + (e.message || e), 'error');
     }
   }
 
@@ -235,17 +236,21 @@ class FirebaseManager {
     if (this._unsubSai) { this._unsubSai(); this._unsubSai = null; }
 
     let entDone = false, saiDone = false;
+    let entCount = 0, saiCount = 0;
     const check = () => {
       if (!entDone || !saiDone) return;
+      if (window.showToast) window.showToast(
+        'Firestore: ' + entCount + ' entr. | ' + saiCount + ' saíd.', 'success'
+      );
       if (this._onDataUpdate) this._onDataUpdate();
       if (onDone) onDone(true);
     };
 
-    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', () => {
-      entDone = true; check();
+    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', (_ok, docs) => {
+      entCount = docs.length; entDone = true; check();
     });
-    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', () => {
-      saiDone = true; check();
+    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', (_ok, docs) => {
+      saiCount = docs.length; saiDone = true; check();
     });
   }
 }

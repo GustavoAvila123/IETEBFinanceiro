@@ -159,8 +159,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   firebase.load(() => nav.initHome());
 
-  // Testa conectividade com Firestore 2s após carregar
-  setTimeout(() => firebase.testConnection(), 2000);
+  // Reconecta silenciosamente quando o app volta ao foco (mobile suspende WebSocket)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') firebase.silentRefresh();
+  });
+  window.addEventListener('pageshow', e => {
+    if (e.persisted) firebase.silentRefresh();
+  });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {

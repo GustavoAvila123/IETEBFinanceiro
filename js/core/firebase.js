@@ -214,6 +214,15 @@ class FirebaseManager {
     });
   }
 
+  // Reconecta silenciosamente (sem overlay) ao voltar ao foco.
+  silentRefresh() {
+    if (!this._db) return;
+    if (this._unsubEnt) { this._unsubEnt(); this._unsubEnt = null; }
+    if (this._unsubSai) { this._unsubSai(); this._unsubSai = null; }
+    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', () => {});
+    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', () => {});
+  }
+
   // Reconecta os listeners para buscar dados frescos do servidor.
   forceRefresh(onDone) {
     if (!this._db) {

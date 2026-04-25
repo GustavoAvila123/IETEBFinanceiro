@@ -150,19 +150,26 @@ class FirebaseManager {
 
   // Envia ao Firestore os registros locais ausentes no Firestore.
   // Sempre sobe sem comprovante (data URL pode ser muito grande).
-  _uploadMissing(colName, fsDocs) {
+  async _uploadMissing(colName, fsDocs) {
     if (!this._db) return;
     const localKey = colName === 'Entradas' ? 'ieteb_lancamentos' : 'ieteb_saidas';
     const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const deleted  = new Set(JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]'));
     const fsIds    = new Set(fsDocs.map(d => d.id));
 
-    local.forEach(item => {
-      if (!item.id || fsIds.has(String(item.id))) return;
-      const { comprovante, ...doc } = item;
-      doc.temComprovante = !!item.comprovante;
-      this._db.collection(colName).doc(String(doc.id)).set(doc)
-        .catch(e => console.warn('uploadMissing error:', colName, e));
-    });
+    for (const item of local) {
+      if (!item.id) continue;
+      if (fsIds.has(String(item.id))) continue;
+      if (deleted.has(String(item.id))) continue;
+      try {
+        const { comprovante, ...doc } = item;
+        doc.temComprovante = !!item.comprovante;
+        await this._db.collection(colName).doc(String(doc.id)).set(doc);
+      } catch (e) {
+        console.error('uploadMissing error:', colName, item.id, e);
+        if (window.showToast) window.showToast('❌ Erro ao sincronizar: ' + (e.message || e), 'error');
+      }
+    }
   }
 
   // Assina onSnapshot; chama onFirst(ok, docs) na primeira entrega.
@@ -247,9 +254,11 @@ class FirebaseManager {
     };
 
     this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', (_ok, docs) => {
+      this._uploadMissing('Entradas', docs);
       entCount = docs.length; entDone = true; check();
     });
     this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', (_ok, docs) => {
+      this._uploadMissing('Saídas', docs);
       saiCount = docs.length; saiDone = true; check();
     });
   }

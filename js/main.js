@@ -159,6 +159,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   firebase.load(() => nav.initHome());
 
+  // Testa conectividade com Firestore 2s após carregar
+  setTimeout(() => firebase.testConnection(), 2000);
+
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       document.getElementById('churchDropdown').classList.remove('church-dropdown--open');

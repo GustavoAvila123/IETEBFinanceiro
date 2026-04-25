@@ -38,6 +38,22 @@ class FirebaseManager {
     this._onDataUpdate = fn;
   }
 
+  // Testa se Firestore está acessível; mostra toast com resultado.
+  async testConnection() {
+    if (!this._db) {
+      if (window.showToast) window.showToast('❌ Firebase DB é null — SDK não inicializou', 'error');
+      return;
+    }
+    try {
+      await this._db.collection('_test').doc('ping').set({ ts: Date.now() });
+      await this._db.collection('_test').doc('ping').delete();
+      if (window.showToast) window.showToast('✅ Firebase OK — banco conectado!', 'success');
+    } catch (e) {
+      if (window.showToast) window.showToast('❌ Firebase ERRO: ' + (e.message || e), 'error');
+      console.error('testConnection error:', e);
+    }
+  }
+
   compressImage(dataUrl) {
     const LIMIT = 400000;
     if (!dataUrl) return Promise.resolve(null);

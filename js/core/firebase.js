@@ -143,8 +143,20 @@ class FirebaseManager {
       merged[doc.id] = doc;
     });
 
-    const result = Object.values(merged).sort((a, b) => b.id - a.id);
-    localStorage.setItem(localKey, JSON.stringify(result));
+    // Remove data URLs antes de gravar (HTTP URLs do Storage são mantidas)
+    const result = Object.values(merged).sort((a, b) => b.id - a.id).map(r => {
+      if (r.comprovante && !r.comprovante.startsWith('http')) {
+        const { comprovante, ...rest } = r;
+        rest.temComprovante = true;
+        return rest;
+      }
+      return r;
+    });
+    try {
+      localStorage.setItem(localKey, JSON.stringify(result));
+    } catch (_) {
+      try { localStorage.setItem(localKey, JSON.stringify(result.slice(0, 50))); } catch (__) {}
+    }
   }
 
   // Envia ao Firestore os registros locais ausentes no Firestore.

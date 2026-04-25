@@ -415,9 +415,18 @@ class SaidaPage {
         criadoEm:       new Date().toISOString(),
       };
 
+      // Salva no localStorage sem o comprovante (data URL pode ser muito grande)
+      const { comprovante: _cp, ...registroLocal } = registro;
+      registroLocal.temComprovante = !!registro.comprovante;
       const existing = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
-      existing.unshift(registro);
-      localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
+      existing.unshift(registroLocal);
+      try {
+        localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
+      } catch (_) {
+        // Quota estourou: mantém apenas os 50 mais recentes e tenta de novo
+        try { localStorage.setItem('ieteb_saidas', JSON.stringify(existing.slice(0, 50))); } catch (__) {}
+      }
+      // Envia ao Firebase com o comprovante completo
       this.firebase.save('Saídas', registro);
 
       this.modal.showToast('Saída salva com sucesso!', 'success');

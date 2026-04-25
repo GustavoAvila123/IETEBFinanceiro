@@ -115,16 +115,18 @@ window.onCaixaFiltroAteBlur = () => tesouraria.onFiltroAteBlur();
 window.initDashboard   = () => dashboard.init();
 window.dashMesNavegar  = d  => dashboard.navegar(d);
 
-// Atualização manual (busca dados frescos do Firestore)
+// Atualização manual — exibe overlay fosco até os dados chegarem
 window.forceRefresh = () => {
+  const overlay = document.getElementById('refreshOverlay');
   const btns = [
     document.getElementById('topbarRefreshBtn'),
     document.getElementById('sidebarRefreshBtn'),
   ].filter(Boolean);
+  if (overlay) overlay.classList.remove('refresh-overlay--hidden');
   btns.forEach(b => b.classList.add('refreshing'));
-  firebase.forceRefresh(ok => {
+  firebase.forceRefresh(() => {
+    if (overlay) overlay.classList.add('refresh-overlay--hidden');
     btns.forEach(b => b.classList.remove('refreshing'));
-    modal.showToast(ok ? 'Dados atualizados!' : 'Falha ao atualizar. Verifique a conexão.', ok ? 'success' : 'error');
   });
 };
 

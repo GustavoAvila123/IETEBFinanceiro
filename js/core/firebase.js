@@ -88,43 +88,38 @@ class FirebaseManager {
 
   delete(colName, id) {
     if (!this._db) return;
+    // Remove imediatamente do localStorage e registra como excluído
+    const localKey = colName === 'Entradas' ? 'ieteb_lancamentos' : 'ieteb_saidas';
+    const items = JSON.parse(localStorage.getItem(localKey) || '[]');
+    localStorage.setItem(localKey, JSON.stringify(items.filter(r => String(r.id) !== String(id))));
+    const deleted = JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]');
+    if (!deleted.includes(String(id))) deleted.push(String(id));
+    localStorage.setItem('ieteb_deleted_ids', JSON.stringify(deleted));
     this._db.collection(colName).doc(String(id)).delete()
       .catch(e => console.warn('Firestore delete error:', e));
   }
 
-  // Após o sync inicial, Firestore é autoritativo (deletions propagam).
-  // Antes do sync, usa UNION para preservar dados locais ainda não enviados.
+  // UNION: Firestore complementa os dados locais. IDs marcados como excluídos são ignorados.
   _mergeAndStore(localKey, fsDocs) {
     const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const deleted  = new Set(JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]'));
     const localMap = {};
-    local.forEach(r => { localMap[r.id] = r; });
+    local.forEach(r => {
+      if (!deleted.has(String(r.id))) localMap[r.id] = r;
+    });
 
-    const syncDone = localStorage.getItem('ieteb_sync_v1') === '1';
+    const merged = { ...localMap };
+    fsDocs.forEach(d => {
+      const doc = d.data();
+      if (deleted.has(String(doc.id))) return; // ignorar excluídos
+      const loc = merged[doc.id];
+      if (loc?.comprovante && !loc.comprovante.startsWith('http')) doc.comprovante = loc.comprovante;
+      else if (!doc.comprovante && doc.comprovanteUrl) doc.comprovante = doc.comprovanteUrl;
+      merged[doc.id] = doc;
+    });
 
-    if (syncDone) {
-      // REPLACE: Firestore decide quais registros existem (deletions propagam)
-      const merged = fsDocs.map(d => {
-        const doc = d.data();
-        const loc = localMap[doc.id];
-        if (loc?.comprovante && !loc.comprovante.startsWith('http')) doc.comprovante = loc.comprovante;
-        else if (!doc.comprovante && doc.comprovanteUrl) doc.comprovante = doc.comprovanteUrl;
-        return doc;
-      });
-      merged.sort((a, b) => b.id - a.id);
-      localStorage.setItem(localKey, JSON.stringify(merged));
-    } else {
-      // UNION: preserva dados locais enquanto o upload inicial ainda não completou
-      const merged = { ...localMap };
-      fsDocs.forEach(d => {
-        const doc = d.data();
-        const loc = merged[doc.id];
-        if (loc?.comprovante && !loc.comprovante.startsWith('http')) doc.comprovante = loc.comprovante;
-        else if (!doc.comprovante && doc.comprovanteUrl) doc.comprovante = doc.comprovanteUrl;
-        merged[doc.id] = doc;
-      });
-      const result = Object.values(merged).sort((a, b) => b.id - a.id);
-      localStorage.setItem(localKey, JSON.stringify(result));
-    }
+    const result = Object.values(merged).sort((a, b) => b.id - a.id);
+    localStorage.setItem(localKey, JSON.stringify(result));
   }
 
   // Envia ao Firestore os registros locais ausentes no Firestore.
@@ -179,7 +174,6 @@ class FirebaseManager {
 
     const checkFirst = () => {
       if (!firstEntDone || !firstSaiDone) return;
-      localStorage.setItem('ieteb_sync_v1', '1'); // Firestore está acessível, ativa REPLACE
       if (onComplete) onComplete();
     };
 

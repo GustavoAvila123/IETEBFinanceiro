@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
   firebase.load(() => nav.initHome());
 
   // Atualiza página ativa imediatamente após qualquer save local
-  document.addEventListener('ieteb:data-changed', () => {
+  document.addEventListener('ietebDataChanged', () => {
     const pagesMap = {
       pageRelatorios: () => relatorios.carregar(),
       pageCaixa:      () => tesouraria.render(),

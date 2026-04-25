@@ -415,10 +415,10 @@ class SaidaPage {
     existing.unshift(registro);
     localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
     this.firebase.save('Saídas', registro);
-    document.dispatchEvent(new Event('ieteb:data-changed'));
 
     this.modal.showToast('Saída salva com sucesso!', 'success');
     this.limparSaida();
+    try { document.dispatchEvent(new CustomEvent('ietebDataChanged')); } catch (_) {}
   }
 
   limparSaida() {

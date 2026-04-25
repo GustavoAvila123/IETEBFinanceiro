@@ -399,13 +399,13 @@ class EntradaPage {
     novosRegistros.forEach(r => existing.unshift(r));
     localStorage.setItem('ieteb_lancamentos', JSON.stringify(existing));
     novosRegistros.forEach(r => this.firebase.save('Entradas', r));
-    document.dispatchEvent(new Event('ieteb:data-changed'));
 
     const msg = alunos.length > 1
       ? `${alunos.length} lançamentos salvos com sucesso!`
       : 'Lançamento salvo com sucesso!';
     this.modal.showToast(msg, 'success');
     this.limparFormulario();
+    try { document.dispatchEvent(new CustomEvent('ietebDataChanged')); } catch (_) {}
   }
 
   limparFormulario() {

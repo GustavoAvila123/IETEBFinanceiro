@@ -20,12 +20,17 @@ class FirebaseManager {
   init() {
     try {
       const fbSDK = window.firebase;
-      if (!fbSDK) return;
+      if (!fbSDK) {
+        console.error('Firebase SDK não carregou');
+        return;
+      }
       if (!fbSDK.apps || !fbSDK.apps.length) fbSDK.initializeApp(_fbConfig);
-      this._db      = fbSDK.firestore();
-      this._storage = fbSDK.storage();
+      this._db = fbSDK.firestore();
+      try { this._storage = fbSDK.storage(); } catch (_) { this._storage = null; }
+      console.log('Firebase OK, db:', !!this._db);
     } catch (e) {
-      console.warn('Firebase init:', e);
+      console.error('Firebase init FALHOU:', e);
+      if (window.showToast) window.showToast('Firebase não conectou: ' + (e.message || e), 'error');
     }
   }
 
@@ -56,7 +61,11 @@ class FirebaseManager {
   }
 
   async save(colName, data) {
-    if (!this._db) return;
+    if (!this._db) {
+      console.error('save() chamado mas this._db é null');
+      if (window.showToast) window.showToast('Banco não conectado — dado salvo apenas localmente', 'error');
+      return;
+    }
     try {
       const { comprovante, ...doc } = data;
       doc.temComprovante = !!comprovante;
@@ -79,10 +88,10 @@ class FirebaseManager {
         }
       }
 
-      this._db.collection(colName).doc(String(doc.id)).set(doc)
-        .catch(e => console.warn('Firestore write error:', e));
+      await this._db.collection(colName).doc(String(doc.id)).set(doc);
     } catch (e) {
-      console.warn('Firestore save error:', e);
+      console.error('Firestore save error:', e);
+      if (window.showToast) window.showToast('Erro ao salvar no banco: ' + (e.message || e), 'error');
     }
   }
 

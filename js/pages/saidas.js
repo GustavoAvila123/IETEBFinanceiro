@@ -378,47 +378,55 @@ class SaidaPage {
   validate() {
     let ok = true;
     const checks = [
-      { errId: 'saidaCategoriaError',  msg: 'Selecione a categoria.',               val: () => document.getElementById('saidaCategoria').value },
-      { errId: 'saidaFornecedorError', msg: 'Informe o fornecedor ou beneficiário.', val: () => document.getElementById('saidaFornecedor').value.trim() },
-      { errId: 'saidaPagamentoError',  msg: 'Selecione a forma de pagamento.',       val: () => document.getElementById('saidaFormaPagamento').value },
-      { errId: 'saidaValorError',      msg: 'Informe o valor.',                      val: () => document.getElementById('saidaValor').value.trim() },
-      { errId: 'saidaDataError',       msg: 'Informe a data.',                       val: () => document.getElementById('saidaData').value },
+      { errId: 'saidaCategoriaError',  msg: 'Selecione a categoria.',               val: () => { const el = document.getElementById('saidaCategoria');  return el ? el.value : ''; } },
+      { errId: 'saidaFornecedorError', msg: 'Informe o fornecedor ou beneficiário.', val: () => { const el = document.getElementById('saidaFornecedor'); return el ? el.value.trim() : ''; } },
+      { errId: 'saidaPagamentoError',  msg: 'Selecione a forma de pagamento.',       val: () => { const el = document.getElementById('saidaFormaPagamento'); return el ? el.value : ''; } },
+      { errId: 'saidaValorError',      msg: 'Informe o valor.',                      val: () => { const el = document.getElementById('saidaValor');      return el ? el.value.trim() : ''; } },
+      { errId: 'saidaDataError',       msg: 'Informe a data.',                       val: () => { const el = document.getElementById('saidaData');       return el ? el.value : ''; } },
     ];
     checks.forEach(c => {
-      const el = document.getElementById(c.errId);
-      if (!c.val()) { el.textContent = c.msg; ok = false; }
-      else            el.textContent = '';
+      try {
+        const el = document.getElementById(c.errId);
+        const v = c.val();
+        if (!v) { if (el) el.textContent = c.msg; ok = false; }
+        else     { if (el) el.textContent = ''; }
+      } catch (_) { ok = false; }
     });
     return ok;
   }
 
   salvarSaida() {
-    if (!this.validate()) {
-      this.modal.showToast('Preencha os campos obrigatórios.', 'error');
-      return;
+    try {
+      if (!this.validate()) {
+        this.modal.showToast('Preencha os campos obrigatórios.', 'error');
+        return;
+      }
+
+      const registro = {
+        id:             Date.now(),
+        categoria:      document.getElementById('saidaCategoria').value,
+        fornecedor:     document.getElementById('saidaFornecedor').value.trim(),
+        formaPagamento: document.getElementById('saidaFormaPagamento').value,
+        valor:          document.getElementById('saidaValor').value.trim(),
+        data:           dateInputToISO(document.getElementById('saidaData').value),
+        hora:           document.getElementById('saidaHora').value,
+        observacao:     document.getElementById('saidaObservacao').value.trim(),
+        comprovante:    this.currentFileDataUrl || null,
+        criadoEm:       new Date().toISOString(),
+      };
+
+      const existing = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
+      existing.unshift(registro);
+      localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
+      this.firebase.save('Saídas', registro);
+
+      this.modal.showToast('Saída salva com sucesso!', 'success');
+      this.limparSaida();
+      try { document.dispatchEvent(new CustomEvent('ietebDataChanged')); } catch (_) {}
+    } catch (err) {
+      console.error('salvarSaida erro:', err);
+      this.modal.showToast('Erro ao salvar: ' + (err.message || err), 'error');
     }
-
-    const registro = {
-      id:             Date.now(),
-      categoria:      document.getElementById('saidaCategoria').value,
-      fornecedor:     document.getElementById('saidaFornecedor').value.trim(),
-      formaPagamento: document.getElementById('saidaFormaPagamento').value,
-      valor:          document.getElementById('saidaValor').value.trim(),
-      data:           dateInputToISO(document.getElementById('saidaData').value),
-      hora:           document.getElementById('saidaHora').value,
-      observacao:     document.getElementById('saidaObservacao').value.trim(),
-      comprovante:    this.currentFileDataUrl || null,
-      criadoEm:       new Date().toISOString(),
-    };
-
-    const existing = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
-    existing.unshift(registro);
-    localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
-    this.firebase.save('Saídas', registro);
-
-    this.modal.showToast('Saída salva com sucesso!', 'success');
-    this.limparSaida();
-    try { document.dispatchEvent(new CustomEvent('ietebDataChanged')); } catch (_) {}
   }
 
   limparSaida() {

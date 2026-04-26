@@ -374,32 +374,6 @@ class SaidaPage {
 
   closeOcrModal() { this.modal.close('ocrModalSaida'); }
 
-  // Converte página 1 de um PDF em JPEG comprimido (< 200 KB) para salvar como preview
-  async _comprimirPdf(file) {
-    try {
-      if (typeof pdfjsLib === 'undefined') {
-        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      }
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf    = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      const page   = await pdf.getPage(1);
-      const vp0    = page.getViewport({ scale: 1 });
-      const scale  = Math.min(1, 500 / Math.max(vp0.width, vp0.height));
-      const vp     = page.getViewport({ scale });
-      const canvas = document.createElement('canvas');
-      canvas.width  = Math.round(vp.width);
-      canvas.height = Math.round(vp.height);
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-      for (const q of [0.6, 0.45, 0.3]) {
-        const jpeg = canvas.toDataURL('image/jpeg', q);
-        if (jpeg.length < 200000) return jpeg;
-      }
-      return canvas.toDataURL('image/jpeg', 0.3);
-    } catch (_) { return null; }
-  }
-
   // ── Validação ─────────────────────────────────────────────────────────────────
   validate() {
     let ok = true;
@@ -421,19 +395,11 @@ class SaidaPage {
     return ok;
   }
 
-  async salvarSaida() {
+  salvarSaida() {
     try {
       if (!this.validate()) {
         this.modal.showToast('Preencha os campos obrigatórios.', 'error');
         return;
-      }
-
-      // Converte PDF para JPEG comprimido (< 200 KB) antes de salvar
-      let comprovante = null;
-      if (this.currentFile && this.currentFile.type === 'application/pdf') {
-        comprovante = await this._comprimirPdf(this.currentFile);
-      } else if (this.currentFileDataUrl) {
-        comprovante = this.currentFileDataUrl; // imagem já está no formato correto
       }
 
       const registro = {
@@ -445,22 +411,16 @@ class SaidaPage {
         data:           dateInputToISO(document.getElementById('saidaData').value),
         hora:           document.getElementById('saidaHora').value,
         observacao:     document.getElementById('saidaObservacao').value.trim(),
-        comprovante,
         criadoEm:       new Date().toISOString(),
       };
 
-      // Salva no localStorage com o JPEG pequeno (cabe no quota) ou sem se falhou
-      const { comprovante: _cp, ...registroLocal } = registro;
-      if (comprovante) registroLocal.comprovante = comprovante;
-      registroLocal.temComprovante = !!comprovante;
       const existing = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
-      existing.unshift(registroLocal);
+      existing.unshift(registro);
       try {
         localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
       } catch (_) {
-        try { localStorage.setItem('ieteb_saidas', JSON.stringify(existing.slice(0, 50))); } catch (__) {}
+        try { localStorage.setItem('ieteb_saidas', JSON.stringify(existing.slice(0, 100))); } catch (__) {}
       }
-      // Envia ao Firebase (JPEG cabe inline ou vai para Storage)
       this.firebase.save('Saídas', registro);
 
       this.modal.showToast('Saída salva com sucesso!', 'success');

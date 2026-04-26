@@ -83,27 +83,8 @@ class FirebaseManager {
       return;
     }
     try {
-      const { comprovante, ...doc } = data;
-      doc.temComprovante = !!comprovante;
-
-      if (comprovante) {
-        doc.comprovanteType = comprovante.startsWith('data:application/pdf') ? 'pdf' : 'image';
-        if (this._storage) {
-          try {
-            const ref = this._storage.ref(`comprovantes/${colName}/${doc.id}`);
-            await ref.putString(comprovante, 'data_url');
-            doc.comprovanteUrl = await ref.getDownloadURL();
-          } catch (e) {
-            console.warn('Storage upload falhou, tentando inline:', e);
-            const compressed = await this.compressImage(comprovante);
-            if (compressed) doc.comprovante = compressed;
-          }
-        } else {
-          const compressed = await this.compressImage(comprovante);
-          if (compressed) doc.comprovante = compressed;
-        }
-      }
-
+      // Imagens não são salvas no banco — apenas metadados
+      const { comprovante, comprovanteUrl, comprovanteType, ...doc } = data;
       await this._db.collection(colName).doc(String(doc.id)).set(doc);
     } catch (e) {
       console.error('Firestore save error:', e);
@@ -126,36 +107,31 @@ class FirebaseManager {
 
   // UNION: Firestore complementa os dados locais. IDs marcados como excluídos são ignorados.
   _mergeAndStore(localKey, fsDocs) {
-    const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
-    const deleted  = new Set(JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]'));
+    const local   = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const deleted = new Set(JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]'));
     const localMap = {};
     local.forEach(r => {
-      if (!deleted.has(String(r.id))) localMap[r.id] = r;
+      if (!deleted.has(String(r.id))) {
+        // Nunca persiste imagens no localStorage
+        const { comprovante, comprovanteUrl, comprovanteType, ...rest } = r;
+        localMap[rest.id] = rest;
+      }
     });
 
     const merged = { ...localMap };
     fsDocs.forEach(d => {
-      const doc = d.data();
-      if (deleted.has(String(doc.id))) return; // ignorar excluídos
-      const loc = merged[doc.id];
-      if (loc?.comprovante && !loc.comprovante.startsWith('http')) doc.comprovante = loc.comprovante;
-      else if (!doc.comprovante && doc.comprovanteUrl) doc.comprovante = doc.comprovanteUrl;
+      const raw = d.data();
+      if (deleted.has(String(raw.id))) return;
+      // Firestore também não deve ter imagens, mas strip por segurança
+      const { comprovante, comprovanteUrl, comprovanteType, ...doc } = raw;
       merged[doc.id] = doc;
     });
 
-    // Remove data URLs antes de gravar (HTTP URLs do Storage são mantidas)
-    const result = Object.values(merged).sort((a, b) => b.id - a.id).map(r => {
-      if (r.comprovante && !r.comprovante.startsWith('http')) {
-        const { comprovante, ...rest } = r;
-        rest.temComprovante = true;
-        return rest;
-      }
-      return r;
-    });
+    const result = Object.values(merged).sort((a, b) => b.id - a.id);
     try {
       localStorage.setItem(localKey, JSON.stringify(result));
     } catch (_) {
-      try { localStorage.setItem(localKey, JSON.stringify(result.slice(0, 50))); } catch (__) {}
+      try { localStorage.setItem(localKey, JSON.stringify(result.slice(0, 100))); } catch (__) {}
     }
   }
 
@@ -188,7 +164,7 @@ class FirebaseManager {
     let firstFired = false;
     return this._db.collection(colName).onSnapshot(
       snap => {
-        this._mergeAndStore(localKey, snap.docs);
+        try { this._mergeAndStore(localKey, snap.docs); } catch (_) {}
         if (!firstFired) {
           firstFired = true;
           if (onFirst) onFirst(true, snap.docs);

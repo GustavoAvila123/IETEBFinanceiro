@@ -138,14 +138,14 @@ class RelatorioPage {
       thead.innerHTML = `<tr>
         <th>Data</th><th>Hora</th><th>Categoria</th><th>Fornecedor</th>
         <th>Pagamento</th><th class="col-valor">Valor</th>
-        <th>Obs.</th><th>Comprovante</th><th></th>
+        <th>Obs.</th><th></th>
       </tr>`;
     } else {
       thead.innerHTML = `<tr>
         <th>Data</th><th>Hora</th><th>Aluno</th><th>Curso</th><th>Igreja</th>
         <th>Pagamento</th><th>Parcela</th><th>Depositante</th><th>Recebedor</th>
         <th>Banco Dep.</th><th>Banco Rec.</th><th class="col-valor">Valor</th>
-        <th>Obs.</th><th>Comprovante</th><th></th>
+        <th>Obs.</th><th></th>
       </tr>`;
     }
 
@@ -159,19 +159,11 @@ class RelatorioPage {
       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
       <path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
     </svg>`;
-    const viewIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-      <polyline points="21 15 16 10 5 21"/>
-    </svg>`;
 
     empty.style.display = 'none';
     tbody.innerHTML = page.map((item, idx) => {
       const badge     = badgePagamento(item.formaPagamento);
       const globalIdx = (this.currentPage - 1) * PAGE_SIZE + idx;
-      const hasComp   = !!(item.comprovante || item.comprovanteUrl);
-      const imgCell   = hasComp
-        ? `<button class="btn-comprovante" onclick="verComprovante(${globalIdx})" title="Ver">${viewIcon} Ver</button>`
-        : `<span class="no-comprovante">—</span>`;
       const delBtn = `<button class="btn-delete-row" onclick="pedirExclusao(${globalIdx})" title="Excluir">${deleteIcon}</button>`;
 
       if (this.tipo === 'saidas') {
@@ -184,7 +176,6 @@ class RelatorioPage {
           <td data-label="Pagamento">${badge}</td>
           <td class="col-valor" data-label="Valor">R$ ${escHtml(item.valor || '0,00')}</td>
           <td data-label="Obs." title="${escHtml(item.observacao || '')}">${escHtml(truncate(item.observacao, 20))}</td>
-          <td data-label="Comprovante">${imgCell}</td>
           <td>${delBtn}</td>
         </tr>`;
       }
@@ -204,7 +195,6 @@ class RelatorioPage {
         <td data-label="Banco Rec.">${escHtml(item.bancoRecebedor || '—')}</td>
         <td class="col-valor" data-label="Valor">R$ ${escHtml(item.valor || '0,00')}</td>
         <td data-label="Obs." title="${escHtml(item.observacao || '')}">${escHtml(truncate(item.observacao, 20))}</td>
-        <td data-label="Comprovante">${imgCell}</td>
         <td>${delBtn}</td>
       </tr>`;
     }).join('');

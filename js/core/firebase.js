@@ -206,9 +206,34 @@ class FirebaseManager {
     );
   }
 
+  // Remove data URLs de comprovante do localStorage (chamado uma vez na inicialização).
+  _purgeLocalDataUrls() {
+    ['ieteb_lancamentos', 'ieteb_saidas'].forEach(key => {
+      try {
+        const items = JSON.parse(localStorage.getItem(key) || '[]');
+        let changed = false;
+        const cleaned = items.map(r => {
+          if (r.comprovante && !r.comprovante.startsWith('http')) {
+            const { comprovante, ...rest } = r;
+            rest.temComprovante = true;
+            changed = true;
+            return rest;
+          }
+          return r;
+        });
+        if (changed) {
+          try { localStorage.setItem(key, JSON.stringify(cleaned)); } catch (_) {
+            try { localStorage.setItem(key, JSON.stringify(cleaned.slice(0, 50))); } catch (__) {}
+          }
+        }
+      } catch (_) {}
+    });
+  }
+
   // Carga inicial: configura listeners e sobe dados locais que faltam no Firestore.
   // Cada coleção faz seu próprio upload independentemente, sem esperar pela outra.
   load(onComplete) {
+    this._purgeLocalDataUrls();
     if (!this._db) { if (onComplete) onComplete(); return; }
 
     if (this._unsubEnt) this._unsubEnt();

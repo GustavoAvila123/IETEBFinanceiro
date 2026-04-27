@@ -105,29 +105,30 @@ class FirebaseManager {
       .catch(e => console.warn('Firestore delete error:', e));
   }
 
-  // UNION: Firestore complementa os dados locais. IDs marcados como excluídos são ignorados.
+  // Firestore é autoritativo. Registros salvos nos últimos 2 min ainda não
+  // confirmados pelo Firestore são mantidos temporariamente (em-trânsito).
   _mergeAndStore(localKey, fsDocs) {
-    const local   = JSON.parse(localStorage.getItem(localKey) || '[]');
     const deleted = new Set(JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]'));
-    const localMap = {};
-    local.forEach(r => {
-      if (!deleted.has(String(r.id))) {
-        // Nunca persiste imagens no localStorage
-        const { comprovante, comprovanteUrl, comprovanteType, ...rest } = r;
-        localMap[rest.id] = rest;
-      }
-    });
+    const fsIds   = new Set(fsDocs.map(d => String(d.data().id)));
 
-    const merged = { ...localMap };
-    fsDocs.forEach(d => {
-      const raw = d.data();
-      if (deleted.has(String(raw.id))) return;
-      // Firestore também não deve ter imagens, mas strip por segurança
-      const { comprovante, comprovanteUrl, comprovanteType, ...doc } = raw;
-      merged[doc.id] = doc;
-    });
+    // Registros locais em-trânsito: não estão no Firestore e foram criados há < 2 min
+    const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const now      = Date.now();
+    const inFlight = local.filter(r =>
+      !deleted.has(String(r.id)) &&
+      !fsIds.has(String(r.id))   &&
+      (now - Number(r.id)) < 120000
+    );
 
-    const result = Object.values(merged).sort((a, b) => b.id - a.id);
+    // Dados do Firestore (autoritativos) — strip de imagens por segurança
+    const fsData = fsDocs
+      .filter(d => !deleted.has(String(d.data().id)))
+      .map(d => {
+        const { comprovante, comprovanteUrl, comprovanteType, ...doc } = d.data();
+        return doc;
+      });
+
+    const result = [...fsData, ...inFlight].sort((a, b) => b.id - a.id);
     try {
       localStorage.setItem(localKey, JSON.stringify(result));
     } catch (_) {

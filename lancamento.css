@@ -1606,16 +1606,17 @@ body.modal-open { overflow: hidden; touch-action: none; }
   gap: 16px;
   background: var(--white);
   border-radius: var(--radius-lg);
-  padding: 14px 22px;
-  box-shadow: var(--shadow);
-  margin-bottom: 18px;
+  padding: 16px 24px;
+  box-shadow: 0 1px 12px rgba(6,15,46,.07);
+  border: 1px solid var(--gray-200);
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 .caixa-month-controls {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
 }
 
 .caixa-day-filter {
@@ -1628,137 +1629,57 @@ body.modal-open { overflow: hidden; touch-action: none; }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1.5px solid var(--gray-200);
-  border-radius: var(--radius-sm);
+  width: 34px; height: 34px;
+  border: 1px solid var(--gray-200);
+  border-radius: 50%;
   background: var(--white);
   cursor: pointer;
   color: var(--navy);
-  transition: border-color .15s, background .15s;
+  transition: border-color .18s, background .18s, color .18s, transform .12s;
 }
 
-.caixa-month-btn:hover { border-color: var(--gold); background: var(--gold-bg); }
+.caixa-month-btn:hover {
+  border-color: var(--gold);
+  background: rgba(212,175,55,.07);
+  color: var(--gold-dim);
+}
+
+.caixa-month-btn:active { transform: scale(.92); }
 
 .caixa-month-label {
-  font-size: 1.05rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--navy);
-  min-width: 170px;
+  min-width: 160px;
   text-align: center;
+  letter-spacing: .01em;
 }
 
-.caixa-saldo-anterior {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  padding: 20px 22px;
-  margin-bottom: 18px;
+/* ── Saldo Anterior card (dark navy) ── */
+.caixa-card--anterior {
+  background: linear-gradient(135deg, #060f2e 0%, #0a1845 100%) !important;
+  border: 1px solid rgba(212,175,55,.14) !important;
+  box-shadow: 0 4px 24px rgba(6,15,46,.22) !important;
 }
 
-.caixa-section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: .72rem;
-  font-weight: 800;
-  color: var(--navy);
-  text-transform: uppercase;
-  letter-spacing: .10em;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--gold);
-  margin-bottom: 16px;
+.caixa-card--anterior .caixa-card-header {
+  color: rgba(212,175,55,.72) !important;
+  border-color: rgba(212,175,55,.15) !important;
 }
 
-.caixa-section-title svg { color: var(--gold); flex-shrink: 0; }
+.caixa-card--anterior .caixa-card-header svg { color: rgba(212,175,55,.55); }
 
-.caixa-saldo-anterior-body {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  align-items: flex-end;
-}
-
-.caixa-input-group { display: flex; flex-direction: column; gap: 5px; }
-
-.caixa-input-group label {
-  font-size: .78rem;
-  font-weight: 600;
-  color: var(--text-light);
-}
-
-.caixa-input-wrap {
-  display: flex;
-  align-items: center;
-  border: 1.5px solid var(--gray-200);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  transition: border-color .15s;
-}
-
-.caixa-input-wrap:focus-within { border-color: var(--gold); }
-
-.caixa-input-prefix {
-  padding: 0 10px;
-  background: var(--gray-100);
-  color: var(--text-light);
-  font-size: .85rem;
-  font-weight: 600;
-  border-right: 1.5px solid var(--gray-200);
-  height: 38px;
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-}
-
-.caixa-input-wrap input {
-  border: none;
-  outline: none;
-  padding: 0 10px;
-  height: 38px;
-  font-size: .88rem;
-  color: var(--text);
-  width: 130px;
-  background: var(--white);
-}
-
-.caixa-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
-}
-
-.caixa-card {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.caixa-card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 18px;
-  font-size: .72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .09em;
-  border-bottom: 3px solid transparent;
-}
-
-.caixa-card--entrada  .caixa-card-header { color: var(--success);  border-color: var(--success); }
-.caixa-card--saida    .caixa-card-header { color: var(--danger);   border-color: var(--danger);  }
-.caixa-card--saldo    .caixa-card-header { color: var(--navy);     border-color: var(--gold);    }
-.caixa-card--anterior .caixa-card-header { color: var(--navy-mid); border-color: var(--navy-mid); }
+.caixa-card--anterior .caixa-saldo-item-label { color: rgba(255,255,255,.38); }
 
 .caixa-auto-badge {
   margin-left: auto;
-  font-size: .65rem;
-  background: var(--gold-bg);
-  color: var(--gold-dim);
-  padding: 2px 8px;
+  font-size: .6rem;
+  background: rgba(212,175,55,.1);
+  color: rgba(212,175,55,.65);
+  padding: 3px 9px;
   border-radius: 20px;
+  border: 1px solid rgba(212,175,55,.2);
   font-weight: 600;
   text-transform: none;
   letter-spacing: 0;
@@ -1768,66 +1689,71 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .caixa-anterior-body {
   display: flex;
   align-items: stretch;
-  padding: 16px 18px;
+  padding: 18px 20px;
   gap: 0;
 }
 
-.caixa-anterior-item { flex: 1; text-align: center; padding: 4px 8px; }
+.caixa-anterior-item { flex: 1; text-align: center; padding: 4px 10px; }
 
 .caixa-anterior-sep {
   width: 1px;
-  background: var(--gray-200);
+  background: rgba(255,255,255,.07);
   margin: 0 4px;
 }
 
-.caixa-abertura {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
-  margin-top: 16px;
-  overflow: hidden;
+/* ── Main cards ── */
+.caixa-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
 }
 
-.caixa-abertura summary {
-  padding: 14px 20px;
-  cursor: pointer;
-  font-size: .72rem;
-  font-weight: 700;
-  color: var(--text-light);
-  text-transform: uppercase;
-  letter-spacing: .09em;
-  list-style: none;
+.caixa-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 12px rgba(6,15,46,.07);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+  position: relative;
+}
+
+.caixa-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.caixa-card--anterior::before { display: none; }
+.caixa-card--entrada::before  { background: linear-gradient(90deg, #276749, #48bb78); }
+.caixa-card--saida::before    { background: linear-gradient(90deg, #9b2c2c, #e53e3e); }
+.caixa-card--saldo::before    { background: linear-gradient(90deg, var(--gold-dim), var(--gold-light)); }
+
+.caixa-card-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  user-select: none;
+  padding: 16px 20px 14px;
+  font-size: .64rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.caixa-abertura summary::-webkit-details-marker { display: none; }
-.caixa-abertura-chevron { margin-left: auto; transition: transform .2s; }
-.caixa-abertura[open] .caixa-abertura-chevron { transform: rotate(180deg); }
+.caixa-card--entrada .caixa-card-header { color: #2f855a; }
+.caixa-card--saida   .caixa-card-header { color: var(--danger); }
+.caixa-card--saldo   .caixa-card-header { color: var(--navy); }
 
-.caixa-abertura-body {
-  padding: 0 20px 20px;
-  border-top: 1px solid var(--gray-100);
-}
-
-.caixa-abertura-hint {
-  font-size: .82rem;
-  color: var(--text-light);
-  line-height: 1.55;
-  margin: 14px 0;
-}
-
-.caixa-card-body { padding: 16px 18px; }
+.caixa-card-body { padding: 16px 20px; }
 
 .caixa-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--gray-100);
-  font-size: .87rem;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(6,15,46,.05);
+  font-size: .86rem;
 }
 
 .caixa-row:last-child { border-bottom: none; }
@@ -1835,42 +1761,44 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .caixa-row-label {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   color: var(--text-light);
+  font-size: .84rem;
 }
 
-.caixa-row-value { font-weight: 600; color: var(--text); }
+.caixa-row-value { font-weight: 600; color: var(--text); font-size: .88rem; }
 
 .caixa-row--total {
-  margin-top: 6px;
-  padding-top: 10px;
-  border-top: 2px solid var(--gray-200) !important;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1.5px solid var(--gray-200) !important;
   border-bottom: none !important;
 }
 
 .caixa-row--total .caixa-row-label { color: var(--navy); font-weight: 700; font-size: .9rem; }
-.caixa-row--total .caixa-row-value { font-size: 1.05rem; color: var(--navy); font-weight: 700; }
+.caixa-row--total .caixa-row-value { font-size: 1.1rem; color: var(--navy); font-weight: 800; }
 
 .caixa-row--section-label {
   display: flex;
   align-items: center;
-  padding: 6px 0 2px;
-  font-size: .72rem;
-  font-weight: 700;
+  padding: 8px 0 3px;
+  font-size: .59rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: .11em;
   color: var(--gray-500);
-  border-bottom: none;
+  border-bottom: none !important;
 }
 
 .caixa-row--divider {
   height: 1px;
   background: var(--gray-200);
-  margin: 8px 0;
+  margin: 6px 0;
+  border: none;
 }
 
 .caixa-dot {
-  width: 9px; height: 9px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
@@ -1881,38 +1809,43 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .caixa-dot--debito   { background: #6b46c1; }
 .caixa-dot--credito  { background: #c05621; }
 
+/* ── Saldo Atual items ── */
 .caixa-saldo-item {
-  padding: 10px 0;
-  border-bottom: 1px solid var(--gray-100);
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(6,15,46,.05);
 }
 
 .caixa-saldo-item:last-child { border-bottom: none; }
 
 .caixa-saldo-item-label {
-  font-size: .76rem;
+  font-size: .62rem;
   color: var(--text-light);
-  font-weight: 500;
-  margin-bottom: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  margin-bottom: 6px;
 }
 
 .caixa-saldo-item-value {
-  font-size: 1.3rem;
+  font-size: 1.45rem;
   font-weight: 700;
   color: var(--navy);
+  letter-spacing: -.02em;
+  line-height: 1;
 }
 
-.caixa-saldo-item-value--positivo { color: var(--success); }
-.caixa-saldo-item-value--negativo { color: var(--danger);  }
+.caixa-saldo-item-value--positivo { color: #2f855a; }
+.caixa-saldo-item-value--negativo { color: var(--danger); }
 
 .caixa-saldo-item--total {
-  margin-top: 6px;
-  padding-top: 12px;
-  border-top: 2px solid var(--gray-200) !important;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1.5px solid var(--gray-200) !important;
   border-bottom: none !important;
 }
 
-.caixa-saldo-item--total .caixa-saldo-item-label { font-weight: 700; color: var(--navy); font-size: .82rem; }
-.caixa-saldo-item--total .caixa-saldo-item-value { font-size: 1.55rem; }
+.caixa-saldo-item--total .caixa-saldo-item-label { font-weight: 800; color: var(--navy); font-size: .68rem; }
+.caixa-saldo-item--total .caixa-saldo-item-value { font-size: 1.75rem; font-weight: 800; }
 
 @media (max-width: 768px) {
   .caixa-cards { grid-template-columns: 1fr; }
@@ -1920,10 +1853,7 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 
 @media (max-width: 1024px) {
-  .caixa-month-nav {
-    flex-direction: column;
-    align-items: center;
-  }
+  .caixa-month-nav { flex-direction: column; align-items: center; }
   .caixa-day-filter { justify-content: center; }
 }
 

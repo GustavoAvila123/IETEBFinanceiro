@@ -71,7 +71,7 @@ class RelatorioPage {
     const ate = dateInputToISO(document.getElementById('filtroDataAte').value);
     if (de && ate && ate < de) {
       document.getElementById('filtroDataAte').value = '';
-      document.getElementById('filtroDataModal').style.display = 'flex';
+      this.modal.open('filtroDataModal');
       return;
     }
     this.aplicarFiltros();
@@ -82,7 +82,7 @@ class RelatorioPage {
     const ate = dateInputToISO(document.getElementById('filtroDataAte').value);
     if (de && ate && ate < de) {
       document.getElementById('filtroDataAte').value = '';
-      document.getElementById('filtroDataModal').style.display = 'flex';
+      this.modal.open('filtroDataModal');
       return;
     }
     this.aplicarFiltros();

@@ -1722,7 +1722,19 @@ body {
 .toast--error   { border-left-color: var(--danger); }
 
 /* ─── MODAL ─── */
-body.modal-open { overflow: hidden; touch-action: none; }
+/* Trava o scroll do body enquanto um modal está aberto.
+   position:fixed + width:100% é a forma mais robusta de impedir scroll
+   também em iOS Safari (onde overflow:hidden sozinho não basta).
+   O modal.js salva e restaura a posição via top: -Ypx. */
+body.modal-open {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: contain;
+}
 
 .modal-overlay {
   position: fixed;
@@ -2551,6 +2563,133 @@ body.modal-open { overflow: hidden; touch-action: none; }
 /* ═══════════════════════════════════════════════════════════════════════════════
    LOGIN SCREEN
 ═══════════════════════════════════════════════════════════════════════════════ */
+/* ── Splash de boot (cobre o login enquanto Auth restaura sessão) ── */
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--navy-deep);
+  transition: opacity .35s ease;
+}
+
+.boot-splash--exit {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boot-splash-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.boot-splash-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .45;
+  animation: lsFloat 12s ease-in-out infinite alternate;
+}
+
+.boot-splash-orb--1 {
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, #1a3a8f 0%, transparent 70%);
+  top: -120px; left: -140px;
+  animation-duration: 14s;
+}
+
+.boot-splash-orb--2 {
+  width: 360px; height: 360px;
+  background: radial-gradient(circle, #c8a92260 0%, transparent 70%);
+  bottom: -80px; right: -80px;
+  animation-duration: 10s;
+  animation-delay: -4s;
+}
+
+.boot-splash-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(212,175,55,.12) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+}
+
+.boot-splash-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px;
+}
+
+.boot-splash-logo-ring {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, rgba(212,175,55,.28), transparent 65%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.boot-splash-logo-ring::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--gold), transparent 35%, var(--gold) 70%, transparent 100%);
+  animation: bootSplashSpin 2.4s linear infinite;
+  -webkit-mask: radial-gradient(circle, transparent 50px, black 51px);
+          mask: radial-gradient(circle, transparent 50px, black 51px);
+  opacity: .85;
+}
+
+.boot-splash-logo {
+  position: relative;
+  z-index: 1;
+  width: 78px;
+  height: 78px;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.45);
+}
+
+.boot-splash-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.boot-splash-subtitle {
+  font-size: .68rem;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.55);
+}
+
+.boot-splash-spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(212,175,55,.18);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: bootSplashSpin .9s linear infinite;
+  margin-top: 14px;
+}
+
+@keyframes bootSplashSpin {
+  to { transform: rotate(360deg); }
+}
+
 .ls {
   position: fixed;
   inset: 0;

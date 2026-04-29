@@ -51,7 +51,7 @@ class TesourariaPage {
     if (!deEl.value && !ateEl.value) return;
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
       ateEl.value = '';
-      document.getElementById('caixaDataModal').style.display = 'flex';
+      this.modal.open('caixaDataModal');
       return;
     }
     this.filtroAplicado = true;
@@ -63,7 +63,7 @@ class TesourariaPage {
     const ateEl = document.getElementById('caixaDiaFiltroATE');
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
       ateEl.value = '';
-      document.getElementById('caixaDataModal').style.display = 'flex';
+      this.modal.open('caixaDataModal');
     }
   }
 
@@ -72,7 +72,7 @@ class TesourariaPage {
     const ateEl = document.getElementById('caixaDiaFiltroATE');
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
       ateEl.value = '';
-      document.getElementById('caixaDataModal').style.display = 'flex';
+      this.modal.open('caixaDataModal');
     }
   }
 

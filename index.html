@@ -26,9 +26,29 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="lancamento.css?v=20260429v">
+  <link rel="stylesheet" href="lancamento.css?v=20260429w">
 </head>
 <body>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SPLASH DE BOOT — esconde a tela de login enquanto a sessão
+       persistida do Firebase Auth está sendo restaurada.
+  ══════════════════════════════════════════════════════════════════ -->
+  <div id="appBootSplash" class="boot-splash" aria-hidden="true">
+    <div class="boot-splash-bg">
+      <div class="boot-splash-orb boot-splash-orb--1"></div>
+      <div class="boot-splash-orb boot-splash-orb--2"></div>
+      <div class="boot-splash-grid"></div>
+    </div>
+    <div class="boot-splash-content">
+      <div class="boot-splash-logo-ring">
+        <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="boot-splash-logo" />
+      </div>
+      <div class="boot-splash-title">IETEB</div>
+      <div class="boot-splash-subtitle">Sistema de Gestão Financeira</div>
+      <div class="boot-splash-spinner" aria-hidden="true"></div>
+    </div>
+  </div>
 
   <!-- ══════════════════════════════════════════════════════════════════
        TELA DE LOGIN
@@ -1293,7 +1313,7 @@
         O campo <strong>Data Até</strong> deve ser igual ou maior que o campo <strong>Data De</strong>.
       </div>
       <div class="modal-footer">
-        <button class="btn-primary" onclick="document.getElementById('caixaDataModal').style.display='none';document.getElementById('caixaDiaFiltroATE').focus()">Entendi</button>
+        <button class="btn-primary" onclick="fecharCaixaDataModal()">Entendi</button>
       </div>
     </div>
   </div>
@@ -1471,32 +1491,32 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260429v"></script>
+  <script src="js/config.js?v=20260429w"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260429v"></script>
-  <script src="js/utils/format.js?v=20260429v"></script>
+  <script src="js/utils/helpers.js?v=20260429w"></script>
+  <script src="js/utils/format.js?v=20260429w"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260429v"></script>
-  <script src="js/core/firebase.js?v=20260429v"></script>
+  <script src="js/core/modal.js?v=20260429w"></script>
+  <script src="js/core/firebase.js?v=20260429w"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260429v"></script>
+  <script src="js/ocr/entradas.js?v=20260429w"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260429v"></script>
-  <script src="js/pages/entradas.js?v=20260429v"></script>
-  <script src="js/pages/saidas.js?v=20260429v"></script>
-  <script src="js/pages/relatorios.js?v=20260429v"></script>
-  <script src="js/pages/tesouraria.js?v=20260429v"></script>
-  <script src="js/pages/dashboard.js?v=20260429v"></script>
-  <script src="js/pages/monitor.js?v=20260429v"></script>
+  <script src="js/pages/login.js?v=20260429w"></script>
+  <script src="js/pages/entradas.js?v=20260429w"></script>
+  <script src="js/pages/saidas.js?v=20260429w"></script>
+  <script src="js/pages/relatorios.js?v=20260429w"></script>
+  <script src="js/pages/tesouraria.js?v=20260429w"></script>
+  <script src="js/pages/dashboard.js?v=20260429w"></script>
+  <script src="js/pages/monitor.js?v=20260429w"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260429v"></script>
+  <script src="js/core/navigation.js?v=20260429w"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260429v"></script>
+  <script src="js/main.js?v=20260429w"></script>
 </body>
 </html>

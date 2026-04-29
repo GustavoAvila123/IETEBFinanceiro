@@ -1,13 +1,35 @@
 class ModalManager {
+  constructor() {
+    this._lockedScrollY = null;
+  }
+
   open(id) {
-    document.getElementById(id).style.display = 'flex';
-    document.body.classList.add('modal-open');
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    // Trava o scroll só no PRIMEIRO modal aberto da pilha. Se já houver
+    // outro modal aberto, mantém a posição salva.
+    if (this._lockedScrollY === null) {
+      this._lockedScrollY = window.scrollY || window.pageYOffset || 0;
+      document.body.style.top = `-${this._lockedScrollY}px`;
+      document.body.classList.add('modal-open');
+    }
+    el.style.display = 'flex';
   }
 
   close(id) {
-    document.getElementById(id).style.display = 'none';
-    if (!document.querySelector('.modal-overlay[style*="flex"]')) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+
+    // Só destrava quando NENHUM outro modal está visível.
+    const aindaTemAberto = Array.from(document.querySelectorAll('.modal-overlay'))
+      .some(m => m.style.display === 'flex');
+    if (!aindaTemAberto) {
       document.body.classList.remove('modal-open');
+      document.body.style.top = '';
+      const y = this._lockedScrollY;
+      this._lockedScrollY = null;
+      if (y !== null) window.scrollTo(0, y);
     }
   }
 

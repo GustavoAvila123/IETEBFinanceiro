@@ -115,6 +115,11 @@ window.clearCaixaDia      = () => tesouraria.clearDia();
 window.aplicarCaixaFiltro = () => tesouraria.aplicarFiltro();
 window.onCaixaFiltroDeBlur  = () => tesouraria.onFiltroDeBlur();
 window.onCaixaFiltroAteBlur = () => tesouraria.onFiltroAteBlur();
+window.fecharCaixaDataModal = () => {
+  modal.close('caixaDataModal');
+  const ate = document.getElementById('caixaDiaFiltroATE');
+  if (ate) ate.focus();
+};
 
 // Dashboard
 window.initDashboard   = () => dashboard.init();
@@ -151,6 +156,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // carregar dados/UI. Se autenticado, login.checkAuth() esconde a tela de
   // login. Se não, o login screen permanece e nada de Firestore é assinado.
   const authed = await login.checkAuth();
+
+  // Remove o splash de boot que cobria a tela enquanto Auth restaurava.
+  const splash = document.getElementById('appBootSplash');
+  if (splash) {
+    splash.classList.add('boot-splash--exit');
+    setTimeout(() => splash.remove(), 400);
+  }
 
   entradas.initAlunosContainer();
   entradas.initValidationListeners();

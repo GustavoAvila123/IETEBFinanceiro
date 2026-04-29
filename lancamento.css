@@ -1020,7 +1020,7 @@ body {
 
 .report-filters .form-input,
 .report-filters .form-select {
-  background: rgba(255,255,255,.07);
+  background-color: rgba(255,255,255,.07);
   border-color: rgba(255,255,255,.14);
   color: #fff;
 }
@@ -1030,7 +1030,7 @@ body {
 .report-filters .form-input:focus,
 .report-filters .form-select:focus {
   border-color: rgba(212,175,55,.55);
-  background: rgba(255,255,255,.11);
+  background-color: rgba(255,255,255,.11);
   box-shadow: 0 0 0 3px rgba(212,175,55,.13);
 }
 

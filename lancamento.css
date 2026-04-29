@@ -1381,6 +1381,22 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 .saved-snackbar svg { stroke: #4ade80; flex-shrink: 0; }
 
+.snackbar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s ease;
+}
+.snackbar-overlay.snackbar--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* ─── MODAL PÓS-OCR (Tudo certo) ─── */
 .ocr-dados-header {
   background: linear-gradient(145deg, var(--navy), #1a2d7a);

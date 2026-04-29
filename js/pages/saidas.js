@@ -497,11 +497,16 @@ class SaidaPage {
   }
 
   _showSnackbar() {
-    const el = document.getElementById('saidaSavedSnackbar');
+    const el      = document.getElementById('saidaSavedSnackbar');
+    const overlay = document.getElementById('saidaSnackbarOverlay');
     if (!el) return;
     el.classList.add('snackbar--visible');
+    if (overlay) overlay.classList.add('snackbar--visible');
     clearTimeout(this._snackTimer);
-    this._snackTimer = setTimeout(() => el.classList.remove('snackbar--visible'), 5000);
+    this._snackTimer = setTimeout(() => {
+      el.classList.remove('snackbar--visible');
+      if (overlay) overlay.classList.remove('snackbar--visible');
+    }, 5000);
   }
 
   limparSaida() {

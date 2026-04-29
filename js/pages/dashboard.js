@@ -45,8 +45,8 @@ class DashboardPage {
     const ultimoDia = new Date(year, month, 0).getDate();
     const mesFim    = `${this.dashMes}-${String(ultimoDia).padStart(2, '0')}`;
 
-    const todasEntradas = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
-    const todasSaidas   = JSON.parse(localStorage.getItem('ieteb_saidas')      || '[]');
+    const todasEntradas = getEntradasData();
+    const todasSaidas   = getSaidasData();
 
     const entradas = todasEntradas.filter(i => i.dataDeposito && i.dataDeposito >= mesInicio && i.dataDeposito <= mesFim);
     const saidas   = todasSaidas.filter(i => i.data && i.data >= mesInicio && i.data <= mesFim);

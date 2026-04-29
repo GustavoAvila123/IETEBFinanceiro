@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="lancamento.css?v=20260429o">
+  <link rel="stylesheet" href="lancamento.css?v=20260429p">
 </head>
 <body>
 
@@ -136,6 +136,7 @@
 
       <span class="sidebar-nav-label">Análise</span>
 
+
       <button class="nav-item" id="navRelatorios" onclick="showPage('relatorios')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -161,6 +162,18 @@
           <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
         </svg>
         <span>Dashboard</span>
+      </button>
+
+      <!-- Seção exclusiva do Admin -->
+      <span class="sidebar-nav-label" id="sidebarAdminSection" style="display:none">Administração</span>
+      <button class="nav-item" id="navMonitor" onclick="showPage('monitor')" style="display:none">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>Monitor</span>
       </button>
     </nav>
 
@@ -1174,6 +1187,58 @@
     </main>
     <!-- /pageDashboard -->
 
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: MONITOR (admin only)
+    ════════════════════════════════════════════════════════════════════════ -->
+    <main class="page-content page-content--hidden" id="pageMonitor">
+      <div class="content-header">
+        <h1 class="page-title">Monitor de Testers</h1>
+        <p class="page-desc">Acompanhe em tempo real os testers conectados e seus lançamentos.</p>
+      </div>
+
+      <!-- Resumo geral -->
+      <div class="monitor-summary">
+        <div class="monitor-sum-card monitor-sum-card--entrada">
+          <div class="monitor-sum-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            Total Entradas (testers)
+          </div>
+          <div class="monitor-sum-value" id="monitorSumEntradas">R$ 0,00</div>
+        </div>
+        <div class="monitor-sum-card monitor-sum-card--saida">
+          <div class="monitor-sum-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            Total Saídas (testers)
+          </div>
+          <div class="monitor-sum-value" id="monitorSumSaidas">R$ 0,00</div>
+        </div>
+        <div class="monitor-sum-card monitor-sum-card--saldo">
+          <div class="monitor-sum-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/></svg>
+            Saldo Geral (testers)
+          </div>
+          <div class="monitor-sum-value" id="monitorSumSaldo">R$ 0,00</div>
+        </div>
+      </div>
+
+      <!-- Barra de status -->
+      <div class="monitor-bar">
+        <span class="monitor-online-badge" id="monitorOnlineCount">0 online</span>
+        <span class="monitor-updated" id="monitorUpdatedAt"></span>
+        <button class="btn-ghost monitor-refresh-btn" onclick="reloadMonitor()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          Atualizar
+        </button>
+      </div>
+
+      <!-- Cards dos testers -->
+      <div class="monitor-grid" id="monitorGrid"></div>
+    </main>
+    <!-- /pageMonitor -->
+
   </div>
   <!-- /page-wrapper -->
 
@@ -1378,31 +1443,32 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260429o"></script>
+  <script src="js/config.js?v=20260429p"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260429o"></script>
-  <script src="js/utils/format.js?v=20260429o"></script>
+  <script src="js/utils/helpers.js?v=20260429p"></script>
+  <script src="js/utils/format.js?v=20260429p"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260429o"></script>
-  <script src="js/core/firebase.js?v=20260429o"></script>
+  <script src="js/core/modal.js?v=20260429p"></script>
+  <script src="js/core/firebase.js?v=20260429p"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260429o"></script>
+  <script src="js/ocr/entradas.js?v=20260429p"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260429o"></script>
-  <script src="js/pages/entradas.js?v=20260429o"></script>
-  <script src="js/pages/saidas.js?v=20260429o"></script>
-  <script src="js/pages/relatorios.js?v=20260429o"></script>
-  <script src="js/pages/tesouraria.js?v=20260429o"></script>
-  <script src="js/pages/dashboard.js?v=20260429o"></script>
+  <script src="js/pages/login.js?v=20260429p"></script>
+  <script src="js/pages/entradas.js?v=20260429p"></script>
+  <script src="js/pages/saidas.js?v=20260429p"></script>
+  <script src="js/pages/relatorios.js?v=20260429p"></script>
+  <script src="js/pages/tesouraria.js?v=20260429p"></script>
+  <script src="js/pages/dashboard.js?v=20260429p"></script>
+  <script src="js/pages/monitor.js?v=20260429p"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260429o"></script>
+  <script src="js/core/navigation.js?v=20260429p"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260429o"></script>
+  <script src="js/main.js?v=20260429p"></script>
 </body>
 </html>

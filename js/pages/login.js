@@ -18,7 +18,11 @@ class LoginPage {
   closeLogoutModal() { this.modal.close('logoutModal'); }
 
   confirmarLogout() {
+    const user = getCurrentUser();
+    if (window._firebase) window._firebase.clearSession(user.id);
+    if (this._heartbeatInterval) { clearInterval(this._heartbeatInterval); this._heartbeatInterval = null; }
     sessionStorage.removeItem('ieteb_auth');
+    sessionStorage.removeItem('ieteb_user');
     this.modal.close('logoutModal');
 
     const ls = document.createElement('div');
@@ -107,8 +111,18 @@ class LoginPage {
     if (!pass) { passErr.textContent = 'Campo obrigatório.'; ok = false; }
     if (!ok) return;
 
-    if (user === 'Admin' && pass === 'IETEB@2030') {
+    const found = (typeof USERS !== 'undefined' ? USERS : [])
+      .find(u => u.id === user && u.pass === pass);
+
+    if (found) {
       sessionStorage.setItem('ieteb_auth', '1');
+      sessionStorage.setItem('ieteb_user', JSON.stringify({ id: found.id, name: found.name, role: found.role }));
+      if (window._firebase) {
+        window._firebase.saveSession(found);
+        this._heartbeatInterval = setInterval(() => {
+          window._firebase.heartbeat(found.id);
+        }, 2 * 60 * 1000);
+      }
       const screen = document.getElementById('loginScreen');
       screen.classList.add('ls--exit');
       setTimeout(() => { screen.remove(); window.scrollTo(0, 0); }, 520);

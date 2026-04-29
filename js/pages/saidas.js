@@ -465,6 +465,7 @@ class SaidaPage {
         return;
       }
 
+      const _cu = getCurrentUser();
       const registro = {
         id:             Date.now(),
         categoria:      document.getElementById('saidaCategoria').value,
@@ -475,6 +476,8 @@ class SaidaPage {
         hora:           document.getElementById('saidaHora').value,
         observacao:     document.getElementById('saidaObservacao').value.trim(),
         criadoEm:       new Date().toISOString(),
+        userId:         _cu.id,
+        userName:       _cu.name,
       };
 
       const existing = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');

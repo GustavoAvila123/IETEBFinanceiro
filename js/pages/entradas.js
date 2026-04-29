@@ -369,6 +369,7 @@ class EntradaPage {
     }
 
     const alunos = this.getAlunosData();
+    const _cu = getCurrentUser();
     const baseData = {
       curso:           document.getElementById('curso').value,
       igreja:          document.getElementById('igreja').value,
@@ -383,6 +384,8 @@ class EntradaPage {
       observacao:      document.getElementById('observacao').value.trim(),
       comprovante:     this.currentFileDataUrl || null,
       criadoEm:        new Date().toISOString(),
+      userId:          _cu.id,
+      userName:        _cu.name,
     };
 
     const existing = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');

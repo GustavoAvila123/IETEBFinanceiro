@@ -84,8 +84,8 @@ class TesourariaPage {
     const filtroAtivo = (deEl && deEl.value) || (ateEl && ateEl.value);
     document.getElementById('caixaDiaLimpar').style.display = filtroAtivo ? 'flex' : 'none';
 
-    const todasEntradas = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
-    const todasSaidas   = JSON.parse(localStorage.getItem('ieteb_saidas')      || '[]');
+    const todasEntradas = getEntradasData();
+    const todasSaidas   = getSaidasData();
 
     const entradasAnt = todasEntradas.filter(i => i.dataDeposito && i.dataDeposito < mesInicio);
     const saidasAnt   = todasSaidas.filter(i => i.data && i.data < mesInicio);

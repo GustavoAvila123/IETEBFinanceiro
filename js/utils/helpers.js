@@ -36,6 +36,29 @@ function clearFieldError(id) {
   if (el) el.textContent = '';
 }
 
+/* ── Usuário atual ── */
+function getCurrentUser() {
+  try {
+    const raw = sessionStorage.getItem('ieteb_user');
+    return raw ? JSON.parse(raw) : { id: 'admin', name: 'Jader Dias', role: 'admin' };
+  } catch (_) {
+    return { id: 'admin', name: 'Jader Dias', role: 'admin' };
+  }
+}
+
+/* ── Dados filtrados por usuário ── */
+function getEntradasData() {
+  const all  = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
+  const user = getCurrentUser();
+  return user.role !== 'admin' ? all.filter(r => r.userId === user.id) : all;
+}
+
+function getSaidasData() {
+  const all  = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
+  const user = getCurrentUser();
+  return user.role !== 'admin' ? all.filter(r => r.userId === user.id) : all;
+}
+
 function badgePagamento(tipo) {
   const map = { Pix: 'pix', Débito: 'debito', Crédito: 'credito', Dinheiro: 'dinheiro' };
   const cls = map[tipo] || 'pix';

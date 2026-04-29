@@ -62,8 +62,7 @@ class RelatorioPage {
       document.getElementById('pagination').style.display       = 'none';
       return;
     }
-    const key    = this.tipo === 'saidas' ? 'ieteb_saidas' : 'ieteb_lancamentos';
-    this.reportData = JSON.parse(localStorage.getItem(key) || '[]');
+    this.reportData = this.tipo === 'saidas' ? getSaidasData() : getEntradasData();
     this.aplicarFiltros();
   }
 

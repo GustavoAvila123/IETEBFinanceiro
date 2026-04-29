@@ -235,6 +235,43 @@ class FirebaseManager {
     });
   }
 
+  /* ── Sessões ────────────────────────────────────────────────── */
+  saveSession(user) {
+    if (!this._db) return;
+    this._db.collection('Sessoes').doc(user.id).set({
+      userId:   user.id,
+      name:     user.name,
+      role:     user.role,
+      loginAt:  new Date().toISOString(),
+      lastSeen: new Date().toISOString(),
+      active:   true,
+    }).catch(e => console.warn('saveSession:', e));
+  }
+
+  clearSession(userId) {
+    if (!this._db) return;
+    this._db.collection('Sessoes').doc(userId).update({
+      active:   false,
+      lastSeen: new Date().toISOString(),
+    }).catch(e => console.warn('clearSession:', e));
+  }
+
+  heartbeat(userId) {
+    if (!this._db) return;
+    this._db.collection('Sessoes').doc(userId).update({
+      lastSeen: new Date().toISOString(),
+    }).catch(e => console.warn('heartbeat:', e));
+  }
+
+  listenSessions(callback) {
+    if (!this._db) return () => {};
+    return this._db.collection('Sessoes').onSnapshot(snap => {
+      const map = {};
+      snap.docs.forEach(d => { map[d.data().userId] = d.data(); });
+      callback(map);
+    }, e => console.warn('listenSessions:', e));
+  }
+
   // Reconecta silenciosamente (sem overlay) ao voltar ao foco.
   silentRefresh() {
     if (!this._db) return;

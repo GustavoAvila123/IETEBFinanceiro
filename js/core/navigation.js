@@ -1,15 +1,24 @@
 
 class NavigationManager {
-  constructor({ entradaPage, saidaPage, relatorioPage, tesourariaPage, dashboardPage }) {
+  constructor({ entradaPage, saidaPage, relatorioPage, tesourariaPage, dashboardPage, monitorPage }) {
     this.entradaPage   = entradaPage;
     this.saidaPage     = saidaPage;
     this.relatorioPage = relatorioPage;
     this.tesourariaPage= tesourariaPage;
     this.dashboardPage = dashboardPage;
+    this.monitorPage   = monitorPage;
+  }
+
+  initAdminUI() {
+    const isAdmin = getCurrentUser().role === 'admin';
+    ['sidebarAdminSection','navMonitor'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = isAdmin ? '' : 'none';
+    });
   }
 
   showPage(page) {
-    ['home','lancamentos','saidas','relatorios','caixa','dashboard'].forEach(p => {
+    ['home','lancamentos','saidas','relatorios','caixa','dashboard','monitor'].forEach(p => {
       document.getElementById('page' + p.charAt(0).toUpperCase() + p.slice(1))
         .classList.toggle('page-content--hidden', p !== page);
       document.getElementById('nav' + p.charAt(0).toUpperCase() + p.slice(1))
@@ -19,6 +28,7 @@ class NavigationManager {
     const titles = {
       home: 'Home', lancamentos: 'Entradas', saidas: 'Saídas',
       relatorios: 'Relatórios', caixa: 'Tesouraria', dashboard: 'Dashboard',
+      monitor: 'Monitor de Testers',
     };
     document.getElementById('topbarTitle').textContent = titles[page] || 'IETEB';
     window.scrollTo(0, 0);
@@ -29,14 +39,16 @@ class NavigationManager {
     if (page === 'relatorios')  this.relatorioPage.resetPage();
     if (page === 'caixa')       this.tesourariaPage.resetPage();
     if (page === 'dashboard')   this.dashboardPage.resetPage();
+    if (page === 'monitor')     this.monitorPage && this.monitorPage.resetPage();
     this.closeSidebar();
   }
 
   initHome() {
-    const now = new Date();
-    const h   = now.getHours();
-    const gr  = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
-    document.getElementById('homeGreeting').textContent = `${gr}, Jader Dias!`;
+    const now  = new Date();
+    const h    = now.getHours();
+    const gr   = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+    const user = getCurrentUser();
+    document.getElementById('homeGreeting').textContent = `${gr}, ${user.name}!`;
     document.getElementById('homeDate').textContent = now.toLocaleDateString('pt-BR', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });
@@ -46,10 +58,8 @@ class NavigationManager {
     const ini   = `${year}-${month}-01`;
     const fim   = `${year}-${month}-${String(new Date(year, now.getMonth() + 1, 0).getDate()).padStart(2, '0')}`;
 
-    const entradas = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]')
-      .filter(i => i.dataDeposito >= ini && i.dataDeposito <= fim);
-    const saidas   = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]')
-      .filter(i => i.data >= ini && i.data <= fim);
+    const entradas = getEntradasData().filter(i => i.dataDeposito >= ini && i.dataDeposito <= fim);
+    const saidas   = getSaidasData().filter(i => i.data >= ini && i.data <= fim);
 
     const totalE = entradas.reduce((s, i) => s + parseBRL(i.valor), 0);
     const totalS = saidas.reduce((s, i) => s + parseBRL(i.valor), 0);

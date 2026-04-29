@@ -1,6 +1,7 @@
 
 // ── Instâncias ────────────────────────────────────────────────────────────────
 const firebase   = new FirebaseManager();
+window._firebase = firebase; // expõe para login.js usar saveSession/clearSession
 const modal      = new ModalManager();
 const ocr        = new OCREntradas(modal);
 const entradas   = new EntradaPage(modal, firebase, ocr);
@@ -8,6 +9,7 @@ const saidas     = new SaidaPage(modal, firebase);
 const relatorios = new RelatorioPage(modal, firebase);
 const tesouraria = new TesourariaPage(modal);
 const dashboard  = new DashboardPage();
+const monitor    = new MonitorPage(firebase);
 const login      = new LoginPage(modal);
 
 // Injeta referência cruzada (OCR precisa de entradas para selectPayment/switchTab)
@@ -19,6 +21,7 @@ const nav = new NavigationManager({
   relatorioPage:  relatorios,
   tesourariaPage: tesouraria,
   dashboardPage:  dashboard,
+  monitorPage:    monitor,
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -116,6 +119,9 @@ window.onCaixaFiltroAteBlur = () => tesouraria.onFiltroAteBlur();
 window.initDashboard   = () => dashboard.init();
 window.dashMesNavegar  = d  => dashboard.navegar(d);
 
+// Monitor (admin only)
+window.reloadMonitor   = () => monitor.render();
+
 // Atualização manual — exibe overlay fosco até os dados chegarem
 window.forceRefresh = () => {
   const overlay = document.getElementById('refreshOverlay');
@@ -140,6 +146,7 @@ window.forceRefresh = () => {
 document.addEventListener('DOMContentLoaded', () => {
   login.checkAuth();
   firebase.init();
+  nav.initAdminUI();
   entradas.initAlunosContainer();
   entradas.initValidationListeners();
   saidas.initValidationListeners();

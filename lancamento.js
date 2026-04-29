@@ -2045,11 +2045,12 @@ function extractFieldsFromNF(text) {
     }
   }
 
-  // Data
+  // Data (normaliza espaços ao redor de barras antes de matchear)
+  const normalized = full.replace(/(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})/g, '$1/$2/$3');
   const dataMatch =
-    full.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
-    full.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
-    full.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
+    normalized.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
+    normalized.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
+    normalized.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
   if (dataMatch && dataMatch[1]) {
     const raw   = dataMatch[1];
     const parts = raw.split('/');
@@ -2151,8 +2152,36 @@ function confirmarOcrSaida() {
   if (ocrExtractedSaida.valor)          document.getElementById('saidaValor').value = ocrExtractedSaida.valor.replace('R$ ', '');
   if (ocrExtractedSaida.data)           setInput('saidaData', isoToDateInput(ocrExtractedSaida.data));
   if (ocrExtractedSaida.hora)           setInput('saidaHora', ocrExtractedSaida.hora);
+  if (ocrExtractedSaida.formaPagamento) {
+    document.getElementById('saidaFormaPagamento').value = ocrExtractedSaida.formaPagamento;
+    document.querySelectorAll('#paymentTypesSaida .payment-btn').forEach(btn => {
+      btn.classList.toggle('payment-btn--active', btn.dataset.value === ocrExtractedSaida.formaPagamento);
+    });
+  }
   switchTabSaida('manual');
-  showToast('Formulário preenchido! Revise os dados e salve.', 'success');
+  openOcrDadosModal();
+}
+
+function openOcrDadosModal() {
+  const e = ocrExtractedSaida;
+  const labels = { fornecedor: 'Fornecedor', valor: 'Valor', data: 'Data', hora: 'Hora', formaPagamento: 'Pagamento' };
+  document.getElementById('ocrDadosSummary').innerHTML = Object.keys(labels)
+    .filter(k => e[k])
+    .map(k => `<div class="ocr-row">
+      <span class="ocr-row-label">${escHtml(labels[k])}</span>
+      <span class="ocr-row-value">${escHtml(e[k])}</span>
+    </div>`).join('') || '<p style="padding:16px;color:#aaa;text-align:center">Nenhum dado extraído.</p>';
+  openModal('ocrDadosModal');
+}
+
+function closeOcrDadosModal() { closeModal('ocrDadosModal'); }
+
+let _snackbarTimer = null;
+function showSavedSnackbar() {
+  const el = document.getElementById('saidaSavedSnackbar');
+  el.classList.add('snackbar--visible');
+  clearTimeout(_snackbarTimer);
+  _snackbarTimer = setTimeout(() => el.classList.remove('snackbar--visible'), 5000);
 }
 
 function closeOcrModalSaida() { closeModal('ocrModalSaida'); }
@@ -2204,7 +2233,7 @@ function salvarSaida() {
   localStorage.setItem('ieteb_saidas', JSON.stringify(existing));
   saveToFirestore('Saídas', registro);
 
-  showToast('Saída salva com sucesso!', 'success');
+  showSavedSnackbar();
   limparSaida();
 }
 

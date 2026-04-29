@@ -718,6 +718,12 @@
               <button type="button" class="payment-btn" data-value="Pix" onclick="selectPaymentSaida(this)">
                 <span class="payment-icon">⚡</span><span>PIX</span>
               </button>
+              <button type="button" class="payment-btn" data-value="Débito" onclick="selectPaymentSaida(this)">
+                <span class="payment-icon">💳</span><span>Débito</span>
+              </button>
+              <button type="button" class="payment-btn" data-value="Crédito" onclick="selectPaymentSaida(this)">
+                <span class="payment-icon">💳</span><span>Crédito</span>
+              </button>
             </div>
             <input type="hidden" id="saidaFormaPagamento" />
             <span class="field-error" id="saidaPagamentoError"></span>
@@ -1150,13 +1156,40 @@
   <div class="modal-overlay" id="ocrModalSaida" style="display:none">
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h2 class="modal-title">Confirmar dados da Nota Fiscal</h2>
+        <div style="display:flex;align-items:center;gap:10px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="stroke:#f5c842;flex-shrink:0">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+          <h2 class="modal-title">Confirmar dados da Nota Fiscal</h2>
+        </div>
         <p class="modal-desc">Verifique as informações extraídas antes de preencher o formulário.</p>
       </div>
       <div id="ocrSummarySaida" class="ocr-summary"></div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeOcrModalSaida()">Cancelar</button>
         <button class="btn-primary" onclick="confirmarOcrSaida()">Confirmar e Preencher</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PÓS-OCR: dados preenchidos -->
+  <div class="modal-overlay" id="ocrDadosModal" style="display:none">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header ocr-dados-header">
+        <div class="ocr-dados-icon-wrap">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <h2 class="modal-title" style="color:#fff">Tudo certo com seu formulário</h2>
+        <p class="modal-desc" style="color:rgba(255,255,255,0.72)">Revise as informações antes de finalizar o envio.</p>
+      </div>
+      <div id="ocrDadosSummary" class="ocr-summary"></div>
+      <div class="modal-footer" style="justify-content:center">
+        <button class="btn-primary" onclick="closeOcrDadosModal()">Revisar</button>
       </div>
     </div>
   </div>
@@ -1235,6 +1268,15 @@
 
   <!-- MODAL IMPRESSÃO PDF -->
   <div id="printArea" class="print-area"></div>
+
+  <!-- SNACKBAR SAÍDA SALVA -->
+  <div id="saidaSavedSnackbar" class="saved-snackbar" role="status" aria-live="polite">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    Saída salva com sucesso!
+  </div>
 
   <!-- OVERLAY DE ATUALIZAÇÃO -->
   <div id="refreshOverlay" class="refresh-overlay refresh-overlay--hidden">

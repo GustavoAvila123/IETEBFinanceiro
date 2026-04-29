@@ -68,8 +68,22 @@ class FirebaseManager {
     } catch (e) {
       // Bootstrap one-time: se a conta ainda não existe e a senha bate
       // com a do USERS no config, cria automaticamente.
-      if (e && e.code === 'auth/user-not-found' && seed.pass && seed.pass === password) {
-        cred = await this._auth.createUserWithEmailAndPassword(email, password);
+      // Em versões recentes do Firebase Auth, "user-not-found" e
+      // "wrong-password" foram unificados em "invalid-credential" /
+      // "invalid-login-credentials" para evitar enumeração de contas.
+      const code = e && e.code;
+      const looksLikeNoAccount =
+        code === 'auth/user-not-found' ||
+        code === 'auth/invalid-credential' ||
+        code === 'auth/invalid-login-credentials';
+      if (looksLikeNoAccount && seed.pass && seed.pass === password) {
+        try {
+          cred = await this._auth.createUserWithEmailAndPassword(email, password);
+        } catch (e2) {
+          // Se a conta já existir, a senha digitada simplesmente está errada.
+          if (e2 && e2.code === 'auth/email-already-in-use') throw e;
+          throw e2;
+        }
       } else {
         throw e;
       }

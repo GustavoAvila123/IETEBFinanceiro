@@ -42,7 +42,8 @@ body {
   position: fixed;
   top: 0; left: 0; bottom: 0;
   width: var(--sidebar-w);
-  background: linear-gradient(180deg, var(--navy-deep) 0%, var(--navy) 100%);
+  background: linear-gradient(160deg, #050d27 0%, #091640 55%, #060f2e 100%);
+  border-right: 1px solid rgba(212,175,55,.08);
   display: flex;
   flex-direction: column;
   z-index: 200;
@@ -53,98 +54,136 @@ body {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(6,15,46,.55);
+  background: rgba(6,15,46,.6);
   z-index: 190;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
 }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 22px 20px 18px;
-  border-bottom: 1px solid rgba(212,175,55,.18);
+  gap: 13px;
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(212,175,55,.1);
+}
+
+.sidebar-logo-wrap {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .sidebar-logo {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--gold);
-  box-shadow: 0 0 0 3px rgba(212,175,55,.12);
-  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(212,175,55,.14), 0 0 18px rgba(212,175,55,.18);
+  display: block;
 }
 
 .sidebar-brand-name {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--gold);
   display: block;
   line-height: 1.1;
+  letter-spacing: .02em;
 }
 
 .sidebar-brand-sub {
-  font-size: .65rem;
-  font-weight: 600;
-  color: rgba(255,255,255,.45);
+  font-size: .6rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.32);
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: .14em;
   display: block;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 16px 12px;
+  padding: 18px 10px 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 1px;
+  overflow-y: auto;
 }
+
+.sidebar-nav-label {
+  font-size: .59rem;
+  font-weight: 700;
+  color: rgba(212,175,55,.3);
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  padding: 0 12px;
+  margin: 12px 0 5px;
+  display: block;
+  user-select: none;
+}
+
+.sidebar-nav-label:first-child { margin-top: 0; }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
   width: 100%;
-  padding: 12px 14px;
+  padding: 11px 14px;
   background: transparent;
   border: none;
-  border-radius: var(--radius);
-  color: rgba(255,255,255,.55);
-  font-size: .88rem;
-  font-weight: 600;
+  border-radius: 10px;
+  color: rgba(255,255,255,.44);
+  font-size: .855rem;
+  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: background .2s, color .2s;
+  transition: background .18s, color .18s, box-shadow .18s, transform .12s;
   letter-spacing: .01em;
+  position: relative;
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,.07);
-  color: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.055);
+  color: rgba(255,255,255,.8);
 }
 
+.nav-item:active { transform: scale(.98); }
+
 .nav-item--active {
-  background: var(--gold-bg);
+  background: linear-gradient(90deg, rgba(212,175,55,.17) 0%, rgba(212,175,55,.03) 100%);
   color: var(--gold);
-  box-shadow: inset 3px 0 0 var(--gold);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--gold), 0 2px 14px rgba(212,175,55,.08);
+}
+
+.nav-item--active .nav-icon {
+  filter: drop-shadow(0 0 5px rgba(212,175,55,.45));
 }
 
 .nav-icon {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
+  transition: filter .2s;
+  opacity: .85;
 }
 
+.nav-item--active .nav-icon { opacity: 1; }
+
 .sidebar-footer {
+  padding: 10px 10px 16px;
+  border-top: 1px solid rgba(255,255,255,.05);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px 16px 20px;
-  border-top: 1px solid rgba(255,255,255,.06);
+  gap: 7px;
+}
+
+.sidebar-footer-actions {
+  display: flex;
+  gap: 7px;
 }
 
 /* ─── PAGE WRAPPER ─── */
@@ -2276,60 +2315,60 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 
 
-/* ── Sidebar logout button ── */
-.sidebar-refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 14px;
-  background: rgba(197,160,78,.08);
-  border: 1px solid rgba(197,160,78,.25);
-  border-radius: var(--radius-sm);
-  color: rgba(255,255,255,.65);
-  font-size: .84rem;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background .18s, color .18s, border-color .18s;
-  text-align: left;
-}
-.sidebar-refresh-btn:hover {
-  background: rgba(197,160,78,.18);
-  border-color: rgba(197,160,78,.5);
-  color: var(--gold);
-}
-.sidebar-refresh-btn.refreshing svg { animation: spin .7s linear infinite; }
-
+/* ── Sidebar footer buttons ── */
+.sidebar-refresh-btn,
 .sidebar-logout-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 14px;
-  background: rgba(229,62,62,.08);
-  border: 1px solid rgba(229,62,62,.2);
-  border-radius: var(--radius-sm);
-  color: rgba(255,255,255,.65);
-  font-size: .84rem;
-  font-weight: 500;
+  justify-content: center;
+  gap: 7px;
+  flex: 1;
+  padding: 9px 8px;
+  border-radius: 9px;
+  font-size: .78rem;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: background .18s, color .18s, border-color .18s;
-  text-align: left;
+  transition: background .18s, color .18s, border-color .18s, transform .12s;
+  border: 1px solid;
+}
+
+.sidebar-refresh-btn:active,
+.sidebar-logout-btn:active { transform: scale(.96); }
+
+.sidebar-refresh-btn {
+  background: rgba(212,175,55,.07);
+  border-color: rgba(212,175,55,.2);
+  color: rgba(212,175,55,.65);
+}
+
+.sidebar-refresh-btn:hover {
+  background: rgba(212,175,55,.15);
+  border-color: rgba(212,175,55,.42);
+  color: var(--gold);
+}
+
+.sidebar-refresh-btn.refreshing svg { animation: spin .7s linear infinite; }
+
+.sidebar-logout-btn {
+  background: rgba(229,62,62,.07);
+  border-color: rgba(229,62,62,.2);
+  color: rgba(229,62,62,.65);
 }
 
 .sidebar-logout-btn:hover {
-  background: rgba(229,62,62,.18);
-  border-color: rgba(229,62,62,.45);
+  background: rgba(229,62,62,.15);
+  border-color: rgba(229,62,62,.42);
   color: #fc8181;
 }
 
 .sidebar-footer-text {
-  font-size: .68rem;
-  color: rgba(255,255,255,.22);
+  font-size: .58rem;
+  color: rgba(255,255,255,.15);
   text-align: center;
-  letter-spacing: .03em;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-top: 2px;
 }
 
 /* ── Logout modal ── */

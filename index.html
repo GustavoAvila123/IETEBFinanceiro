@@ -26,7 +26,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="lancamento.css?v=20260429y">
+  <link rel="stylesheet" href="lancamento.css?v=20260429z">
 </head>
 <body>
 
@@ -1146,19 +1146,43 @@
 
       <!-- Navegação de mês -->
       <div class="caixa-month-nav">
-        <div class="caixa-month-controls">
+        <div class="caixa-month-controls dash-month-controls">
           <button class="caixa-month-btn" onclick="dashMesNavegar(-1)" title="Mês anterior">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
-          <div class="caixa-month-label" id="dashMesLabel">—</div>
+          <button type="button" class="caixa-month-label dash-month-label-btn" id="dashMesLabel" onclick="toggleDashMonthPicker(event)" aria-haspopup="true" aria-expanded="false">
+            <span id="dashMesLabelText">—</span>
+            <svg class="dash-month-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
           <button class="caixa-month-btn" onclick="dashMesNavegar(1)" title="Próximo mês">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </button>
+
+          <!-- Picker mês/ano -->
+          <div class="dash-month-picker" id="dashMonthPicker" hidden>
+            <div class="dash-picker-section">
+              <div class="dash-picker-section-label">Ano</div>
+              <div class="dash-picker-grid dash-picker-grid--anos" id="dashPickerAnos"></div>
+            </div>
+            <div class="dash-picker-section">
+              <div class="dash-picker-section-label">Mês</div>
+              <div class="dash-picker-grid dash-picker-grid--meses" id="dashPickerMeses"></div>
+            </div>
+          </div>
         </div>
+
+        <button class="dash-clear-filter" id="dashClearFilter" hidden onclick="limparDashFiltro()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
+          </svg>
+          Limpar filtro
+        </button>
       </div>
 
       <!-- Cards de resumo -->
@@ -1491,32 +1515,32 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260429y"></script>
+  <script src="js/config.js?v=20260429z"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260429y"></script>
-  <script src="js/utils/format.js?v=20260429y"></script>
+  <script src="js/utils/helpers.js?v=20260429z"></script>
+  <script src="js/utils/format.js?v=20260429z"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260429y"></script>
-  <script src="js/core/firebase.js?v=20260429y"></script>
+  <script src="js/core/modal.js?v=20260429z"></script>
+  <script src="js/core/firebase.js?v=20260429z"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260429y"></script>
+  <script src="js/ocr/entradas.js?v=20260429z"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260429y"></script>
-  <script src="js/pages/entradas.js?v=20260429y"></script>
-  <script src="js/pages/saidas.js?v=20260429y"></script>
-  <script src="js/pages/relatorios.js?v=20260429y"></script>
-  <script src="js/pages/tesouraria.js?v=20260429y"></script>
-  <script src="js/pages/dashboard.js?v=20260429y"></script>
-  <script src="js/pages/monitor.js?v=20260429y"></script>
+  <script src="js/pages/login.js?v=20260429z"></script>
+  <script src="js/pages/entradas.js?v=20260429z"></script>
+  <script src="js/pages/saidas.js?v=20260429z"></script>
+  <script src="js/pages/relatorios.js?v=20260429z"></script>
+  <script src="js/pages/tesouraria.js?v=20260429z"></script>
+  <script src="js/pages/dashboard.js?v=20260429z"></script>
+  <script src="js/pages/monitor.js?v=20260429z"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260429y"></script>
+  <script src="js/core/navigation.js?v=20260429z"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260429y"></script>
+  <script src="js/main.js?v=20260429z"></script>
 </body>
 </html>

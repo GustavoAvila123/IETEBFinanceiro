@@ -122,8 +122,12 @@ window.fecharCaixaDataModal = () => {
 };
 
 // Dashboard
-window.initDashboard   = () => dashboard.init();
-window.dashMesNavegar  = d  => dashboard.navegar(d);
+window.initDashboard         = () => dashboard.init();
+window.dashMesNavegar        = d  => dashboard.navegar(d);
+window.toggleDashMonthPicker = e  => dashboard.togglePicker(e);
+window.selectDashAno         = a  => dashboard.selectAno(a);
+window.selectDashMes         = m  => dashboard.selectMes(m);
+window.limparDashFiltro      = () => dashboard.limparFiltro();
 
 // Monitor (admin only)
 window.reloadMonitor   = () => monitor.render();

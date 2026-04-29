@@ -2142,6 +2142,141 @@ body.modal-open {
   gap: 18px;
 }
 
+/* ── Dashboard: picker mês/ano + limpar filtro ── */
+.dash-month-controls { position: relative; }
+
+.dash-month-label-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: background .18s, border-color .18s;
+}
+
+.dash-month-label-btn:hover {
+  background: rgba(212,175,55,.07);
+  border-color: rgba(212,175,55,.30);
+}
+
+.dash-month-label-btn[aria-expanded="true"] {
+  background: rgba(212,175,55,.10);
+  border-color: rgba(212,175,55,.45);
+}
+
+.dash-month-chevron {
+  color: var(--gold-dim);
+  transition: transform .2s;
+  flex-shrink: 0;
+}
+
+.dash-month-label-btn[aria-expanded="true"] .dash-month-chevron {
+  transform: rotate(180deg);
+}
+
+.dash-month-picker {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  width: min(320px, 92vw);
+  background: linear-gradient(135deg, #050d27 0%, #091640 100%);
+  border: 1px solid rgba(212,175,55,.25);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 18px 50px rgba(5,13,39,.45);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: dashPickerIn .18s ease;
+}
+
+.dash-month-picker[hidden] { display: none; }
+
+@keyframes dashPickerIn {
+  from { opacity: 0; transform: translate(-50%, -6px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.dash-picker-section-label {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(212,175,55,.65);
+  margin-bottom: 8px;
+}
+
+.dash-picker-grid {
+  display: grid;
+  gap: 6px;
+}
+
+.dash-picker-grid--anos { grid-template-columns: repeat(3, 1fr); }
+.dash-picker-grid--meses { grid-template-columns: repeat(4, 1fr); }
+
+.dash-picker-btn {
+  padding: 9px 6px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px;
+  color: rgba(255,255,255,.78);
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.dash-picker-btn:hover {
+  background: rgba(212,175,55,.10);
+  border-color: rgba(212,175,55,.30);
+  color: var(--gold);
+}
+
+.dash-picker-btn--active {
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  border-color: var(--gold);
+  color: #050d27;
+}
+
+.dash-picker-btn--active:hover {
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: #050d27;
+}
+
+.dash-clear-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--white);
+  color: var(--gray-600);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: .8rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+  white-space: nowrap;
+}
+
+.dash-clear-filter:hover {
+  background: var(--gray-100);
+  color: var(--navy);
+  border-color: var(--gray-300);
+}
+
+.dash-clear-filter[hidden] { display: none; }
+
 .caixa-day-filter {
   display: flex;
   align-items: flex-end;

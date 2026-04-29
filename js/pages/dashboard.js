@@ -3,19 +3,21 @@ class DashboardPage {
   constructor() {
     this.dashMes    = '';
     this.dashCharts = {};
+    this._closePickerHandler = null;
+  }
+
+  _mesAtualISO() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
 
   init() {
-    if (!this.dashMes) {
-      const now     = new Date();
-      this.dashMes  = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    }
+    if (!this.dashMes) this.dashMes = this._mesAtualISO();
     this.render();
   }
 
   resetPage() {
-    const now    = new Date();
-    this.dashMes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    this.dashMes = this._mesAtualISO();
     this.render();
   }
 
@@ -23,6 +25,84 @@ class DashboardPage {
     const [year, month] = this.dashMes.split('-').map(Number);
     const d = new Date(year, month - 1 + delta, 1);
     this.dashMes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    this.fecharPicker();
+    this.render();
+  }
+
+  // ── Picker mês/ano ────────────────────────────────────────────────────
+  togglePicker(evt) {
+    if (evt) evt.stopPropagation();
+    const picker = document.getElementById('dashMonthPicker');
+    const label  = document.getElementById('dashMesLabel');
+    if (!picker) return;
+    const open = picker.hasAttribute('hidden');
+    if (open) {
+      this._buildPicker();
+      picker.removeAttribute('hidden');
+      if (label) label.setAttribute('aria-expanded', 'true');
+      this._closePickerHandler = (e) => {
+        const wrap = document.querySelector('.dash-month-controls');
+        if (wrap && !wrap.contains(e.target)) this.fecharPicker();
+      };
+      setTimeout(() => document.addEventListener('mousedown', this._closePickerHandler), 0);
+    } else {
+      this.fecharPicker();
+    }
+  }
+
+  fecharPicker() {
+    const picker = document.getElementById('dashMonthPicker');
+    const label  = document.getElementById('dashMesLabel');
+    if (picker) picker.setAttribute('hidden', '');
+    if (label) label.setAttribute('aria-expanded', 'false');
+    if (this._closePickerHandler) {
+      document.removeEventListener('mousedown', this._closePickerHandler);
+      this._closePickerHandler = null;
+    }
+  }
+
+  _buildPicker() {
+    const [yearAtual, mesAtual] = this.dashMes.split('-').map(Number);
+    const hoje = new Date();
+    const anoHoje = hoje.getFullYear();
+    const anos = [anoHoje, anoHoje - 1, anoHoje - 2]; // 3 últimos, mais recente primeiro
+
+    const anosEl = document.getElementById('dashPickerAnos');
+    if (anosEl) {
+      anosEl.innerHTML = anos.map(a => `
+        <button type="button" class="dash-picker-btn ${a === yearAtual ? 'dash-picker-btn--active' : ''}"
+          onclick="selectDashAno(${a})">${a}</button>
+      `).join('');
+    }
+
+    const mesesEl = document.getElementById('dashPickerMeses');
+    if (mesesEl) {
+      const abreviados = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      mesesEl.innerHTML = abreviados.map((nome, i) => {
+        const m = i + 1;
+        return `<button type="button" class="dash-picker-btn ${m === mesAtual ? 'dash-picker-btn--active' : ''}"
+          onclick="selectDashMes(${m})">${nome}</button>`;
+      }).join('');
+    }
+  }
+
+  selectAno(ano) {
+    const [, month] = this.dashMes.split('-').map(Number);
+    this.dashMes = `${ano}-${String(month).padStart(2, '0')}`;
+    this._buildPicker(); // atualiza highlight do ano
+    this.render();
+  }
+
+  selectMes(mes) {
+    const [year] = this.dashMes.split('-').map(Number);
+    this.dashMes = `${year}-${String(mes).padStart(2, '0')}`;
+    this.fecharPicker();
+    this.render();
+  }
+
+  limparFiltro() {
+    this.dashMes = this._mesAtualISO();
+    this.fecharPicker();
     this.render();
   }
 
@@ -39,7 +119,16 @@ class DashboardPage {
 
   async render() {
     const [year, month] = this.dashMes.split('-').map(Number);
-    document.getElementById('dashMesLabel').textContent = `${MESES[month - 1]} ${year}`;
+    const labelText = document.getElementById('dashMesLabelText');
+    if (labelText) labelText.textContent = `${MESES[month - 1]} ${year}`;
+
+    // Mostra "Limpar filtro" se o mês selecionado não for o atual
+    const clearBtn = document.getElementById('dashClearFilter');
+    if (clearBtn) {
+      const filtroAtivo = this.dashMes !== this._mesAtualISO();
+      if (filtroAtivo) clearBtn.removeAttribute('hidden');
+      else clearBtn.setAttribute('hidden', '');
+    }
 
     const mesInicio = `${this.dashMes}-01`;
     const ultimoDia = new Date(year, month, 0).getDate();

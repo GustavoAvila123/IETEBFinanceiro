@@ -100,8 +100,12 @@ class TesourariaPage {
     const abMaos  = parseBRL(ab.dinheiro);
     const abConta = parseBRL(ab.conta);
 
-    const antMaos  = abMaos  + sumBy(entradasAnt, 'Dinheiro') - sumBy(saidasAnt, 'Dinheiro');
-    const antConta = abConta + sumBy(entradasAnt, 'Pix') + sumBy(entradasAnt, 'Débito') + sumBy(entradasAnt, 'Crédito') - sumBy(saidasAnt, 'Pix');
+    const antMaos  = abMaos
+      + sumBy(entradasAnt, 'Dinheiro')
+      - sumBy(saidasAnt,   'Dinheiro');
+    const antConta = abConta
+      + sumBy(entradasAnt, 'Pix') + sumBy(entradasAnt, 'Débito') + sumBy(entradasAnt, 'Crédito')
+      - sumBy(saidasAnt,   'Pix') - sumBy(saidasAnt,   'Débito') - sumBy(saidasAnt,   'Crédito');
     const antTotal = antMaos + antConta;
 
     const eDin = sumBy(entradas, 'Dinheiro');
@@ -110,12 +114,14 @@ class TesourariaPage {
     const eCre = sumBy(entradas, 'Crédito');
     const eTotal = eDin + ePix + eDeb + eCre;
 
-    const sDin   = sumBy(saidas, 'Dinheiro');
-    const sPix   = sumBy(saidas, 'Pix');
-    const sTotal = sDin + sPix;
+    const sDin  = sumBy(saidas, 'Dinheiro');
+    const sPix  = sumBy(saidas, 'Pix');
+    const sDeb  = sumBy(saidas, 'Débito');
+    const sCre  = sumBy(saidas, 'Crédito');
+    const sTotal = sDin + sPix + sDeb + sCre;
 
     const saldoMaos  = antMaos  + eDin - sDin;
-    const saldoConta = antConta + ePix + eDeb + eCre - sPix;
+    const saldoConta = antConta + ePix + eDeb + eCre - sPix - sDeb - sCre;
     const saldoTotal = saldoMaos + saldoConta;
 
     const cls = v => v >= 0 ? 'caixa-saldo-item-value--positivo' : 'caixa-saldo-item-value--negativo';
@@ -163,6 +169,8 @@ class TesourariaPage {
     document.getElementById('caixaSaidas').innerHTML = `
       <div class="caixa-row"><span class="caixa-row-label">${dot('dinheiro')} Dinheiro</span><span class="caixa-row-value">R$ ${formatBRL(sDin)}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('pix')} PIX</span><span class="caixa-row-value">R$ ${formatBRL(sPix)}</span></div>
+      <div class="caixa-row"><span class="caixa-row-label">${dot('debito')} Débito</span><span class="caixa-row-value">R$ ${formatBRL(sDeb)}</span></div>
+      <div class="caixa-row"><span class="caixa-row-label">${dot('credito')} Crédito</span><span class="caixa-row-value">R$ ${formatBRL(sCre)}</span></div>
       <div class="caixa-row caixa-row--total"><span class="caixa-row-label">Total</span><span class="caixa-row-value">R$ ${formatBRL(sTotal)}</span></div>`;
 
     document.getElementById('caixaSaldoAtual').innerHTML = `

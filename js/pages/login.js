@@ -2,6 +2,8 @@ class LoginPage {
   constructor(modal) {
     this.modal = modal;
     this._heartbeatInterval = null;
+    this._inactivityTimer   = null;
+    this._inactivityHandler = null;
   }
 
   // Restaura sessão a partir do Firebase Auth (que persiste no localStorage).
@@ -14,12 +16,18 @@ class LoginPage {
       }
       const unsub = window._firebase.onAuthStateChanged(async user => {
         try { unsub(); } catch (_) {}
-        if (!user) { resolve(false); return; }
+        if (!user) {
+          this._maybeShowInactivityBanner();
+          resolve(false);
+          return;
+        }
         try {
           const profile = await window._firebase.loadProfileFor(user);
           if (!profile) { resolve(false); return; }
           this._populateLocalSession(profile);
           this._startHeartbeat(profile.legacyId);
+          this._setupInactivityWatch(profile.role);
+          try { sessionStorage.removeItem('ieteb_logout_motivo'); } catch (_) {}
           const el = document.getElementById('loginScreen');
           if (el) el.remove();
           resolve(true);
@@ -46,6 +54,80 @@ class LoginPage {
     }, 2 * 60 * 1000);
   }
 
+  // Auto-logout por inatividade (5 min) — apenas para testers.
+  // Admin permanece logado indefinidamente.
+  _setupInactivityWatch(role) {
+    this._clearInactivityWatch();
+    if (role === 'admin') return;
+
+    const TIMEOUT_MS = 5 * 60 * 1000;
+    const events = ['mousemove','mousedown','keydown','scroll','touchstart','touchmove','click'];
+
+    const reset = () => {
+      if (this._inactivityTimer) clearTimeout(this._inactivityTimer);
+      this._inactivityTimer = setTimeout(() => this._onInactivity(), TIMEOUT_MS);
+    };
+
+    this._inactivityHandler = reset;
+    events.forEach(ev => document.addEventListener(ev, reset, { passive: true }));
+    reset();
+  }
+
+  _clearInactivityWatch() {
+    if (this._inactivityTimer) { clearTimeout(this._inactivityTimer); this._inactivityTimer = null; }
+    if (this._inactivityHandler) {
+      ['mousemove','mousedown','keydown','scroll','touchstart','touchmove','click']
+        .forEach(ev => document.removeEventListener(ev, this._inactivityHandler));
+      this._inactivityHandler = null;
+    }
+  }
+
+  async _onInactivity() {
+    this._clearInactivityWatch();
+    const user = getCurrentUser();
+    if (window._firebase) {
+      try { window._firebase.clearSession(user.id); } catch (_) {}
+      try { await window._firebase.signOut(); } catch (_) {}
+    }
+    if (this._heartbeatInterval) { clearInterval(this._heartbeatInterval); this._heartbeatInterval = null; }
+
+    try {
+      sessionStorage.clear();
+      ['ieteb_lancamentos','ieteb_saidas','ieteb_deleted_ids','ieteb_saldo_abertura','ieteb_user']
+        .forEach(k => localStorage.removeItem(k));
+    } catch (_) {}
+
+    // Marca para o próximo render do login screen mostrar o aviso premium.
+    try { sessionStorage.setItem('ieteb_logout_motivo', 'inatividade'); } catch (_) {}
+
+    // Recarrega para o boot splash + login screen aparecerem do zero.
+    window.location.reload();
+  }
+
+  _maybeShowInactivityBanner() {
+    let motivo = '';
+    try { motivo = sessionStorage.getItem('ieteb_logout_motivo') || ''; } catch (_) {}
+    if (motivo !== 'inatividade') return;
+    try { sessionStorage.removeItem('ieteb_logout_motivo'); } catch (_) {}
+
+    const card = document.getElementById('loginCard');
+    if (!card || card.querySelector('.ls-banner')) return;
+    const accent = card.querySelector('.ls-card-accent');
+    const banner = document.createElement('div');
+    banner.className = 'ls-banner ls-banner--inactivity';
+    banner.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <div class="ls-banner-text">
+        <strong>Você foi deslogado por inatividade.</strong>
+        <span>Por questão de segurança, faça login novamente para continuar.</span>
+      </div>`;
+    if (accent) accent.insertAdjacentElement('afterend', banner);
+    else card.insertBefore(banner, card.firstChild);
+  }
+
   openLogoutModal(sidebar) {
     this.modal.open('logoutModal');
     if (sidebar) sidebar.closeSidebar();
@@ -60,6 +142,7 @@ class LoginPage {
       try { await window._firebase.signOut(); } catch (_) {}
     }
     if (this._heartbeatInterval) { clearInterval(this._heartbeatInterval); this._heartbeatInterval = null; }
+    this._clearInactivityWatch();
 
     // Limpa todo cache local de PII e auth ao sair
     try {

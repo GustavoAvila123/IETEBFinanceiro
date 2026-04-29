@@ -333,31 +333,66 @@ class FirebaseManager {
   }
 
   /* ── Sessões ────────────────────────────────────────────────── */
+  // Cap de delta entre heartbeats para não contar tempo em que o usuário
+  // esteve offline (browser em background, sem rede etc).
+  _HEARTBEAT_CAP_MS = 3 * 60 * 1000;
+
   saveSession(user) {
     if (!this._db) return;
+    const now = Date.now();
+    const iso = new Date(now).toISOString();
     this._db.collection('Sessoes').doc(user.id).set({
-      userId:   user.id,
-      name:     user.name,
-      role:     user.role,
-      loginAt:  new Date().toISOString(),
-      lastSeen: new Date().toISOString(),
-      active:   true,
-    }).catch(e => console.warn('saveSession:', e));
+      userId:           user.id,
+      name:             user.name,
+      role:             user.role,
+      loginAt:          iso,
+      loginAtMs:        now,
+      lastSeen:         iso,
+      lastHeartbeatMs:  now,
+      active:           true,
+    }, { merge: true }).catch(_ => {});
   }
 
-  clearSession(userId) {
-    if (!this._db) return;
-    this._db.collection('Sessoes').doc(userId).update({
-      active:   false,
-      lastSeen: new Date().toISOString(),
-    }).catch(e => console.warn('clearSession:', e));
+  async clearSession(userId) {
+    if (!this._db || !userId) return;
+    try {
+      const FieldValue = window.firebase.firestore.FieldValue;
+      const ref  = this._db.collection('Sessoes').doc(userId);
+      const snap = await ref.get();
+      const data = snap.exists ? snap.data() : null;
+
+      const now      = Date.now();
+      const lastHb   = data && data.lastHeartbeatMs ? data.lastHeartbeatMs : (data && data.loginAtMs);
+      const delta    = lastHb ? Math.min(now - lastHb, this._HEARTBEAT_CAP_MS) : 0;
+
+      const updates = {
+        active:   false,
+        lastSeen: new Date(now).toISOString(),
+      };
+      if (delta > 0) updates.totalLoggedMs = FieldValue.increment(delta);
+      await ref.update(updates);
+    } catch (_) {}
   }
 
-  heartbeat(userId) {
-    if (!this._db) return;
-    this._db.collection('Sessoes').doc(userId).update({
-      lastSeen: new Date().toISOString(),
-    }).catch(e => console.warn('heartbeat:', e));
+  async heartbeat(userId) {
+    if (!this._db || !userId) return;
+    try {
+      const FieldValue = window.firebase.firestore.FieldValue;
+      const ref  = this._db.collection('Sessoes').doc(userId);
+      const snap = await ref.get();
+      const data = snap.exists ? snap.data() : null;
+
+      const now    = Date.now();
+      const lastHb = data && data.lastHeartbeatMs ? data.lastHeartbeatMs : (data && data.loginAtMs);
+      const delta  = lastHb ? Math.min(now - lastHb, this._HEARTBEAT_CAP_MS) : 0;
+
+      const updates = {
+        lastSeen:        new Date(now).toISOString(),
+        lastHeartbeatMs: now,
+      };
+      if (delta > 0) updates.totalLoggedMs = FieldValue.increment(delta);
+      await ref.update(updates);
+    } catch (_) {}
   }
 
   listenSessions(callback) {

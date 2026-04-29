@@ -1557,6 +1557,17 @@ body {
 
 .monitor-footer-item svg { stroke: rgba(255,255,255,.28); flex-shrink: 0; }
 
+.monitor-footer-item--total {
+  flex-basis: 100%;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(212,175,55,.10);
+  color: rgba(255,255,255,.60);
+}
+
+.monitor-footer-item--total svg { stroke: rgba(212,175,55,.55); }
+.monitor-footer-item--total strong { color: var(--gold); font-weight: 700; }
+
 /* ─── BOTÃO COMPROVANTE NA TABELA ─── */
 .btn-comprovante {
   display: inline-flex;
@@ -2801,6 +2812,38 @@ body.modal-open {
   90%       { transform: translateX(2px); }
 }
 .ls-card--shake { animation: lsShake .5s cubic-bezier(.36,.07,.19,.97); }
+
+/* Banner de aviso (ex.: deslogado por inatividade) */
+.ls-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 20px 0 -8px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(212,175,55,.12), rgba(212,175,55,.04));
+  border: 1px solid rgba(212,175,55,.32);
+  border-radius: 10px;
+  color: rgba(255,255,255,.92);
+  animation: lsBannerIn .4s ease;
+}
+
+.ls-banner svg { color: var(--gold); flex-shrink: 0; margin-top: 1px; }
+
+.ls-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: .82rem;
+  line-height: 1.4;
+}
+
+.ls-banner-text strong { color: var(--gold); font-weight: 700; letter-spacing: .01em; }
+.ls-banner-text span   { color: rgba(255,255,255,.65); font-size: .76rem; }
+
+@keyframes lsBannerIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* ── Logo ── */
 .ls-logo-ring {

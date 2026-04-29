@@ -18,6 +18,11 @@ class NavigationManager {
   }
 
   showPage(page) {
+    // Monitor é restrito a admin — defesa em profundidade caso alguém
+    // tente abrir via console (a UI já esconde o link no menu).
+    if (page === 'monitor' && getCurrentUser().role !== 'admin') {
+      page = 'home';
+    }
     ['home','lancamentos','saidas','relatorios','caixa','dashboard','monitor'].forEach(p => {
       document.getElementById('page' + p.charAt(0).toUpperCase() + p.slice(1))
         .classList.toggle('page-content--hidden', p !== page);

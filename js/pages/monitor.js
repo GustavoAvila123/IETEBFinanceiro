@@ -42,6 +42,29 @@ class MonitorPage {
     } catch (_) { return '—'; }
   }
 
+  // Soma persistida (totalLoggedMs) + tempo da sessão ativa em curso.
+  _calcTempoTotal(session) {
+    if (!session) return 0;
+    let total = Number(session.totalLoggedMs) || 0;
+    if (session.active && this._isOnline(session)) {
+      const lastHb = Number(session.lastHeartbeatMs) ||
+                     (session.loginAtMs ? Number(session.loginAtMs) : null) ||
+                     (session.loginAt ? new Date(session.loginAt).getTime() : null);
+      if (lastHb) total += Math.min(Date.now() - lastHb, 3 * 60 * 1000);
+    }
+    return total;
+  }
+
+  _fmtDuration(ms) {
+    if (!ms || ms < 0) return '—';
+    const totalMin = Math.floor(ms / 60000);
+    if (totalMin < 1)  return 'menos de 1 min';
+    if (totalMin < 60) return `${totalMin} min`;
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return m ? `${h}h ${m}min` : `${h}h`;
+  }
+
   render() {
     const grid = document.getElementById('monitorGrid');
     if (!grid) return;
@@ -138,6 +161,10 @@ class MonitorPage {
             <span class="monitor-footer-item">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
               Login: ${this._fmtDatetime(session.loginAt)}
+            </span>
+            <span class="monitor-footer-item monitor-footer-item--total">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Tempo total logado: <strong>${escHtml(this._fmtDuration(this._calcTempoTotal(session)))}</strong>
             </span>
           ` : '<span class="monitor-footer-item" style="opacity:.45">Sem sessão registrada</span>'}
         </div>

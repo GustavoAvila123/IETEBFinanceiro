@@ -499,6 +499,8 @@ class SaidaPage {
   _showSnackbar() {
     const el      = document.getElementById('saidaSavedSnackbar');
     const overlay = document.getElementById('saidaSnackbarOverlay');
+    const msg     = document.getElementById('savedSnackbarMsg');
+    if (msg) msg.textContent = 'Saída salva com sucesso!';
     if (!el) return;
     el.classList.add('snackbar--visible');
     if (overlay) overlay.classList.add('snackbar--visible');

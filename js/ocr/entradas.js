@@ -334,7 +334,27 @@ class OCREntradas {
       });
     }
     if (this._entradaPage) this._entradaPage.switchTab('manual');
-    this.modal.showToast('Formulário preenchido! Revise os dados e salve.', 'success');
+    this._abrirModalDados();
+  }
+
+  _abrirModalDados() {
+    const e = this.ocrExtracted;
+    const labels = {
+      nomeAluno:        'Aluno',
+      nomeDepositante:  'Depositante',
+      valor:            'Valor',
+      data:             'Data',
+      hora:             'Hora',
+      formaPagamento:   'Pagamento',
+    };
+    const escH = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    document.getElementById('ocrDadosSummary').innerHTML = Object.keys(labels)
+      .filter(k => e[k])
+      .map(k => `<div class="ocr-row">
+        <span class="ocr-row-label">${escH(labels[k])}</span>
+        <span class="ocr-row-value">${escH(e[k])}</span>
+      </div>`).join('') || '<p style="padding:16px;color:#aaa;text-align:center">Nenhum dado extraído.</p>';
+    this.modal.open('ocrDadosModal');
   }
 
   closeModal() { this.modal.close('ocrModal'); }

@@ -403,9 +403,24 @@ class EntradaPage {
     const msg = alunos.length > 1
       ? `${alunos.length} lançamentos salvos com sucesso!`
       : 'Lançamento salvo com sucesso!';
-    this.modal.showToast(msg, 'success');
+    this._showSnackbar(msg);
     this.limparFormulario();
     try { document.dispatchEvent(new CustomEvent('ietebDataChanged')); } catch (_) {}
+  }
+
+  _showSnackbar(msg) {
+    const el      = document.getElementById('saidaSavedSnackbar');
+    const overlay = document.getElementById('saidaSnackbarOverlay');
+    const msgEl   = document.getElementById('savedSnackbarMsg');
+    if (!el) return;
+    if (msgEl) msgEl.textContent = msg;
+    el.classList.add('snackbar--visible');
+    if (overlay) overlay.classList.add('snackbar--visible');
+    clearTimeout(this._snackTimer);
+    this._snackTimer = setTimeout(() => {
+      el.classList.remove('snackbar--visible');
+      if (overlay) overlay.classList.remove('snackbar--visible');
+    }, 3000);
   }
 
   limparFormulario() {

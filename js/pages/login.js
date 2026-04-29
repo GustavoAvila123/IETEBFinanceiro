@@ -111,8 +111,9 @@ class LoginPage {
     if (!pass) { passErr.textContent = 'Campo obrigatório.'; ok = false; }
     if (!ok) return;
 
+    const userLower = user.toLowerCase();
     const found = (typeof USERS !== 'undefined' ? USERS : [])
-      .find(u => u.id === user && u.pass === pass);
+      .find(u => u.id.toLowerCase() === userLower && u.pass === pass);
 
     if (found) {
       sessionStorage.setItem('ieteb_auth', '1');

@@ -232,6 +232,14 @@ class RelatorioPage {
       this.modal.showToast('Nenhum registro para imprimir.', 'error');
       return;
     }
+
+    // No mobile o window.print() pode demorar 2-3s para abrir o picker nativo
+    // sem nenhum feedback visual. Damos um toast + desabilitamos os botões
+    // de exportação enquanto o navegador prepara a janela de impressão.
+    this.modal.showToast('Preparando PDF...', '');
+    const btns = document.querySelectorAll('.btn-export');
+    btns.forEach(b => { b.disabled = true; b.classList.add('btn-export--loading'); });
+
     const agora    = new Date().toLocaleString('pt-BR');
     const isSaidas = this.tipo === 'saidas';
     const titulo   = isSaidas ? 'Relatório de Saídas' : 'Relatório de Lançamentos';
@@ -268,7 +276,25 @@ class RelatorioPage {
         <tbody>${linhas}</tbody>
       </table>
       <div class="print-footer">IETEB — Centro Educacional Teológico</div>`;
-    window.print();
+
+    const reabilitar = () => {
+      btns.forEach(b => { b.disabled = false; b.classList.remove('btn-export--loading'); });
+    };
+
+    // Aguarda um frame para o navegador render antes de abrir o print sheet.
+    // No mobile isso evita bloqueio percebido como "botão sem ação".
+    setTimeout(() => {
+      try {
+        const onAfterPrint = () => { window.removeEventListener('afterprint', onAfterPrint); reabilitar(); };
+        window.addEventListener('afterprint', onAfterPrint);
+        window.print();
+      } catch (_) {
+        // alguns mobiles podem não suportar print direto
+      }
+      // Fallback: se o evento afterprint não disparar (alguns browsers mobile),
+      // reabilita após 8s.
+      setTimeout(reabilitar, 8000);
+    }, 60);
   }
 
   // ── Exportação Excel ──────────────────────────────────────────────────────────
@@ -277,43 +303,56 @@ class RelatorioPage {
       this.modal.showToast('Nenhum registro para exportar.', 'error');
       return;
     }
-    if (typeof XLSX === 'undefined') {
-      this.modal.showToast('Carregando biblioteca, aguarde...', '');
-      await loadScript('https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js');
+
+    const btns = document.querySelectorAll('.btn-export');
+    btns.forEach(b => { b.disabled = true; b.classList.add('btn-export--loading'); });
+    const reabilitar = () => {
+      btns.forEach(b => { b.disabled = false; b.classList.remove('btn-export--loading'); });
+    };
+
+    try {
+      if (typeof XLSX === 'undefined') {
+        this.modal.showToast('Carregando biblioteca, aguarde...', '');
+        await loadScript('https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js');
+      }
+
+      const isSaidas = this.tipo === 'saidas';
+      const agora    = new Date().toISOString().slice(0, 10);
+      let headers, rows, sheetName, fileName, colWidths;
+
+      if (isSaidas) {
+        headers   = ['Data','Hora','Categoria','Fornecedor','Forma de Pagamento','Valor','Observação'];
+        rows      = this.filteredData.map(item => [
+          item.data ? item.data.split('-').reverse().join('/') : '',
+          item.hora || '', item.categoria || '', item.fornecedor || '',
+          item.formaPagamento || '', `R$ ${item.valor || '0,00'}`, item.observacao || '',
+        ]);
+        sheetName = 'Saídas';   fileName = `IETEB_Saidas_${agora}.xlsx`;
+        colWidths = [8,6,24,28,12,10,24];
+      } else {
+        headers   = ['Data','Hora','Nome do Aluno','Curso','Igreja','Forma de Pagamento','Depositante','Banco Depositante','Banco Recebedor','Valor','Observação'];
+        rows      = this.filteredData.map(item => [
+          item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '',
+          item.horaDeposito || '', item.nomeAluno || '', item.curso || '',
+          item.igreja || '', item.formaPagamento || '', item.nomeDepositante || '',
+          item.bancoDepositante || '', item.bancoRecebedor || '',
+          `R$ ${item.valor || '0,00'}`, item.observacao || '',
+        ]);
+        sheetName = 'Lançamentos'; fileName = `IETEB_Lancamentos_${agora}.xlsx`;
+        colWidths = [8,6,22,20,28,12,20,16,16,10,20];
+      }
+
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      ws['!cols'] = colWidths.map(w => ({ wch: w }));
+      XLSX.writeFile(wb, fileName);
+      this.modal.showToast('Excel exportado com sucesso!', 'success');
+    } catch (err) {
+      this.modal.showToast('Não foi possível exportar. Verifique sua conexão.', 'error');
+    } finally {
+      reabilitar();
     }
-
-    const isSaidas = this.tipo === 'saidas';
-    const agora    = new Date().toISOString().slice(0, 10);
-    let headers, rows, sheetName, fileName, colWidths;
-
-    if (isSaidas) {
-      headers   = ['Data','Hora','Categoria','Fornecedor','Forma de Pagamento','Valor','Observação'];
-      rows      = this.filteredData.map(item => [
-        item.data ? item.data.split('-').reverse().join('/') : '',
-        item.hora || '', item.categoria || '', item.fornecedor || '',
-        item.formaPagamento || '', `R$ ${item.valor || '0,00'}`, item.observacao || '',
-      ]);
-      sheetName = 'Saídas';   fileName = `IETEB_Saidas_${agora}.xlsx`;
-      colWidths = [8,6,24,28,12,10,24];
-    } else {
-      headers   = ['Data','Hora','Nome do Aluno','Curso','Igreja','Forma de Pagamento','Depositante','Banco Depositante','Banco Recebedor','Valor','Observação'];
-      rows      = this.filteredData.map(item => [
-        item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '',
-        item.horaDeposito || '', item.nomeAluno || '', item.curso || '',
-        item.igreja || '', item.formaPagamento || '', item.nomeDepositante || '',
-        item.bancoDepositante || '', item.bancoRecebedor || '',
-        `R$ ${item.valor || '0,00'}`, item.observacao || '',
-      ]);
-      sheetName = 'Lançamentos'; fileName = `IETEB_Lancamentos_${agora}.xlsx`;
-      colWidths = [8,6,22,20,28,12,20,16,16,10,20];
-    }
-
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    ws['!cols'] = colWidths.map(w => ({ wch: w }));
-    XLSX.writeFile(wb, fileName);
-    this.modal.showToast('Excel exportado com sucesso!', 'success');
   }
 
   // ── Exclusão ──────────────────────────────────────────────────────────────────

@@ -1130,6 +1130,22 @@ body {
 
 .btn-export--excel:hover { opacity: .92; box-shadow: 0 5px 18px rgba(56,161,105,.42); transform: translateY(-1px); }
 
+.btn-export[disabled],
+.btn-export--loading {
+  opacity: .55;
+  cursor: progress !important;
+  pointer-events: none;
+}
+
+.btn-export--loading svg {
+  animation: btn-export-spin .9s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes btn-export-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ─── TABELA ─── */
 .table-wrap {
   background: var(--white);

@@ -276,10 +276,11 @@ class SaidaPage {
       }
     }
 
+    const normalized = full.replace(/(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})/g, '$1/$2/$3');
     const dataMatch =
-      full.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
-      full.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
-      full.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
+      normalized.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
+      normalized.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
+      normalized.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
     if (dataMatch && dataMatch[1]) {
       const raw   = dataMatch[1];
       const parts = raw.split('/');

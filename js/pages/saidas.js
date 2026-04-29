@@ -78,8 +78,10 @@ class SaidaPage {
   }
 
   handleFile(file) {
-    if (file.type !== 'application/pdf') {
-      this.modal.showToast('Envie o PDF da Nota Fiscal. Imagens não são suportadas nesta seção.', 'error');
+    const isImage = file.type.startsWith('image/');
+    const isPdf   = file.type === 'application/pdf';
+    if (!isImage && !isPdf) {
+      this.modal.showToast('Envie o PDF ou uma imagem (JPG, PNG) da Nota Fiscal.', 'error');
       return;
     }
     this.currentFile = file;
@@ -119,12 +121,17 @@ class SaidaPage {
 
   async lerNF() {
     if (!this.currentFile) return;
-    this.setStatus(true, 'Lendo PDF...');
+    const isImage = this.currentFile.type.startsWith('image/');
+    this.setStatus(true, isImage ? 'Lendo imagem...' : 'Lendo PDF...');
     try {
-      await this.extrairDoPdf();
+      if (isImage) {
+        await this.extrairDaImagem();
+      } else {
+        await this.extrairDoPdf();
+      }
     } catch (err) {
       this.setStatus(false);
-      this.modal.showToast('Não foi possível ler o PDF. Verifique o arquivo e tente novamente.', 'error');
+      this.modal.showToast('Não foi possível ler o arquivo. Verifique e tente novamente.', 'error');
       console.error(err);
     }
   }

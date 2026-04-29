@@ -506,7 +506,7 @@ class SaidaPage {
     this._snackTimer = setTimeout(() => {
       el.classList.remove('snackbar--visible');
       if (overlay) overlay.classList.remove('snackbar--visible');
-    }, 5000);
+    }, 3000);
   }
 
   limparSaida() {

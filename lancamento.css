@@ -301,34 +301,66 @@ body {
 
 .content-header {
   margin-bottom: 24px;
+  position: relative;
+  padding: 22px 26px;
+  background: linear-gradient(135deg, #050d27 0%, #091640 60%, #0c1d52 100%);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.content-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold) 0%, rgba(212,175,55,.25) 100%);
+}
+
+.content-header::after {
+  content: '';
+  position: absolute;
+  top: -50px; right: -50px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(212,175,55,.07) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .page-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.55rem;
+  font-size: 1.45rem;
   font-weight: 700;
-  color: var(--navy);
+  color: #fff;
 }
 
 .page-desc {
-  font-size: .85rem;
-  color: var(--text-light);
-  margin-top: 4px;
+  font-size: .84rem;
+  color: rgba(255,255,255,.52);
+  margin-top: 5px;
 }
 
 /* ─── FORM CARD ─── */
 .form-card {
   background: var(--white);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
+  box-shadow: 0 6px 36px rgba(5,13,39,.18), 0 1px 4px rgba(5,13,39,.07);
   overflow: hidden;
+  border: 1px solid rgba(212,175,55,.12);
 }
 
 /* ─── ABAS ─── */
 .tab-bar {
   display: flex;
-  background: var(--navy);
-  border-bottom: 2px solid var(--gold);
+  background: linear-gradient(135deg, #050d27 0%, #091640 100%);
+  border-bottom: none;
+  position: relative;
+}
+
+.tab-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: rgba(212,175,55,.22);
 }
 
 .tab-btn {
@@ -337,30 +369,32 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px 20px;
-  font-size: .86rem;
+  padding: 18px 20px;
+  font-size: .84rem;
   font-weight: 600;
-  color: rgba(255,255,255,.50);
+  color: rgba(255,255,255,.40);
   background: transparent;
   border: none;
   cursor: pointer;
   font-family: inherit;
-  letter-spacing: .02em;
+  letter-spacing: .03em;
   transition: color .2s, background .2s;
   position: relative;
 }
 
+.tab-btn:hover { color: rgba(255,255,255,.72); }
+
 .tab-btn::after {
   content: '';
   position: absolute;
-  bottom: -2px; left: 0; right: 0;
+  bottom: 0; left: 0; right: 0;
   height: 2px;
-  background: var(--gold);
+  background: linear-gradient(90deg, var(--gold), rgba(212,175,55,.35));
   transform: scaleX(0);
   transition: transform .25s;
 }
 
-.tab-btn--active { color: var(--gold); background: rgba(212,175,55,.06); }
+.tab-btn--active { color: var(--gold); background: rgba(212,175,55,.07); }
 .tab-btn--active::after { transform: scaleX(1); }
 
 /* ─── PAINÉIS ─── */
@@ -369,26 +403,29 @@ body {
 
 /* ─── SEÇÃO BLOCO ─── */
 .form-section {
-  background: #f7f8fc;
-  border: 1px solid #e2e6f0;
-  border-radius: 10px;
-  padding: 18px 20px 20px;
+  background: #fff;
+  border: 1px solid rgba(212,175,55,.15);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 0 20px 20px;
   margin-bottom: 16px;
+  box-shadow: 0 2px 14px rgba(5,13,39,.06);
 }
 
 /* ─── SEÇÃO TÍTULO ─── */
 .form-section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: .72rem;
+  gap: 10px;
+  font-size: .67rem;
   font-weight: 800;
-  color: var(--navy);
+  color: var(--gold);
   text-transform: uppercase;
-  letter-spacing: .10em;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--gold);
-  margin-bottom: 18px;
+  letter-spacing: .14em;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #050d27 0%, #091640 100%);
+  margin: 0 -20px 18px;
+  border-bottom: 1px solid rgba(212,175,55,.18);
 }
 
 .form-section-title svg { color: var(--gold); flex-shrink: 0; }
@@ -512,33 +549,54 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 12px 8px;
-  background: var(--gray-100);
-  border: 2px solid var(--gray-200);
-  border-radius: var(--radius);
-  font-size: .8rem;
-  font-weight: 600;
-  color: var(--gray-700);
+  gap: 8px;
+  padding: 16px 8px 14px;
+  background: #f7f9fc;
+  border: 1.5px solid #e2e6f0;
+  border-radius: 10px;
+  font-size: .76rem;
+  font-weight: 700;
+  color: #6070a0;
   cursor: pointer;
   transition: all .2s;
   font-family: inherit;
+  letter-spacing: .02em;
 }
 
 .payment-btn:hover {
-  border-color: var(--navy-light);
+  border-color: rgba(212,175,55,.5);
   color: var(--navy);
-  background: #fff;
+  background: rgba(212,175,55,.04);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(5,13,39,.10);
 }
 
 .payment-btn--active {
   border-color: var(--gold);
-  background: var(--gold-bg);
+  background: linear-gradient(135deg, rgba(212,175,55,.13) 0%, rgba(212,175,55,.06) 100%);
   color: var(--navy);
-  box-shadow: 0 0 0 3px rgba(212,175,55,.13);
+  box-shadow: 0 0 0 3px rgba(212,175,55,.15), 0 4px 16px rgba(5,13,39,.08);
+  transform: translateY(-1px);
 }
 
-.payment-icon { font-size: 1.35rem; line-height: 1; }
+.payment-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: rgba(96,112,160,.10);
+  transition: background .2s;
+  flex-shrink: 0;
+}
+
+.payment-btn--active .payment-icon {
+  background: rgba(212,175,55,.18);
+}
+
+.payment-icon svg { stroke: #8090b0; transition: stroke .2s; }
+.payment-btn--active .payment-icon svg,
+.payment-btn:hover .payment-icon svg { stroke: var(--navy); }
 
 /* Bloqueio de forma de pagamento após seleção ou upload */
 .payment-types--locked .payment-btn:not(.payment-btn--active) {
@@ -549,19 +607,20 @@ body {
 
 /* ─── UPLOAD ─── */
 .upload-area {
-  border: 2px dashed var(--gray-300);
+  border: 2px dashed rgba(212,175,55,.35);
   border-radius: var(--radius-lg);
-  padding: 44px 24px;
+  padding: 48px 24px;
   text-align: center;
   cursor: pointer;
-  transition: border-color .2s, background .2s;
-  background: var(--gray-100);
+  transition: border-color .2s, background .2s, box-shadow .2s;
+  background: linear-gradient(135deg, #f7f9fc 0%, #f0f4ff 100%);
   margin-bottom: 18px;
 }
 
 .upload-area:hover, .upload-area--dragover {
   border-color: var(--gold);
-  background: var(--gold-bg);
+  background: rgba(212,175,55,.05);
+  box-shadow: 0 0 0 4px rgba(212,175,55,.08);
 }
 
 .upload-area:hover .upload-icon svg,
@@ -734,10 +793,34 @@ body {
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
-  padding: 22px 28px;
-  border-top: 1px solid var(--gray-200);
-  background: var(--gray-50);
+  padding: 20px 28px;
+  border-top: 1px solid rgba(212,175,55,.15);
+  background: linear-gradient(135deg, #050d27 0%, #091640 100%);
   margin-top: 26px;
+}
+
+.form-footer .btn-secondary {
+  background: transparent;
+  color: rgba(255,255,255,.60);
+  border-color: rgba(255,255,255,.18);
+}
+
+.form-footer .btn-secondary:hover {
+  background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.85);
+  border-color: rgba(255,255,255,.30);
+}
+
+.form-footer .btn-primary {
+  background: linear-gradient(135deg, var(--gold) 0%, #b8971e 100%);
+  color: #050d27;
+  box-shadow: 0 4px 18px rgba(212,175,55,.35);
+}
+
+.form-footer .btn-primary:hover {
+  opacity: 1;
+  box-shadow: 0 6px 24px rgba(212,175,55,.50);
+  transform: translateY(-1px);
 }
 
 /* ─── LABEL DIM (alunos extras) ─── */
@@ -1355,18 +1438,27 @@ body.modal-open { overflow: hidden; touch-action: none; }
 
   .page-content { padding: 20px 16px 50px; }
 
-  .tab-btn { font-size: .78rem; padding: 13px 10px; gap: 5px; }
+  .tab-btn { font-size: .76rem; padding: 14px 10px; gap: 5px; }
 
   .tab-panel { padding: 18px 16px 0; }
+
+  .content-header { padding: 18px 18px; border-radius: 12px; }
+  .page-title { font-size: 1.2rem; }
+
+  .form-section { padding: 0 16px 16px; }
+  .form-section-title { padding: 11px 16px; margin: 0 -16px 16px; }
 
   .form-row { grid-template-columns: 1fr; }
   .form-row--3 { grid-template-columns: 1fr 1fr; }
   .form-row--4 { grid-template-columns: 1fr 1fr; }
 
-  .payment-types { grid-template-columns: repeat(2, 1fr); }
+  .payment-types { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .payment-btn { padding: 14px 8px 12px; }
+  .payment-icon { width: 34px; height: 34px; }
 
   .form-footer { padding: 18px 16px; flex-direction: column; }
   .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+  .form-footer .btn-primary, .form-footer .btn-secondary { width: 100%; }
 
   .aluno-row { grid-template-columns: 1fr 90px 40px; }
 

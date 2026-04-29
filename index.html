@@ -1024,12 +1024,20 @@
             <label class="form-label" for="caixaDiaFiltroATE">Até</label>
             <input type="text" class="form-input filter-input" id="caixaDiaFiltroATE" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onCaixaFiltroAteBlur',true)" />
           </div>
-          <button class="btn-ghost" id="caixaDiaLimpar" onclick="clearCaixaDia()" style="display:none;align-self:flex-end">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
-            </svg>
-            Limpar filtro
-          </button>
+          <div class="caixa-day-filter-actions">
+            <button class="caixa-filter-btn caixa-filter-btn--apply" onclick="aplicarCaixaFiltro()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              Filtrar
+            </button>
+            <button class="caixa-filter-btn caixa-filter-btn--clear" id="caixaDiaLimpar" onclick="clearCaixaDia()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
+              </svg>
+              Limpar filtro
+            </button>
+          </div>
         </div>
       </div>
 

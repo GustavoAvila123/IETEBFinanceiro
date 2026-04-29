@@ -3,6 +3,7 @@ class TesourariaPage {
   constructor(modal) {
     this.modal   = modal;
     this.caixaMes = '';
+    this.filtroAplicado = false;
   }
 
   _getSaldoAbertura() {
@@ -31,14 +32,29 @@ class TesourariaPage {
     const ateEl = document.getElementById('caixaDiaFiltroATE');
     if (deEl)  deEl.value  = '';
     if (ateEl) ateEl.value = '';
-    document.getElementById('caixaDiaLimpar').style.display = 'none';
+    this.filtroAplicado = false;
     this.render();
   }
 
   clearDia() {
-    document.getElementById('caixaDiaFiltroDE').value  = '';
-    document.getElementById('caixaDiaFiltroATE').value = '';
-    document.getElementById('caixaDiaLimpar').style.display = 'none';
+    const deEl  = document.getElementById('caixaDiaFiltroDE');
+    const ateEl = document.getElementById('caixaDiaFiltroATE');
+    if (deEl)  deEl.value  = '';
+    if (ateEl) ateEl.value = '';
+    this.filtroAplicado = false;
+    this.render();
+  }
+
+  aplicarFiltro() {
+    const deEl  = document.getElementById('caixaDiaFiltroDE');
+    const ateEl = document.getElementById('caixaDiaFiltroATE');
+    if (!deEl.value && !ateEl.value) return;
+    if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
+      ateEl.value = '';
+      document.getElementById('caixaDataModal').style.display = 'flex';
+      return;
+    }
+    this.filtroAplicado = true;
     this.render();
   }
 
@@ -48,9 +64,7 @@ class TesourariaPage {
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
       ateEl.value = '';
       document.getElementById('caixaDataModal').style.display = 'flex';
-      return;
     }
-    this.render();
   }
 
   onFiltroAteBlur() {
@@ -59,9 +73,7 @@ class TesourariaPage {
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
       ateEl.value = '';
       document.getElementById('caixaDataModal').style.display = 'flex';
-      return;
     }
-    this.render();
   }
 
   render() {
@@ -74,21 +86,33 @@ class TesourariaPage {
 
     const deEl  = document.getElementById('caixaDiaFiltroDE');
     const ateEl = document.getElementById('caixaDiaFiltroATE');
-    if (deEl)  { deEl.min  = mesInicio; deEl.max  = mesFim; }
-    if (ateEl) { ateEl.min = mesInicio; ateEl.max = mesFim; }
 
-    const deISO     = deEl  && deEl.value.length  === 10 ? dateInputToISO(deEl.value)  : '';
-    const ateISO    = ateEl && ateEl.value.length === 10 ? dateInputToISO(ateEl.value) : '';
-    const filtroDE  = deISO  && deISO  >= mesInicio && deISO  <= mesFim ? deISO  : mesInicio;
-    const filtroATE = ateISO && ateISO >= mesInicio && ateISO <= mesFim ? ateISO : mesFim;
-    const filtroAtivo = (deEl && deEl.value) || (ateEl && ateEl.value);
-    document.getElementById('caixaDiaLimpar').style.display = filtroAtivo ? 'flex' : 'none';
+    const deISO  = deEl  && deEl.value.length  === 10 ? dateInputToISO(deEl.value)  : '';
+    const ateISO = ateEl && ateEl.value.length === 10 ? dateInputToISO(ateEl.value) : '';
+
+    let filtroDE, filtroATE, saldoAntCutoff, periodoLabel;
+    if (this.filtroAplicado && (deISO || ateISO)) {
+      filtroDE       = deISO  || '0000-01-01';
+      filtroATE      = ateISO || '9999-12-31';
+      saldoAntCutoff = filtroDE;
+      const deLabel  = deEl.value  || '...';
+      const ateLabel = ateEl.value || '...';
+      periodoLabel   = `de ${deLabel} até ${ateLabel}`;
+    } else {
+      filtroDE       = mesInicio;
+      filtroATE      = mesFim;
+      saldoAntCutoff = mesInicio;
+      periodoLabel   = 'do Mês';
+    }
+
+    const monthControls = document.querySelector('.caixa-month-controls');
+    if (monthControls) monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);
 
     const todasEntradas = getEntradasData();
     const todasSaidas   = getSaidasData();
 
-    const entradasAnt = todasEntradas.filter(i => i.dataDeposito && i.dataDeposito < mesInicio);
-    const saidasAnt   = todasSaidas.filter(i => i.data && i.data < mesInicio);
+    const entradasAnt = todasEntradas.filter(i => i.dataDeposito && i.dataDeposito < saldoAntCutoff);
+    const saidasAnt   = todasSaidas.filter(i => i.data && i.data < saldoAntCutoff);
 
     const entradas = todasEntradas.filter(i => i.dataDeposito && i.dataDeposito >= filtroDE && i.dataDeposito <= filtroATE);
     const saidas   = todasSaidas.filter(i => i.data && i.data >= filtroDE && i.data <= filtroATE);
@@ -127,10 +151,6 @@ class TesourariaPage {
     const cls = v => v >= 0 ? 'caixa-saldo-item-value--positivo' : 'caixa-saldo-item-value--negativo';
     const dot = tipo => `<span class="caixa-dot caixa-dot--${tipo}"></span>`;
 
-    const periodoLabel = filtroAtivo
-      ? `de ${deEl.value || isoToDateInput(mesInicio)} até ${ateEl.value || isoToDateInput(mesFim)}`
-      : `do Mês`;
-
     document.getElementById('caixaEntradasHeader').innerHTML = `
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
@@ -155,7 +175,7 @@ class TesourariaPage {
       </div>
       <div class="caixa-anterior-sep"></div>
       <div class="caixa-anterior-item">
-        <div class="caixa-saldo-item-label">Total</div>
+        <div class="caixa-saldo-item-label">Saldo</div>
         <div class="caixa-saldo-item-value ${cls(antTotal)}" style="font-size:1.2rem;font-weight:800">R$ ${formatBRL(antTotal)}</div>
       </div>`;
 
@@ -163,8 +183,7 @@ class TesourariaPage {
 
     document.getElementById('caixaEntradas').innerHTML = `
       <div class="caixa-row caixa-row--section-label"><span>Saldo Anterior</span></div>
-      <div class="caixa-row"><span class="caixa-row-label">Dinheiro Físico</span><span class="caixa-row-value ${cls(antMaos)}">R$ ${formatBRL(antMaos)}</span></div>
-      <div class="caixa-row"><span class="caixa-row-label">C/C (Pix / Déb / Créd)</span><span class="caixa-row-value ${cls(antConta)}">R$ ${formatBRL(antConta)}</span></div>
+      <div class="caixa-row"><span class="caixa-row-label">Saldo</span><span class="caixa-row-value ${cls(antTotal)}">R$ ${formatBRL(antTotal)}</span></div>
       <div class="caixa-row--divider"></div>
       <div class="caixa-row caixa-row--section-label"><span>Entradas ${periodoLabel}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('dinheiro')} Dinheiro</span><span class="caixa-row-value">R$ ${formatBRL(eDin)}</span></div>

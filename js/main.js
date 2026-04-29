@@ -112,6 +112,7 @@ window.closeImgModal          = () => relatorios.closeImgModal();
 window.initCaixa          = () => tesouraria.init();
 window.caixaMesNavegar    = d  => tesouraria.navegar(d);
 window.clearCaixaDia      = () => tesouraria.clearDia();
+window.aplicarCaixaFiltro = () => tesouraria.aplicarFiltro();
 window.onCaixaFiltroDeBlur  = () => tesouraria.onFiltroDeBlur();
 window.onCaixaFiltroAteBlur = () => tesouraria.onFiltroAteBlur();
 

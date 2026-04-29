@@ -2097,6 +2097,63 @@ body.modal-open { overflow: hidden; touch-action: none; }
   display: flex;
   align-items: flex-end;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.caixa-day-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-end;
+}
+
+.caixa-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-size: .8rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s, box-shadow .2s, transform .12s;
+  white-space: nowrap;
+  height: 38px;
+}
+
+.caixa-filter-btn--apply {
+  background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%);
+  color: var(--gold);
+  border: 1px solid transparent;
+  box-shadow: 0 3px 12px rgba(11,31,92,.22);
+}
+
+.caixa-filter-btn--apply:hover {
+  opacity: .92;
+  box-shadow: 0 5px 16px rgba(11,31,92,.30);
+}
+
+.caixa-filter-btn--apply:active { transform: scale(.97); }
+
+.caixa-filter-btn--clear {
+  background: var(--white);
+  color: var(--gray-600);
+  border: 1.5px solid var(--gray-200);
+}
+
+.caixa-filter-btn--clear:hover {
+  background: var(--gray-100);
+  color: var(--navy);
+  border-color: var(--gray-300);
+}
+
+.caixa-month-controls--inactive {
+  opacity: .42;
+  filter: grayscale(.55);
+  pointer-events: none;
+  transition: opacity .25s, filter .25s;
 }
 
 .caixa-month-btn {
@@ -2324,6 +2381,15 @@ body.modal-open { overflow: hidden; touch-action: none; }
 @media (max-width: 768px) {
   .caixa-cards { grid-template-columns: 1fr; }
   .caixa-saldo-anterior-body { flex-direction: column; }
+  .caixa-day-filter { width: 100%; }
+  .caixa-day-filter .filter-group { flex: 1 1 calc(50% - 6px); }
+  .caixa-day-filter .filter-input { width: 100%; min-width: 0; }
+  .caixa-day-filter-actions {
+    width: 100%;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .caixa-filter-btn { flex: 1 1 0; justify-content: center; }
 }
 
 @media (max-width: 1024px) {

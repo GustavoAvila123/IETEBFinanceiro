@@ -209,6 +209,25 @@ class SaidaPage {
       fullText += content.items.map(item => item.str).join(' ') + '\n';
     }
 
+    // Extrair data do texto do pdf.js mesmo se curto (antes de cair no OCR)
+    const pdfNorm = fullText.replace(/(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})/g, '$1/$2/$3');
+    const pdfDateMatch =
+      pdfNorm.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
+      pdfNorm.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
+      pdfNorm.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
+    let pdfDate = null;
+    if (pdfDateMatch && pdfDateMatch[1]) {
+      const raw = pdfDateMatch[1];
+      const parts = raw.split('/');
+      if (raw.includes('-')) {
+        pdfDate = raw;
+      } else if (parts.length === 3) {
+        pdfDate = parts[2].length === 2
+          ? `20${parts[2]}-${parts[1]}-${parts[0]}`
+          : `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
+
     if (fullText.trim().length > 50) {
       this.setStatus(false);
       this.parseAndShow(fullText);
@@ -217,7 +236,7 @@ class SaidaPage {
 
     this.setStatus(true, 'Processando imagem do PDF...');
     const page     = await pdf.getPage(1);
-    const viewport = page.getViewport({ scale: 2.5 });
+    const viewport = page.getViewport({ scale: 4.0 });
     const canvas   = document.createElement('canvas');
     canvas.width   = viewport.width;
     canvas.height  = viewport.height;
@@ -226,9 +245,17 @@ class SaidaPage {
 
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const d = imgData.data;
+    let minG = 255, maxG = 0;
     for (let i = 0; i < d.length; i += 4) {
-      const gray = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
-      d[i] = d[i + 1] = d[i + 2] = gray;
+      const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+      if (g < minG) minG = g;
+      if (g > maxG) maxG = g;
+    }
+    const range = maxG - minG || 1;
+    for (let i = 0; i < d.length; i += 4) {
+      const g       = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+      const bw      = Math.round((g - minG) / range * 255) > 140 ? 255 : 0;
+      d[i] = d[i + 1] = d[i + 2] = bw;
     }
     ctx.putImageData(imgData, 0, 0);
 
@@ -246,6 +273,15 @@ class SaidaPage {
     });
     this.setStatus(false);
     this.parseAndShow(result.data.text);
+    // Fallback: se OCR não leu a data, usar a extraída do pdf.js
+    if (!this.ocrExtracted.data && pdfDate) {
+      this.ocrExtracted.data = pdfDate;
+      document.querySelectorAll('#ocrSummarySaida .ocr-row').forEach(row => {
+        if (row.querySelector('.ocr-row-label').textContent === 'Data') {
+          row.querySelector('.ocr-row-value').textContent = pdfDate;
+        }
+      });
+    }
   }
 
   extractFields(text) {

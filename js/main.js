@@ -144,13 +144,21 @@ window.forceRefresh = () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // INICIALIZAÇÃO
 // ═══════════════════════════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
-  login.checkAuth();
+document.addEventListener('DOMContentLoaded', async () => {
   firebase.init();
-  nav.initAdminUI();
+
+  // Aguarda restauração de sessão (Firebase Auth persistido) antes de
+  // carregar dados/UI. Se autenticado, login.checkAuth() esconde a tela de
+  // login. Se não, o login screen permanece e nada de Firestore é assinado.
+  const authed = await login.checkAuth();
+
   entradas.initAlunosContainer();
   entradas.initValidationListeners();
   saidas.initValidationListeners();
+
+  if (!authed) return; // sem sessão: para por aqui, espera o user logar
+
+  nav.initAdminUI();
 
   // Re-renderiza a página ativa ao receber atualização em tempo real do Firestore
   firebase.setDataUpdateCallback(() => {

@@ -1,0 +1,23 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ── Headers de segurança ──────────────────────────────────────────────
+# Aplicados quando hospedado no Netlify. No GitHub Pages estes headers
+# precisam vir das tags <meta http-equiv="..."> em index.html, já que
+# GitHub Pages não permite customizar HTTP headers.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options             = "DENY"
+    X-Content-Type-Options      = "nosniff"
+    Referrer-Policy             = "strict-origin-when-cross-origin"
+    Permissions-Policy          = "camera=(), microphone=(), geolocation=(), payment=()"
+    Strict-Transport-Security   = "max-age=63072000; includeSubDomains; preload"
+    Content-Security-Policy     = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://*.firebaseio.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    Cross-Origin-Opener-Policy  = "same-origin-allow-popups"
+    Cross-Origin-Resource-Policy= "same-site"

@@ -4,10 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IETEB — Lançamento de Entradas</title>
+
+  <!-- ── Segurança ─────────────────────────────────────────────────────
+       CSP relaxada: 'unsafe-inline' nos scripts é necessário enquanto
+       existirem onclick="..." inline no HTML. Bloqueia carregamento de
+       scripts/iframes externos não-autorizados. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://*.firebaseio.com https://*.googleapis.com;
+                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                 font-src 'self' https://fonts.gstatic.com data:;
+                 img-src 'self' data: blob: https:;
+                 connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com;
+                 frame-ancestors 'none';
+                 base-uri 'self';
+                 form-action 'self';
+                 object-src 'none';" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="lancamento.css?v=20260429s">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="lancamento.css?v=20260429t">
 </head>
 <body>
 
@@ -1447,36 +1466,37 @@
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260429s"></script>
+  <script src="js/config.js?v=20260429t"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260429s"></script>
-  <script src="js/utils/format.js?v=20260429s"></script>
+  <script src="js/utils/helpers.js?v=20260429t"></script>
+  <script src="js/utils/format.js?v=20260429t"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260429s"></script>
-  <script src="js/core/firebase.js?v=20260429s"></script>
+  <script src="js/core/modal.js?v=20260429t"></script>
+  <script src="js/core/firebase.js?v=20260429t"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260429s"></script>
+  <script src="js/ocr/entradas.js?v=20260429t"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260429s"></script>
-  <script src="js/pages/entradas.js?v=20260429s"></script>
-  <script src="js/pages/saidas.js?v=20260429s"></script>
-  <script src="js/pages/relatorios.js?v=20260429s"></script>
-  <script src="js/pages/tesouraria.js?v=20260429s"></script>
-  <script src="js/pages/dashboard.js?v=20260429s"></script>
-  <script src="js/pages/monitor.js?v=20260429s"></script>
+  <script src="js/pages/login.js?v=20260429t"></script>
+  <script src="js/pages/entradas.js?v=20260429t"></script>
+  <script src="js/pages/saidas.js?v=20260429t"></script>
+  <script src="js/pages/relatorios.js?v=20260429t"></script>
+  <script src="js/pages/tesouraria.js?v=20260429t"></script>
+  <script src="js/pages/dashboard.js?v=20260429t"></script>
+  <script src="js/pages/monitor.js?v=20260429t"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260429s"></script>
+  <script src="js/core/navigation.js?v=20260429t"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260429s"></script>
+  <script src="js/main.js?v=20260429t"></script>
 </body>
 </html>

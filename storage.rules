@@ -1,8 +1,27 @@
 rules_version = '2';
+
+// IETEB Financeiro — regras de Storage
+//
+// Hoje o app não armazena comprovantes no Storage (foram strippados em
+// firebase.js para reduzir custo). Mantemos o bucket protegido contra
+// acesso não autenticado caso passe a ser usado no futuro.
+
 service firebase.storage {
   match /b/{bucket}/o {
+
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    // Comprovantes: organizar por legacyId; admin lê/escreve tudo.
+    match /comprovantes/{legacyId}/{allPaths=**} {
+      allow read:  if isAuthed();
+      allow write: if isAuthed();
+    }
+
+    // Qualquer outro caminho: bloqueado.
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

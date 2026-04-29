@@ -1,13 +1,49 @@
 class LoginPage {
   constructor(modal) {
     this.modal = modal;
+    this._heartbeatInterval = null;
   }
 
+  // Restaura sessão a partir do Firebase Auth (que persiste no localStorage).
+  // Resolve sempre — nunca rejeita — para a inicialização não travar.
   checkAuth() {
-    if (sessionStorage.getItem('ieteb_auth') === '1') {
-      const el = document.getElementById('loginScreen');
-      if (el) el.remove();
-    }
+    return new Promise(resolve => {
+      if (!window._firebase || !window._firebase.onAuthStateChanged) {
+        resolve(false);
+        return;
+      }
+      const unsub = window._firebase.onAuthStateChanged(async user => {
+        try { unsub(); } catch (_) {}
+        if (!user) { resolve(false); return; }
+        try {
+          const profile = await window._firebase.loadProfileFor(user);
+          if (!profile) { resolve(false); return; }
+          this._populateLocalSession(profile);
+          this._startHeartbeat(profile.legacyId);
+          const el = document.getElementById('loginScreen');
+          if (el) el.remove();
+          resolve(true);
+        } catch (_) {
+          resolve(false);
+        }
+      });
+    });
+  }
+
+  _populateLocalSession(profile) {
+    sessionStorage.setItem('ieteb_auth', '1');
+    sessionStorage.setItem('ieteb_user', JSON.stringify({
+      id:   profile.legacyId,
+      name: profile.name,
+      role: profile.role,
+    }));
+  }
+
+  _startHeartbeat(legacyId) {
+    if (this._heartbeatInterval) clearInterval(this._heartbeatInterval);
+    this._heartbeatInterval = setInterval(() => {
+      if (window._firebase) window._firebase.heartbeat(legacyId);
+    }, 2 * 60 * 1000);
   }
 
   openLogoutModal(sidebar) {
@@ -17,12 +53,21 @@ class LoginPage {
 
   closeLogoutModal() { this.modal.close('logoutModal'); }
 
-  confirmarLogout() {
+  async confirmarLogout() {
     const user = getCurrentUser();
-    if (window._firebase) window._firebase.clearSession(user.id);
+    if (window._firebase) {
+      try { window._firebase.clearSession(user.id); } catch (_) {}
+      try { await window._firebase.signOut(); } catch (_) {}
+    }
     if (this._heartbeatInterval) { clearInterval(this._heartbeatInterval); this._heartbeatInterval = null; }
-    sessionStorage.removeItem('ieteb_auth');
-    sessionStorage.removeItem('ieteb_user');
+
+    // Limpa todo cache local de PII e auth ao sair
+    try {
+      sessionStorage.clear();
+      ['ieteb_lancamentos','ieteb_saidas','ieteb_deleted_ids','ieteb_saldo_abertura','ieteb_user']
+        .forEach(k => localStorage.removeItem(k));
+    } catch (_) {}
+
     this.modal.close('logoutModal');
 
     const ls = document.createElement('div');
@@ -91,13 +136,14 @@ class LoginPage {
     });
   }
 
-  handleLogin(e) {
+  async handleLogin(e) {
     e.preventDefault();
     const userEl  = document.getElementById('loginUsuario');
     const passEl  = document.getElementById('loginSenha');
     const errEl   = document.getElementById('loginError');
     const userErr = document.getElementById('loginUsuarioError');
     const passErr = document.getElementById('loginSenhaError');
+    const btn     = document.getElementById('loginBtn');
 
     errEl.textContent  = '';
     userErr.textContent = '';
@@ -111,28 +157,41 @@ class LoginPage {
     if (!pass) { passErr.textContent = 'Campo obrigatório.'; ok = false; }
     if (!ok) return;
 
-    const userLower = user.toLowerCase();
-    const found = (typeof USERS !== 'undefined' ? USERS : [])
-      .find(u => u.id.toLowerCase() === userLower && u.pass === pass);
+    if (btn) btn.disabled = true;
+    try {
+      if (!window._firebase) throw new Error('firebase-indisponivel');
+      const profile = await window._firebase.signIn(user, pass);
 
-    if (found) {
-      sessionStorage.setItem('ieteb_auth', '1');
-      sessionStorage.setItem('ieteb_user', JSON.stringify({ id: found.id, name: found.name, role: found.role }));
-      if (window._firebase) {
-        window._firebase.saveSession(found);
-        this._heartbeatInterval = setInterval(() => {
-          window._firebase.heartbeat(found.id);
-        }, 2 * 60 * 1000);
-      }
+      this._populateLocalSession(profile);
+      window._firebase.saveSession({ id: profile.legacyId, name: profile.name, role: profile.role });
+      this._startHeartbeat(profile.legacyId);
+
+      // Recarrega a tela inteira para que os listeners do Firestore
+      // assinem com o novo contexto autenticado.
       const screen = document.getElementById('loginScreen');
-      screen.classList.add('ls--exit');
-      setTimeout(() => { screen.remove(); window.scrollTo(0, 0); }, 520);
-    } else {
-      errEl.textContent = 'Ops! Não conseguimos entrar com esses dados. Confirme seu usuário e senha e tente novamente.';
+      if (screen) {
+        screen.classList.add('ls--exit');
+        setTimeout(() => { screen.remove(); window.scrollTo(0, 0); window.location.reload(); }, 400);
+      }
+    } catch (err) {
+      const code = err && err.code;
+      let msg = 'Ops! Não conseguimos entrar com esses dados. Confirme seu usuário e senha e tente novamente.';
+      if (code === 'auth/operation-not-allowed') {
+        msg = 'Login indisponível no momento. Avise o administrador.';
+      } else if (err && err.message === 'user-nao-cadastrado') {
+        msg = 'Usuário não cadastrado.';
+      } else if (err && err.message === 'firebase-indisponivel') {
+        msg = 'Servidor de autenticação indisponível.';
+      }
+      errEl.textContent = msg;
       const card = document.getElementById('loginCard');
-      card.classList.remove('ls-card--shake');
-      void card.offsetWidth;
-      card.classList.add('ls-card--shake');
+      if (card) {
+        card.classList.remove('ls-card--shake');
+        void card.offsetWidth;
+        card.classList.add('ls-card--shake');
+      }
+    } finally {
+      if (btn) btn.disabled = false;
     }
   }
 

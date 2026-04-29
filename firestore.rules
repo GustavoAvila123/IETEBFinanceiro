@@ -1,8 +1,70 @@
 rules_version = '2';
+
+// IETEB Financeiro — regras de acesso ao Firestore
+//
+// Modelo:
+// - Cada usuário autenticado (Firebase Auth) tem um doc em /Users/{uid}
+//   com {legacyId, name, role}. Esse mapeamento conecta a UID do Auth ao
+//   identificador legado usado nas demais coleções (admin, Tester1, ...).
+// - Admin lê e escreve tudo.
+// - Tester só vê/edita registros cujo userId == seu legacyId.
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
+
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    function userProfile() {
+      return get(/databases/$(database)/documents/Users/$(request.auth.uid)).data;
+    }
+
+    function hasProfile() {
+      return isAuthed()
+        && exists(/databases/$(database)/documents/Users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return hasProfile() && userProfile().role == 'admin';
+    }
+
+    function ownsLegacyId(legacyId) {
+      return hasProfile() && userProfile().legacyId == legacyId;
+    }
+
+    // ── /Users/{uid} ──────────────────────────────────────────────────
+    // Cada user gerencia o próprio doc. Admin pode ler/atualizar todos.
+    match /Users/{uid} {
+      allow read:   if isAuthed() && (request.auth.uid == uid || isAdmin());
+      allow create: if isAuthed() && request.auth.uid == uid;
+      allow update: if isAuthed() && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // ── /Entradas/{docId} ─────────────────────────────────────────────
+    match /Entradas/{docId} {
+      allow read:   if isAdmin() || ownsLegacyId(resource.data.userId);
+      allow create: if isAuthed()
+                    && (isAdmin() || request.resource.data.userId == userProfile().legacyId);
+      allow update: if isAdmin() || ownsLegacyId(resource.data.userId);
+      allow delete: if isAdmin() || ownsLegacyId(resource.data.userId);
+    }
+
+    // ── /Saídas/{docId} ───────────────────────────────────────────────
+    match /Saídas/{docId} {
+      allow read:   if isAdmin() || ownsLegacyId(resource.data.userId);
+      allow create: if isAuthed()
+                    && (isAdmin() || request.resource.data.userId == userProfile().legacyId);
+      allow update: if isAdmin() || ownsLegacyId(resource.data.userId);
+      allow delete: if isAdmin() || ownsLegacyId(resource.data.userId);
+    }
+
+    // ── /Sessoes/{legacyId} ───────────────────────────────────────────
+    // O id do doc é o legacyId; admin lê todos, user grava o próprio.
+    match /Sessoes/{legacyId} {
+      allow read:  if isAdmin() || ownsLegacyId(legacyId);
+      allow write: if isAuthed() && (isAdmin() || ownsLegacyId(legacyId));
     }
   }
 }

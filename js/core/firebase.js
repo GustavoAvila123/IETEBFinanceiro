@@ -12,9 +12,11 @@ class FirebaseManager {
   constructor() {
     this._db           = null;
     this._storage      = null;
+    this._auth         = null;
     this._onDataUpdate = null;
     this._unsubEnt     = null;
     this._unsubSai     = null;
+    this._currentUser  = null; // perfil legacy {legacyId, name, role}
   }
 
   init() {
@@ -27,12 +29,93 @@ class FirebaseManager {
       if (!fbSDK.apps || !fbSDK.apps.length) fbSDK.initializeApp(_fbConfig);
       this._db = fbSDK.firestore();
       try { this._storage = fbSDK.storage(); } catch (_) { this._storage = null; }
-      console.log('Firebase OK, db:', !!this._db);
+      try {
+        this._auth = fbSDK.auth();
+        this._auth.setPersistence(fbSDK.auth.Auth.Persistence.LOCAL);
+      } catch (_) { this._auth = null; }
     } catch (e) {
-      console.error('Firebase init FALHOU:', e);
-      if (window.showToast) window.showToast('Firebase não conectou: ' + (e.message || e), 'error');
+      console.error('Firebase init falhou');
+      if (window.showToast) window.showToast('Falha ao conectar com o servidor.', 'error');
     }
   }
+
+  /* ── Autenticação ──────────────────────────────────────────────────── */
+
+  // Converte um id legacy (admin / Tester1) num e-mail estável para o Auth.
+  _legacyToEmail(legacyId) {
+    return `${String(legacyId).toLowerCase()}@ieteb.app`;
+  }
+
+  // onAuthStateChanged proxy para o login.js orquestrar o estado da UI.
+  onAuthStateChanged(cb) {
+    if (!this._auth) { cb(null); return () => {}; }
+    return this._auth.onAuthStateChanged(cb);
+  }
+
+  // Tenta sign-in. Se a conta não existir e tivermos a senha de bootstrap
+  // (USERS no config.js), cria a conta e popula /Users/{uid}.
+  async signIn(legacyId, password) {
+    if (!this._auth) throw new Error('auth-indisponivel');
+
+    const email = this._legacyToEmail(legacyId);
+    const seed  = (typeof USERS !== 'undefined' ? USERS : [])
+      .find(u => u.id.toLowerCase() === String(legacyId).toLowerCase());
+    if (!seed) throw new Error('user-nao-cadastrado');
+
+    let cred;
+    try {
+      cred = await this._auth.signInWithEmailAndPassword(email, password);
+    } catch (e) {
+      // Bootstrap one-time: se a conta ainda não existe e a senha bate
+      // com a do USERS no config, cria automaticamente.
+      if (e && e.code === 'auth/user-not-found' && seed.pass && seed.pass === password) {
+        cred = await this._auth.createUserWithEmailAndPassword(email, password);
+      } else {
+        throw e;
+      }
+    }
+
+    await this._upsertUserProfile(cred.user.uid, seed);
+    this._currentUser = { legacyId: seed.id, name: seed.name, role: seed.role, uid: cred.user.uid };
+    return this._currentUser;
+  }
+
+  async signOut() {
+    if (this._auth) {
+      try { await this._auth.signOut(); } catch (_) {}
+    }
+    this._currentUser = null;
+  }
+
+  // Recupera perfil legacy a partir de um Firebase user.
+  async loadProfileFor(authUser) {
+    if (!this._db || !authUser) return null;
+    try {
+      const snap = await this._db.collection('Users').doc(authUser.uid).get();
+      if (snap.exists) {
+        const d = snap.data();
+        this._currentUser = { legacyId: d.legacyId, name: d.name, role: d.role, uid: authUser.uid };
+        return this._currentUser;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  async _upsertUserProfile(uid, seed) {
+    if (!this._db) return;
+    try {
+      await this._db.collection('Users').doc(uid).set({
+        legacyId:  seed.id,
+        name:      seed.name,
+        role:      seed.role,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+    } catch (e) {
+      console.warn('upsert user profile falhou');
+    }
+  }
+
+  currentUser() { return this._currentUser; }
 
   setDataUpdateCallback(fn) {
     this._onDataUpdate = fn;

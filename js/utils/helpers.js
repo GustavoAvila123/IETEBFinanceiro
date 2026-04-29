@@ -36,14 +36,16 @@ function clearFieldError(id) {
   if (el) el.textContent = '';
 }
 
-/* ── Usuário atual ── */
+/* ── Usuário atual ──
+   Populado pelo LoginPage após autenticação no Firebase Auth. Se não houver
+   sessão, retorna um perfil "vazio" com role: null para não conceder acesso
+   por engano (antes defaultava para admin). */
 function getCurrentUser() {
   try {
     const raw = sessionStorage.getItem('ieteb_user');
-    return raw ? JSON.parse(raw) : { id: 'admin', name: 'Jader Dias', role: 'admin' };
-  } catch (_) {
-    return { id: 'admin', name: 'Jader Dias', role: 'admin' };
-  }
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return { id: '', name: '', role: null };
 }
 
 /* ── Dados filtrados por usuário ── */

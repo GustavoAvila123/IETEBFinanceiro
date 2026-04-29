@@ -388,9 +388,7 @@ class SaidaPage {
   }
 
   parseAndShow(text) {
-    console.log('[OCR NF] Texto bruto extraído:\n', text);
     const extracted = this.extractFields(text);
-    console.log('[OCR NF] Campos extraídos:', extracted);
     this.ocrExtracted = extracted;
 
     const labels = { fornecedor: 'Fornecedor', valor: 'Valor', data: 'Data', hora: 'Hora' };

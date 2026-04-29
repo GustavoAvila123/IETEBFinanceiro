@@ -113,9 +113,7 @@ class OCREntradas {
   }
 
   parseAndShow(text) {
-    console.log('[OCR] Texto bruto extraído:\n', text);
     const extracted = this.extractFields(text);
-    console.log('[OCR] Campos extraídos:', extracted);
     this.ocrExtracted = extracted;
 
     const fp          = extracted.formaPagamento || document.getElementById('formaPagamento').value;

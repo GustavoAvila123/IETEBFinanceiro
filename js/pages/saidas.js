@@ -52,7 +52,6 @@ class SaidaPage {
     btn.classList.add('payment-btn--active');
     document.getElementById('saidaFormaPagamento').value = btn.dataset.value;
     document.getElementById('saidaPagamentoError').textContent = '';
-    this.lockPayment();
   }
 
   // ── Upload ────────────────────────────────────────────────────────────────────

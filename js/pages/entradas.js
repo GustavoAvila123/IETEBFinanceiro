@@ -94,7 +94,6 @@ class EntradaPage {
     document.getElementById('formaPagamento').value = btn.dataset.value;
     document.getElementById('pagamentoError').textContent = '';
     this.ajustarFormPorPagamento(btn.dataset.value);
-    this.lockPayment();
   }
 
   _setLabelText(id, texto) {

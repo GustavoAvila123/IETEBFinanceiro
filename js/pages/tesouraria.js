@@ -159,19 +159,32 @@ class TesourariaPage {
         <div class="caixa-saldo-item-value ${cls(antTotal)}" style="font-size:1.2rem;font-weight:800">R$ ${formatBRL(antTotal)}</div>
       </div>`;
 
+    const totalDispEntradas = antTotal + eTotal;
+    const totalDispSaidas   = antTotal - sTotal;
+
     document.getElementById('caixaEntradas').innerHTML = `
+      <div class="caixa-row caixa-row--section-label"><span>Saldo Anterior</span></div>
+      <div class="caixa-row"><span class="caixa-row-label">Dinheiro Físico</span><span class="caixa-row-value ${cls(antMaos)}">R$ ${formatBRL(antMaos)}</span></div>
+      <div class="caixa-row"><span class="caixa-row-label">C/C (Pix / Déb / Créd)</span><span class="caixa-row-value ${cls(antConta)}">R$ ${formatBRL(antConta)}</span></div>
+      <div class="caixa-row--divider"></div>
+      <div class="caixa-row caixa-row--section-label"><span>Entradas ${periodoLabel}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('dinheiro')} Dinheiro</span><span class="caixa-row-value">R$ ${formatBRL(eDin)}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('pix')} PIX</span><span class="caixa-row-value">R$ ${formatBRL(ePix)}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('debito')} Débito</span><span class="caixa-row-value">R$ ${formatBRL(eDeb)}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('credito')} Crédito</span><span class="caixa-row-value">R$ ${formatBRL(eCre)}</span></div>
-      <div class="caixa-row caixa-row--total"><span class="caixa-row-label">Total</span><span class="caixa-row-value">R$ ${formatBRL(eTotal)}</span></div>`;
+      <div class="caixa-row caixa-row--total"><span class="caixa-row-label">Total Disponível</span><span class="caixa-row-value ${cls(totalDispEntradas)}">R$ ${formatBRL(totalDispEntradas)}</span></div>`;
 
     document.getElementById('caixaSaidas').innerHTML = `
+      <div class="caixa-row caixa-row--section-label"><span>Saldo Anterior</span></div>
+      <div class="caixa-row"><span class="caixa-row-label">Dinheiro Físico</span><span class="caixa-row-value ${cls(antMaos)}">R$ ${formatBRL(antMaos)}</span></div>
+      <div class="caixa-row"><span class="caixa-row-label">C/C (Pix / Déb / Créd)</span><span class="caixa-row-value ${cls(antConta)}">R$ ${formatBRL(antConta)}</span></div>
+      <div class="caixa-row--divider"></div>
+      <div class="caixa-row caixa-row--section-label"><span>Saídas ${periodoLabel}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('dinheiro')} Dinheiro</span><span class="caixa-row-value">R$ ${formatBRL(sDin)}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('pix')} PIX</span><span class="caixa-row-value">R$ ${formatBRL(sPix)}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('debito')} Débito</span><span class="caixa-row-value">R$ ${formatBRL(sDeb)}</span></div>
       <div class="caixa-row"><span class="caixa-row-label">${dot('credito')} Crédito</span><span class="caixa-row-value">R$ ${formatBRL(sCre)}</span></div>
-      <div class="caixa-row caixa-row--total"><span class="caixa-row-label">Total</span><span class="caixa-row-value">R$ ${formatBRL(sTotal)}</span></div>`;
+      <div class="caixa-row caixa-row--total"><span class="caixa-row-label">Saldo Após Saídas</span><span class="caixa-row-value ${cls(totalDispSaidas)}">R$ ${formatBRL(totalDispSaidas)}</span></div>`;
 
     document.getElementById('caixaSaldoAtual').innerHTML = `
       <div class="caixa-saldo-item">

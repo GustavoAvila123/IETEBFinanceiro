@@ -1812,6 +1812,24 @@ body.modal-open { overflow: hidden; touch-action: none; }
 .caixa-row--total .caixa-row-label { color: var(--navy); font-weight: 700; font-size: .9rem; }
 .caixa-row--total .caixa-row-value { font-size: 1.05rem; color: var(--navy); font-weight: 700; }
 
+.caixa-row--section-label {
+  display: flex;
+  align-items: center;
+  padding: 6px 0 2px;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--gray-500);
+  border-bottom: none;
+}
+
+.caixa-row--divider {
+  height: 1px;
+  background: var(--gray-200);
+  margin: 8px 0;
+}
+
 .caixa-dot {
   width: 9px; height: 9px;
   border-radius: 50%;

@@ -2372,32 +2372,105 @@ body.modal-open { overflow: hidden; touch-action: none; }
 }
 
 /* ── Logout modal ── */
-.logout-modal-card {
+.logout-modal-wrap {
+  background: linear-gradient(160deg, #050d27 0%, #091640 60%, #060f2e 100%);
+  border: 1px solid rgba(212,175,55,.12);
+  border-radius: 18px;
+  max-width: 360px;
+  width: 100%;
+  padding: 36px 30px 28px;
   text-align: center;
-  padding-top: 32px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(212,175,55,.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.logout-modal-icon {
+.logout-modal-icon-wrap {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: rgba(229,62,62,.1);
+  border: 1.5px solid rgba(229,62,62,.28);
+  box-shadow: 0 0 22px rgba(229,62,62,.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: rgba(229,62,62,.1);
-  border: 1.5px solid rgba(229,62,62,.25);
-  color: #e53e3e;
-  margin: 0 auto 20px;
+  color: #fc8181;
+  margin-bottom: 22px;
+  flex-shrink: 0;
 }
 
-.logout-confirm-btn {
-  background: #e53e3e;
+.logout-modal-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 8px;
+  letter-spacing: .01em;
+}
+
+.logout-modal-desc {
+  font-size: .82rem;
+  color: rgba(255,255,255,.42);
+  line-height: 1.55;
+  margin-bottom: 28px;
+}
+
+.logout-modal-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.logout-btn-cancel {
+  flex: 1;
+  padding: 11px 14px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 10px;
+  color: rgba(255,255,255,.55);
+  font-size: .875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, color .18s, transform .12s;
+}
+
+.logout-btn-cancel:hover {
+  background: rgba(255,255,255,.09);
+  border-color: rgba(255,255,255,.2);
+  color: rgba(255,255,255,.82);
+}
+
+.logout-btn-cancel:active { transform: scale(.97); }
+
+.logout-btn-confirm {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
+  padding: 11px 14px;
+  background: rgba(229,62,62,.13);
+  border: 1px solid rgba(229,62,62,.32);
+  border-radius: 10px;
+  color: #fc8181;
+  font-size: .875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, color .18s, box-shadow .18s, transform .12s;
 }
 
-.logout-confirm-btn:hover { background: #c53030; }
+.logout-btn-confirm:hover {
+  background: rgba(229,62,62,.26);
+  border-color: rgba(229,62,62,.58);
+  color: #fed7d7;
+  box-shadow: 0 4px 18px rgba(229,62,62,.2);
+}
+
+.logout-btn-confirm:active { transform: scale(.97); }
 
 /* ── Botão câmera (somente mobile < 1024px) ── */
 .btn-camera {

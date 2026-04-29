@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="lancamento.css?v=20260429f">
+  <link rel="stylesheet" href="lancamento.css?v=20260429g">
 </head>
 <body>
 
@@ -1134,22 +1134,20 @@
 
   <!-- MODAL LOGOUT -->
   <div class="modal-overlay" id="logoutModal" style="display:none">
-    <div class="modal-card modal-card--sm logout-modal-card" onclick="event.stopPropagation()">
-      <div class="logout-modal-icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+    <div class="logout-modal-wrap" onclick="event.stopPropagation()">
+      <div class="logout-modal-icon-wrap">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
           <polyline points="16 17 21 12 16 7"/>
           <line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
       </div>
-      <div class="modal-header" style="border:none;padding-top:0">
-        <h2 class="modal-title">Deseja realmente sair?</h2>
-        <p class="modal-desc" style="margin-top:6px">Você será redirecionado para a tela de login.</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeLogoutModal()">Cancelar</button>
-        <button class="btn-primary logout-confirm-btn" onclick="confirmarLogout()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <h2 class="logout-modal-title">Deseja realmente sair?</h2>
+      <p class="logout-modal-desc">Você será redirecionado para a tela de login.</p>
+      <div class="logout-modal-actions">
+        <button class="logout-btn-cancel" onclick="closeLogoutModal()">Cancelar</button>
+        <button class="logout-btn-confirm" onclick="confirmarLogout()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>
@@ -1306,31 +1304,31 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260429f"></script>
+  <script src="js/config.js?v=20260429g"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260429f"></script>
-  <script src="js/utils/format.js?v=20260429f"></script>
+  <script src="js/utils/helpers.js?v=20260429g"></script>
+  <script src="js/utils/format.js?v=20260429g"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260429f"></script>
-  <script src="js/core/firebase.js?v=20260429f"></script>
+  <script src="js/core/modal.js?v=20260429g"></script>
+  <script src="js/core/firebase.js?v=20260429g"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260429f"></script>
+  <script src="js/ocr/entradas.js?v=20260429g"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260429f"></script>
-  <script src="js/pages/entradas.js?v=20260429f"></script>
-  <script src="js/pages/saidas.js?v=20260429f"></script>
-  <script src="js/pages/relatorios.js?v=20260429f"></script>
-  <script src="js/pages/tesouraria.js?v=20260429f"></script>
-  <script src="js/pages/dashboard.js?v=20260429f"></script>
+  <script src="js/pages/login.js?v=20260429g"></script>
+  <script src="js/pages/entradas.js?v=20260429g"></script>
+  <script src="js/pages/saidas.js?v=20260429g"></script>
+  <script src="js/pages/relatorios.js?v=20260429g"></script>
+  <script src="js/pages/tesouraria.js?v=20260429g"></script>
+  <script src="js/pages/dashboard.js?v=20260429g"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260429f"></script>
+  <script src="js/core/navigation.js?v=20260429g"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260429f"></script>
+  <script src="js/main.js?v=20260429g"></script>
 </body>
 </html>

@@ -205,7 +205,6 @@ class EntradaPage {
     }
 
     document.getElementById('btnLerComprovante').style.display = 'flex';
-    this.lockPayment();
   }
 
   removeFile() {
@@ -218,6 +217,7 @@ class EntradaPage {
     document.getElementById('btnLerComprovante').style.display     = 'none';
     document.getElementById('ocrStatus').style.display             = 'none';
     document.getElementById('fileInput').value                     = '';
+    this.unlockPayment();
   }
 
   lerComprovante() {

@@ -116,6 +116,7 @@ class SaidaPage {
     document.getElementById('btnLerNF').style.display            = 'none';
     document.getElementById('ocrStatusSaida').style.display      = 'none';
     document.getElementById('fileInputSaida').value              = '';
+    this.unlockPayment();
   }
 
   async lerNF() {
@@ -416,6 +417,7 @@ class SaidaPage {
       document.querySelectorAll('#paymentTypesSaida .payment-btn').forEach(btn => {
         btn.classList.toggle('payment-btn--active', btn.dataset.value === e.formaPagamento);
       });
+      this.lockPayment();
     }
     this.switchTab('manual');
     this._abrirModalDados();

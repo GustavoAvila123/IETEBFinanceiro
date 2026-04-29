@@ -332,6 +332,7 @@ class OCREntradas {
       document.querySelectorAll('#paymentTypes .payment-btn').forEach(btn => {
         if (btn.dataset.value === extracted.formaPagamento) this._entradaPage.selectPayment(btn);
       });
+      this._entradaPage.lockPayment();
     }
     if (this._entradaPage) this._entradaPage.switchTab('manual');
     this._abrirModalDados();

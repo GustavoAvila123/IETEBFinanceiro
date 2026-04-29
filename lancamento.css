@@ -406,7 +406,6 @@ body {
   background: #fff;
   border: 1px solid rgba(212,175,55,.15);
   border-radius: 12px;
-  overflow: hidden;
   padding: 0 20px 20px;
   margin-bottom: 16px;
   box-shadow: 0 2px 14px rgba(5,13,39,.06);
@@ -426,6 +425,7 @@ body {
   background: linear-gradient(135deg, #050d27 0%, #091640 100%);
   margin: 0 -20px 18px;
   border-bottom: 1px solid rgba(212,175,55,.18);
+  border-radius: 12px 12px 0 0;
 }
 
 .form-section-title svg { color: var(--gold); flex-shrink: 0; }
@@ -1003,15 +1003,17 @@ body {
   margin-bottom: 18px;
   border: 1px solid rgba(212,175,55,.13);
   position: relative;
+  overflow: hidden;
 }
 
 .report-filters::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 3px;
   background: linear-gradient(90deg, var(--gold), rgba(212,175,55,.18));
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .report-filters .form-label {

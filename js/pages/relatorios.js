@@ -119,8 +119,9 @@ class RelatorioPage {
   }
 
   limparFiltros() {
-    document.getElementById('filtroDataDe').value    = '';
-    document.getElementById('filtroDataAte').value   = '';
+    const { de, ate } = this._monthRange();
+    document.getElementById('filtroDataDe').value    = isoToDateInput(de);
+    document.getElementById('filtroDataAte').value   = isoToDateInput(ate);
     document.getElementById('filtroCurso').value     = '';
     document.getElementById('filtroPagamento').value = '';
     this.aplicarFiltros();

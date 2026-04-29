@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="lancamento.css?v=20260429g">
+  <link rel="stylesheet" href="lancamento.css?v=20260429h">
 </head>
 <body>
 
@@ -215,8 +215,11 @@
 
       <!-- Hero -->
       <div class="home-hero">
+        <div class="home-hero-orb"></div>
         <div class="home-hero-left">
-          <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="home-hero-logo" />
+          <div class="home-hero-logo-wrap">
+            <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="home-hero-logo" />
+          </div>
           <div class="home-hero-text">
             <h1 class="home-greeting" id="homeGreeting">Olá!</h1>
             <p class="home-date" id="homeDate">—</p>
@@ -228,37 +231,37 @@
       <!-- Stats do mês -->
       <div class="home-stats">
         <div class="home-stat home-stat--entrada">
-          <div class="home-stat-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
-            </svg>
+          <div class="home-stat-header">
+            <span class="home-stat-label">Entradas do Mês</span>
+            <div class="home-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+              </svg>
+            </div>
           </div>
-          <div>
-            <div class="home-stat-label">Entradas do Mês</div>
-            <div class="home-stat-value" id="homeStatEntradas">R$ 0,00</div>
-          </div>
+          <div class="home-stat-value" id="homeStatEntradas">R$ 0,00</div>
         </div>
         <div class="home-stat home-stat--saida">
-          <div class="home-stat-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
-            </svg>
+          <div class="home-stat-header">
+            <span class="home-stat-label">Saídas do Mês</span>
+            <div class="home-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+              </svg>
+            </div>
           </div>
-          <div>
-            <div class="home-stat-label">Saídas do Mês</div>
-            <div class="home-stat-value" id="homeStatSaidas">R$ 0,00</div>
-          </div>
+          <div class="home-stat-value" id="homeStatSaidas">R$ 0,00</div>
         </div>
         <div class="home-stat home-stat--saldo">
-          <div class="home-stat-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-            </svg>
+          <div class="home-stat-header">
+            <span class="home-stat-label">Saldo do Mês</span>
+            <div class="home-stat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/>
+              </svg>
+            </div>
           </div>
-          <div>
-            <div class="home-stat-label">Saldo do Mês</div>
-            <div class="home-stat-value" id="homeStatSaldo">R$ 0,00</div>
-          </div>
+          <div class="home-stat-value" id="homeStatSaldo">R$ 0,00</div>
         </div>
       </div>
 
@@ -268,8 +271,8 @@
 
         <div class="home-module-card" onclick="showPage('lancamentos')">
           <div class="home-module-icon home-module-icon--entrada">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
             </svg>
           </div>
           <div class="home-module-body">
@@ -277,7 +280,7 @@
             <p class="home-module-desc">Registre comprovantes e pagamentos recebidos</p>
           </div>
           <div class="home-module-arrow">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </div>
@@ -285,7 +288,7 @@
 
         <div class="home-module-card" onclick="showPage('saidas')">
           <div class="home-module-icon home-module-icon--saida">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
             </svg>
           </div>
@@ -294,7 +297,7 @@
             <p class="home-module-desc">Lance despesas, NF de fornecedores e professores</p>
           </div>
           <div class="home-module-arrow">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </div>
@@ -302,7 +305,7 @@
 
         <div class="home-module-card" onclick="showPage('relatorios')">
           <div class="home-module-icon home-module-icon--relatorio">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
               <polyline points="14 2 14 8 20 8"/>
               <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
@@ -313,22 +316,25 @@
             <p class="home-module-desc">Consulte e exporte relatórios de entradas e saídas</p>
           </div>
           <div class="home-module-arrow">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </div>
         </div>
 
         <div class="home-module-card" onclick="showPage('caixa')">
-          <div class="home-module-icon home-module-icon--caixa" style="font-size:1.6rem;font-weight:800;display:flex;align-items:center;justify-content:center">
-            $
+          <div class="home-module-icon home-module-icon--caixa">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 0 0-4 0v2M12 12v3M10.5 13.5h3"/>
+            </svg>
           </div>
           <div class="home-module-body">
             <h3 class="home-module-title">Tesouraria</h3>
             <p class="home-module-desc">Controle o saldo mensal em dinheiro físico e conta corrente</p>
           </div>
           <div class="home-module-arrow">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </div>
@@ -336,7 +342,7 @@
 
         <div class="home-module-card" onclick="showPage('dashboard')">
           <div class="home-module-icon home-module-icon--dashboard">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
               <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
             </svg>
@@ -346,7 +352,7 @@
             <p class="home-module-desc">Visualize gráficos de entradas por curso e despesas</p>
           </div>
           <div class="home-module-arrow">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </div>
@@ -1304,31 +1310,31 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260429g"></script>
+  <script src="js/config.js?v=20260429h"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260429g"></script>
-  <script src="js/utils/format.js?v=20260429g"></script>
+  <script src="js/utils/helpers.js?v=20260429h"></script>
+  <script src="js/utils/format.js?v=20260429h"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260429g"></script>
-  <script src="js/core/firebase.js?v=20260429g"></script>
+  <script src="js/core/modal.js?v=20260429h"></script>
+  <script src="js/core/firebase.js?v=20260429h"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260429g"></script>
+  <script src="js/ocr/entradas.js?v=20260429h"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260429g"></script>
-  <script src="js/pages/entradas.js?v=20260429g"></script>
-  <script src="js/pages/saidas.js?v=20260429g"></script>
-  <script src="js/pages/relatorios.js?v=20260429g"></script>
-  <script src="js/pages/tesouraria.js?v=20260429g"></script>
-  <script src="js/pages/dashboard.js?v=20260429g"></script>
+  <script src="js/pages/login.js?v=20260429h"></script>
+  <script src="js/pages/entradas.js?v=20260429h"></script>
+  <script src="js/pages/saidas.js?v=20260429h"></script>
+  <script src="js/pages/relatorios.js?v=20260429h"></script>
+  <script src="js/pages/tesouraria.js?v=20260429h"></script>
+  <script src="js/pages/dashboard.js?v=20260429h"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260429g"></script>
+  <script src="js/core/navigation.js?v=20260429h"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260429g"></script>
+  <script src="js/main.js?v=20260429h"></script>
 </body>
 </html>

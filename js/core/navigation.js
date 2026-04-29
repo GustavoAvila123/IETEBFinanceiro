@@ -36,7 +36,7 @@ class NavigationManager {
     const now = new Date();
     const h   = now.getHours();
     const gr  = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
-    document.getElementById('homeGreeting').textContent = `${gr}, Admin!`;
+    document.getElementById('homeGreeting').textContent = `${gr}, Jader Dias!`;
     document.getElementById('homeDate').textContent = now.toLocaleDateString('pt-BR', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });

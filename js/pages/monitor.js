@@ -42,17 +42,32 @@ class MonitorPage {
     } catch (_) { return '—'; }
   }
 
-  // Soma persistida (totalLoggedMs) + tempo da sessão ativa em curso.
+  // Delta entre o último heartbeat e agora, capado a 3min para não contar
+  // tempo offline.
+  _liveDelta(session) {
+    if (!session || !session.active || !this._isOnline(session)) return 0;
+    const lastHb = Number(session.lastHeartbeatMs) ||
+                   (session.loginAtMs ? Number(session.loginAtMs) : null) ||
+                   (session.loginAt ? new Date(session.loginAt).getTime() : null);
+    if (!lastHb) return 0;
+    return Math.min(Date.now() - lastHb, 3 * 60 * 1000);
+  }
+
+  // Sessão atual em curso (online) ou última sessão registrada (offline).
+  // Retorna { ms, label } onde label diz "Sessão atual" ou "Última sessão".
+  _calcSessao(session) {
+    if (!session) return { ms: 0, label: 'Última sessão' };
+    if (session.active && this._isOnline(session)) {
+      const ms = (Number(session.currentSessionMs) || 0) + this._liveDelta(session);
+      return { ms, label: 'Sessão atual' };
+    }
+    return { ms: Number(session.lastSessionMs) || 0, label: 'Última sessão' };
+  }
+
+  // totalLoggedMs persistido + tempo da sessão ativa em curso.
   _calcTempoTotal(session) {
     if (!session) return 0;
-    let total = Number(session.totalLoggedMs) || 0;
-    if (session.active && this._isOnline(session)) {
-      const lastHb = Number(session.lastHeartbeatMs) ||
-                     (session.loginAtMs ? Number(session.loginAtMs) : null) ||
-                     (session.loginAt ? new Date(session.loginAt).getTime() : null);
-      if (lastHb) total += Math.min(Date.now() - lastHb, 3 * 60 * 1000);
-    }
-    return total;
+    return (Number(session.totalLoggedMs) || 0) + this._liveDelta(session);
   }
 
   _fmtDuration(ms) {
@@ -153,7 +168,10 @@ class MonitorPage {
         </div>
 
         <div class="monitor-card-footer">
-          ${session ? `
+          ${session ? (() => {
+            const sess = this._calcSessao(session);
+            const total = this._calcTempoTotal(session);
+            return `
             <span class="monitor-footer-item">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Último acesso: ${this._fmtLastSeen(session.lastSeen)}
@@ -162,11 +180,15 @@ class MonitorPage {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
               Login: ${this._fmtDatetime(session.loginAt)}
             </span>
-            <span class="monitor-footer-item monitor-footer-item--total">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-              Tempo total logado: <strong>${escHtml(this._fmtDuration(this._calcTempoTotal(session)))}</strong>
+            <span class="monitor-footer-item monitor-footer-item--session">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+              ${escHtml(sess.label)}: <strong>${escHtml(this._fmtDuration(sess.ms))}</strong>
             </span>
-          ` : '<span class="monitor-footer-item" style="opacity:.45">Sem sessão registrada</span>'}
+            <span class="monitor-footer-item monitor-footer-item--total">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/></svg>
+              Tempo total: <strong>${escHtml(this._fmtDuration(total))}</strong>
+            </span>`;
+          })() : '<span class="monitor-footer-item" style="opacity:.45">Sem sessão registrada</span>'}
         </div>
       </div>`;
     }).join('');

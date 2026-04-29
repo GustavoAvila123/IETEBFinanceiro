@@ -341,6 +341,8 @@ class FirebaseManager {
     if (!this._db) return;
     const now = Date.now();
     const iso = new Date(now).toISOString();
+    // Inicia uma nova sessão zerando o contador de sessão atual.
+    // O totalLoggedMs (acumulado de todas as sessões) é preservado.
     this._db.collection('Sessoes').doc(user.id).set({
       userId:           user.id,
       name:             user.name,
@@ -350,6 +352,7 @@ class FirebaseManager {
       lastSeen:         iso,
       lastHeartbeatMs:  now,
       active:           true,
+      currentSessionMs: 0,
     }, { merge: true }).catch(_ => {});
   }
 
@@ -364,10 +367,14 @@ class FirebaseManager {
       const now      = Date.now();
       const lastHb   = data && data.lastHeartbeatMs ? data.lastHeartbeatMs : (data && data.loginAtMs);
       const delta    = lastHb ? Math.min(now - lastHb, this._HEARTBEAT_CAP_MS) : 0;
+      const lastSess = (data && Number(data.currentSessionMs) || 0) + delta;
 
       const updates = {
-        active:   false,
-        lastSeen: new Date(now).toISOString(),
+        active:             false,
+        lastSeen:           new Date(now).toISOString(),
+        lastSessionMs:      lastSess,
+        lastSessionEndedAt: new Date(now).toISOString(),
+        currentSessionMs:   0,
       };
       if (delta > 0) updates.totalLoggedMs = FieldValue.increment(delta);
       await ref.update(updates);
@@ -390,7 +397,10 @@ class FirebaseManager {
         lastSeen:        new Date(now).toISOString(),
         lastHeartbeatMs: now,
       };
-      if (delta > 0) updates.totalLoggedMs = FieldValue.increment(delta);
+      if (delta > 0) {
+        updates.totalLoggedMs    = FieldValue.increment(delta);
+        updates.currentSessionMs = FieldValue.increment(delta);
+      }
       await ref.update(updates);
     } catch (_) {}
   }

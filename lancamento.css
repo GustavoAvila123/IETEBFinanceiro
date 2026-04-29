@@ -1557,16 +1557,23 @@ body {
 
 .monitor-footer-item svg { stroke: rgba(255,255,255,.28); flex-shrink: 0; }
 
+.monitor-footer-item--session,
 .monitor-footer-item--total {
   flex-basis: 100%;
-  margin-top: 4px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(212,175,55,.10);
   color: rgba(255,255,255,.60);
 }
 
+.monitor-footer-item--session {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(212,175,55,.10);
+}
+
+.monitor-footer-item--session svg,
 .monitor-footer-item--total svg { stroke: rgba(212,175,55,.55); }
-.monitor-footer-item--total strong { color: var(--gold); font-weight: 700; }
+
+.monitor-footer-item--session strong { color: rgba(255,255,255,.92); font-weight: 700; }
+.monitor-footer-item--total   strong { color: var(--gold); font-weight: 700; }
 
 /* ─── BOTÃO COMPROVANTE NA TABELA ─── */
 .btn-comprovante {

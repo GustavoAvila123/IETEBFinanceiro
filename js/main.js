@@ -149,6 +149,24 @@ window.forceRefresh = () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // INICIALIZAÇÃO
 // ═══════════════════════════════════════════════════════════════════════════════
+// ── Bloqueia zoom no mobile (iOS ignora user-scalable=no, então
+// também precisamos preventDefault nos eventos de gesto e no double-tap).
+(function preventMobileZoom() {
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(evt => {
+    document.addEventListener(evt, e => e.preventDefault(), { passive: false });
+  });
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
+  // Pinch via wheel + ctrl (trackpad) também
+  document.addEventListener('wheel', e => {
+    if (e.ctrlKey) e.preventDefault();
+  }, { passive: false });
+})();
+
 document.addEventListener('DOMContentLoaded', async () => {
   firebase.init();
 

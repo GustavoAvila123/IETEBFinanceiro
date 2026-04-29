@@ -1,6 +1,14 @@
 /* ─── RESET & VARS ─── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Bloqueia zoom (pinch e double-tap) no mobile e impede o iOS de
+   reescalar texto automaticamente em rotação ou em campos focados. */
+html {
+  -webkit-text-size-adjust: 100%;
+          text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
 :root {
   --navy-deep:   #060f2e;
   --navy:        #0b1f5c;

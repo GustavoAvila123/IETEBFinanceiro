@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="lancamento.css?v=20260429i">
+  <link rel="stylesheet" href="lancamento.css?v=20260429j">
 </head>
 <body>
 
@@ -1060,15 +1060,36 @@
       <!-- Cards de resumo -->
       <div class="dash-summary">
         <div class="dash-summary-card dash-summary-card--entrada">
-          <div class="dash-summary-label">Total Entradas</div>
+          <div class="dash-summary-header">
+            <span class="dash-summary-label">Total Entradas</span>
+            <div class="dash-summary-icon dash-summary-icon--entrada">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+              </svg>
+            </div>
+          </div>
           <div class="dash-summary-value" id="dashTotalEntradas">R$ 0,00</div>
         </div>
         <div class="dash-summary-card dash-summary-card--saida">
-          <div class="dash-summary-label">Total Despesas</div>
+          <div class="dash-summary-header">
+            <span class="dash-summary-label">Total Despesas</span>
+            <div class="dash-summary-icon dash-summary-icon--saida">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+              </svg>
+            </div>
+          </div>
           <div class="dash-summary-value" id="dashTotalSaidas">R$ 0,00</div>
         </div>
         <div class="dash-summary-card dash-summary-card--saldo">
-          <div class="dash-summary-label">Saldo do Mês</div>
+          <div class="dash-summary-header">
+            <span class="dash-summary-label">Saldo do Mês</span>
+            <div class="dash-summary-icon dash-summary-icon--saldo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/>
+              </svg>
+            </div>
+          </div>
           <div class="dash-summary-value" id="dashSaldoMes">R$ 0,00</div>
         </div>
       </div>
@@ -1079,7 +1100,7 @@
         <!-- Entradas por Curso -->
         <div class="dash-chart-card">
           <div class="dash-chart-title">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
               <path d="M6 12v5c3 3 9 3 12 0v-5"/>
             </svg>
@@ -1093,7 +1114,7 @@
         <!-- Despesas por Categoria -->
         <div class="dash-chart-card">
           <div class="dash-chart-title">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
             </svg>
@@ -1313,31 +1334,31 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260429i"></script>
+  <script src="js/config.js?v=20260429j"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260429i"></script>
-  <script src="js/utils/format.js?v=20260429i"></script>
+  <script src="js/utils/helpers.js?v=20260429j"></script>
+  <script src="js/utils/format.js?v=20260429j"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260429i"></script>
-  <script src="js/core/firebase.js?v=20260429i"></script>
+  <script src="js/core/modal.js?v=20260429j"></script>
+  <script src="js/core/firebase.js?v=20260429j"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260429i"></script>
+  <script src="js/ocr/entradas.js?v=20260429j"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260429i"></script>
-  <script src="js/pages/entradas.js?v=20260429i"></script>
-  <script src="js/pages/saidas.js?v=20260429i"></script>
-  <script src="js/pages/relatorios.js?v=20260429i"></script>
-  <script src="js/pages/tesouraria.js?v=20260429i"></script>
-  <script src="js/pages/dashboard.js?v=20260429i"></script>
+  <script src="js/pages/login.js?v=20260429j"></script>
+  <script src="js/pages/entradas.js?v=20260429j"></script>
+  <script src="js/pages/saidas.js?v=20260429j"></script>
+  <script src="js/pages/relatorios.js?v=20260429j"></script>
+  <script src="js/pages/tesouraria.js?v=20260429j"></script>
+  <script src="js/pages/dashboard.js?v=20260429j"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260429i"></script>
+  <script src="js/core/navigation.js?v=20260429j"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260429i"></script>
+  <script src="js/main.js?v=20260429j"></script>
 </body>
 </html>

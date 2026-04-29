@@ -412,9 +412,29 @@ class SaidaPage {
     if (e.valor)      { document.getElementById('saidaValor').value = e.valor.replace('R$ ', '');     clearErr('saidaValorError');      }
     if (e.data)       { setInput('saidaData', isoToDateInput(e.data));                                clearErr('saidaDataError');        }
     if (e.hora)         setInput('saidaHora', e.hora);
+    if (e.formaPagamento) {
+      document.getElementById('saidaFormaPagamento').value = e.formaPagamento;
+      document.querySelectorAll('#paymentTypesSaida .payment-btn').forEach(btn => {
+        btn.classList.toggle('payment-btn--active', btn.dataset.value === e.formaPagamento);
+      });
+    }
     this.switchTab('manual');
-    this.modal.showToast('Formulário preenchido! Revise os dados e salve.', 'success');
+    this._abrirModalDados();
   }
+
+  _abrirModalDados() {
+    const e = this.ocrExtracted;
+    const labels = { fornecedor: 'Fornecedor', valor: 'Valor', data: 'Data', hora: 'Hora', formaPagamento: 'Pagamento' };
+    document.getElementById('ocrDadosSummary').innerHTML = Object.keys(labels)
+      .filter(k => e[k])
+      .map(k => `<div class="ocr-row">
+        <span class="ocr-row-label">${escHtml(labels[k])}</span>
+        <span class="ocr-row-value">${escHtml(e[k])}</span>
+      </div>`).join('') || '<p style="padding:16px;color:#aaa;text-align:center">Nenhum dado extraído.</p>';
+    this.modal.open('ocrDadosModal');
+  }
+
+  closeOcrDadosModal() { this.modal.close('ocrDadosModal'); }
 
   closeOcrModal() { this.modal.close('ocrModalSaida'); }
 
@@ -467,13 +487,21 @@ class SaidaPage {
       }
       this.firebase.save('Saídas', registro);
 
-      this.modal.showToast('Saída salva com sucesso!', 'success');
+      this._showSnackbar();
       this.limparSaida();
       try { document.dispatchEvent(new CustomEvent('ietebDataChanged')); } catch (_) {}
     } catch (err) {
       console.error('salvarSaida erro:', err);
       this.modal.showToast('Erro ao salvar: ' + (err.message || err), 'error');
     }
+  }
+
+  _showSnackbar() {
+    const el = document.getElementById('saidaSavedSnackbar');
+    if (!el) return;
+    el.classList.add('snackbar--visible');
+    clearTimeout(this._snackTimer);
+    this._snackTimer = setTimeout(() => el.classList.remove('snackbar--visible'), 5000);
   }
 
   limparSaida() {

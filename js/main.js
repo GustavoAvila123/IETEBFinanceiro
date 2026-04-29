@@ -84,6 +84,7 @@ window.removeFileSaida      = () => saidas.removeFile();
 window.lerNF                = () => saidas.lerNF();
 window.confirmarOcrSaida    = () => saidas.confirmarOcr();
 window.closeOcrModalSaida   = () => saidas.closeOcrModal();
+window.closeOcrDadosModal   = () => saidas.closeOcrDadosModal();
 window.salvarSaida          = () => saidas.salvarSaida();
 window.limparSaida          = () => saidas.limparSaida();
 

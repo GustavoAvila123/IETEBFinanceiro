@@ -11,11 +11,12 @@
        scripts/iframes externos não-autorizados. -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self';
-                 script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.sheetjs.com https://*.firebaseio.com https://*.googleapis.com;
+                 script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.sheetjs.com https://*.firebaseio.com https://*.googleapis.com;
+                 worker-src 'self' blob:;
                  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
                  font-src 'self' https://fonts.gstatic.com data:;
                  img-src 'self' data: blob: https:;
-                 connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://cdn.sheetjs.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com wss://*.firebaseio.com;
+                 connect-src 'self' blob: https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://cdn.sheetjs.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://tessdata.projectnaptha.com wss://*.firebaseio.com;
                  frame-ancestors 'none';
                  base-uri 'self';
                  form-action 'self';
@@ -26,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="lancamento.css?v=20260430c">
+  <link rel="stylesheet" href="lancamento.css?v=20260430d">
 </head>
 <body>
 
@@ -1521,32 +1522,32 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260430c"></script>
+  <script src="js/config.js?v=20260430d"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260430c"></script>
-  <script src="js/utils/format.js?v=20260430c"></script>
+  <script src="js/utils/helpers.js?v=20260430d"></script>
+  <script src="js/utils/format.js?v=20260430d"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260430c"></script>
-  <script src="js/core/firebase.js?v=20260430c"></script>
+  <script src="js/core/modal.js?v=20260430d"></script>
+  <script src="js/core/firebase.js?v=20260430d"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260430c"></script>
+  <script src="js/ocr/entradas.js?v=20260430d"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260430c"></script>
-  <script src="js/pages/entradas.js?v=20260430c"></script>
-  <script src="js/pages/saidas.js?v=20260430c"></script>
-  <script src="js/pages/relatorios.js?v=20260430c"></script>
-  <script src="js/pages/tesouraria.js?v=20260430c"></script>
-  <script src="js/pages/dashboard.js?v=20260430c"></script>
-  <script src="js/pages/monitor.js?v=20260430c"></script>
+  <script src="js/pages/login.js?v=20260430d"></script>
+  <script src="js/pages/entradas.js?v=20260430d"></script>
+  <script src="js/pages/saidas.js?v=20260430d"></script>
+  <script src="js/pages/relatorios.js?v=20260430d"></script>
+  <script src="js/pages/tesouraria.js?v=20260430d"></script>
+  <script src="js/pages/dashboard.js?v=20260430d"></script>
+  <script src="js/pages/monitor.js?v=20260430d"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260430c"></script>
+  <script src="js/core/navigation.js?v=20260430d"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260430c"></script>
+  <script src="js/main.js?v=20260430d"></script>
 </body>
 </html>

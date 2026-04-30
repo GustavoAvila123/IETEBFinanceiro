@@ -177,6 +177,7 @@ class DashboardPage {
 
   _renderChartEntradas(porCurso) {
     const wrap = document.getElementById('wrapEntradasCurso');
+    const legendEl = document.getElementById('legendEntradasCurso');
     if (this.dashCharts.entradas) { this.dashCharts.entradas.destroy(); delete this.dashCharts.entradas; }
 
     const labels = Object.keys(porCurso);
@@ -184,6 +185,7 @@ class DashboardPage {
 
     if (!labels.length) {
       wrap.innerHTML = '<div class="dash-empty">Nenhuma entrada neste mês</div>';
+      if (legendEl) legendEl.innerHTML = '';
       return;
     }
     if (!wrap.querySelector('canvas')) {
@@ -195,19 +197,23 @@ class DashboardPage {
 
     this.dashCharts.entradas = new Chart(ctx, {
       type: 'doughnut',
-      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff', hoverOffset: 8 }] },
+      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff', hoverOffset: 14, offset: labels.map(() => 0) }] },
       options: {
-        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
         plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14, font: { size: 12 } } },
+          legend: { display: false },
           tooltip: { callbacks: { label: ctx => ` R$ ${formatBRL(ctx.parsed)}` } },
         },
+        onClick: (_e, els, chart) => this._onChartSliceClick('entradas', chart, els),
       },
     });
+
+    this._buildLegend('entradas', legendEl, labels, values, colors);
   }
 
   _renderChartSaidas(porCategoria) {
     const wrap = document.getElementById('wrapDespesasCategoria');
+    const legendEl = document.getElementById('legendDespesasCategoria');
     if (this.dashCharts.saidas) { this.dashCharts.saidas.destroy(); delete this.dashCharts.saidas; }
 
     const labels = Object.keys(porCategoria).sort((a, b) => porCategoria[b] - porCategoria[a]);
@@ -215,6 +221,7 @@ class DashboardPage {
 
     if (!labels.length) {
       wrap.innerHTML = '<div class="dash-empty">Nenhuma despesa neste mês</div>';
+      if (legendEl) legendEl.innerHTML = '';
       return;
     }
     if (!wrap.querySelector('canvas')) {
@@ -237,7 +244,107 @@ class DashboardPage {
           x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { callback: v => `R$ ${formatBRL(v)}`, font: { size: 11 } } },
           y: { grid: { display: false }, ticks: { font: { size: 12 } } },
         },
+        onClick: (_e, els, chart) => this._onChartSliceClick('saidas', chart, els),
       },
+    });
+
+    this._buildLegend('saidas', legendEl, labels, values, colors);
+  }
+
+  // ── Legenda custom ────────────────────────────────────────────────────
+  _buildLegend(key, listEl, labels, values, colors) {
+    if (!listEl) return;
+    const total = values.reduce((a, b) => a + b, 0) || 1;
+    listEl.innerHTML = labels.map((label, i) => {
+      const pct = (values[i] / total) * 100;
+      return `
+        <li class="dash-legend-item" data-chart="${key}" data-index="${i}">
+          <span class="dash-legend-dot" style="background:${colors[i]}"></span>
+          <span class="dash-legend-info">
+            <span class="dash-legend-name" title="${escHtml(label)}">${escHtml(label)}</span>
+            <span class="dash-legend-value">R$ <strong>${formatBRL(values[i])}</strong></span>
+          </span>
+          <span class="dash-legend-pct">${pct.toFixed(1).replace('.', ',')}%</span>
+        </li>`;
+    }).join('');
+
+    // Hover na legenda destaca o gomo. Click alterna o destaque persistente.
+    listEl.querySelectorAll('.dash-legend-item').forEach(el => {
+      el.addEventListener('mouseenter', () => this._highlight(key, Number(el.dataset.index), false));
+      el.addEventListener('mouseleave', () => this._restoreHover(key));
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        const idx = Number(el.dataset.index);
+        const cur = this._activeIndex && this._activeIndex[key];
+        if (cur === idx) this._clearActive(key);
+        else this._highlight(key, idx, true);
+      });
+    });
+
+    // Click fora limpa o destaque persistente
+    if (!this._outsideHandler) {
+      this._outsideHandler = e => {
+        const cards = document.querySelectorAll('.dash-chart-card');
+        let dentro = false;
+        cards.forEach(c => { if (c.contains(e.target)) dentro = true; });
+        if (!dentro) { this._clearActive('entradas'); this._clearActive('saidas'); }
+      };
+      document.addEventListener('click', this._outsideHandler);
+    }
+  }
+
+  _onChartSliceClick(key, _chart, els) {
+    if (!els || !els.length) return;
+    const idx = els[0].index;
+    const cur = this._activeIndex && this._activeIndex[key];
+    if (cur === idx) this._clearActive(key);
+    else this._highlight(key, idx, true);
+  }
+
+  _highlight(key, idx, persistente) {
+    if (!this._activeIndex) this._activeIndex = {};
+    if (persistente) this._activeIndex[key] = idx;
+    this._applyHighlight(key, idx);
+    this._syncLegendActive(key, idx);
+  }
+
+  _restoreHover(key) {
+    const idx = this._activeIndex && this._activeIndex[key];
+    if (idx == null) {
+      this._applyHighlight(key, null);
+      this._syncLegendActive(key, null);
+    } else {
+      this._applyHighlight(key, idx);
+      this._syncLegendActive(key, idx);
+    }
+  }
+
+  _clearActive(key) {
+    if (this._activeIndex) delete this._activeIndex[key];
+    this._applyHighlight(key, null);
+    this._syncLegendActive(key, null);
+  }
+
+  _applyHighlight(key, idx) {
+    const chart = key === 'entradas' ? this.dashCharts.entradas : this.dashCharts.saidas;
+    if (!chart) return;
+    if (chart.config.type === 'doughnut') {
+      const data = chart.data.datasets[0].data;
+      const offset = data.map((_, i) => i === idx ? 18 : 0);
+      chart.data.datasets[0].offset = offset;
+    }
+    if (idx == null) chart.setActiveElements([]);
+    else chart.setActiveElements([{ datasetIndex: 0, index: idx }]);
+    chart.update();
+  }
+
+  _syncLegendActive(key, idx) {
+    const listId = key === 'entradas' ? 'legendEntradasCurso' : 'legendDespesasCategoria';
+    const list = document.getElementById(listId);
+    if (!list) return;
+    list.querySelectorAll('.dash-legend-item').forEach(el => {
+      const i = Number(el.dataset.index);
+      el.classList.toggle('dash-legend-item--active', i === idx);
     });
   }
 }

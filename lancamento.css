@@ -2689,9 +2689,97 @@ body.modal-open {
 
 .dash-chart-title svg { color: var(--gold-dim); flex-shrink: 0; }
 
+.dash-chart-body {
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+}
+
 .dash-chart-wrap {
   position: relative;
   height: 300px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Legenda lateral premium com valores */
+.dash-chart-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 220px;
+  flex-shrink: 0;
+  align-self: center;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dash-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, transform .12s;
+  user-select: none;
+}
+
+.dash-legend-item:hover {
+  background: rgba(11,31,92,.04);
+  border-color: rgba(212,175,55,.20);
+}
+
+.dash-legend-item--active {
+  background: linear-gradient(135deg, rgba(212,175,55,.10), rgba(212,175,55,.04));
+  border-color: rgba(212,175,55,.45);
+}
+
+.dash-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(6,15,46,.18);
+}
+
+.dash-legend-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.dash-legend-name {
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-legend-value {
+  font-size: .72rem;
+  color: var(--text-light);
+}
+
+.dash-legend-value strong {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.dash-legend-pct {
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--gold-dim);
+  flex-shrink: 0;
+  letter-spacing: .02em;
 }
 
 .dash-empty {
@@ -2711,6 +2799,24 @@ body.modal-open {
   .dash-summary { grid-template-columns: 1fr; }
   .dash-charts  { grid-template-columns: 1fr; }
   .dash-chart-wrap { height: 260px; }
+  .dash-chart-body {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .dash-chart-legend {
+    width: 100%;
+    max-height: 260px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .dash-chart-legend .dash-legend-item {
+    flex: 1 1 calc(50% - 3px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1280px) {
+  .dash-chart-legend { width: 180px; }
 }
 
 /* ─── NOTEBOOK / TABLET LANDSCAPE ─── */

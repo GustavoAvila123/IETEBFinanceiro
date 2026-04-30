@@ -26,7 +26,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="lancamento.css?v=20260430a">
+  <link rel="stylesheet" href="lancamento.css?v=20260430b">
 </head>
 <body>
 
@@ -1234,8 +1234,11 @@
             </svg>
             Entradas por Curso
           </div>
-          <div class="dash-chart-wrap" id="wrapEntradasCurso">
-            <canvas id="chartEntradasCurso"></canvas>
+          <div class="dash-chart-body">
+            <div class="dash-chart-wrap" id="wrapEntradasCurso">
+              <canvas id="chartEntradasCurso"></canvas>
+            </div>
+            <ul class="dash-chart-legend" id="legendEntradasCurso"></ul>
           </div>
         </div>
 
@@ -1248,8 +1251,11 @@
             </svg>
             Despesas por Categoria
           </div>
-          <div class="dash-chart-wrap" id="wrapDespesasCategoria">
-            <canvas id="chartDespesasCategoria"></canvas>
+          <div class="dash-chart-body">
+            <div class="dash-chart-wrap" id="wrapDespesasCategoria">
+              <canvas id="chartDespesasCategoria"></canvas>
+            </div>
+            <ul class="dash-chart-legend" id="legendDespesasCategoria"></ul>
           </div>
         </div>
 
@@ -1515,32 +1521,32 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260430a"></script>
+  <script src="js/config.js?v=20260430b"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260430a"></script>
-  <script src="js/utils/format.js?v=20260430a"></script>
+  <script src="js/utils/helpers.js?v=20260430b"></script>
+  <script src="js/utils/format.js?v=20260430b"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260430a"></script>
-  <script src="js/core/firebase.js?v=20260430a"></script>
+  <script src="js/core/modal.js?v=20260430b"></script>
+  <script src="js/core/firebase.js?v=20260430b"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260430a"></script>
+  <script src="js/ocr/entradas.js?v=20260430b"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260430a"></script>
-  <script src="js/pages/entradas.js?v=20260430a"></script>
-  <script src="js/pages/saidas.js?v=20260430a"></script>
-  <script src="js/pages/relatorios.js?v=20260430a"></script>
-  <script src="js/pages/tesouraria.js?v=20260430a"></script>
-  <script src="js/pages/dashboard.js?v=20260430a"></script>
-  <script src="js/pages/monitor.js?v=20260430a"></script>
+  <script src="js/pages/login.js?v=20260430b"></script>
+  <script src="js/pages/entradas.js?v=20260430b"></script>
+  <script src="js/pages/saidas.js?v=20260430b"></script>
+  <script src="js/pages/relatorios.js?v=20260430b"></script>
+  <script src="js/pages/tesouraria.js?v=20260430b"></script>
+  <script src="js/pages/dashboard.js?v=20260430b"></script>
+  <script src="js/pages/monitor.js?v=20260430b"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260430a"></script>
+  <script src="js/core/navigation.js?v=20260430b"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260430a"></script>
+  <script src="js/main.js?v=20260430b"></script>
 </body>
 </html>

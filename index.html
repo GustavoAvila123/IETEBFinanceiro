@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
-  <link rel="stylesheet" href="lancamento.css?v=20260430h">
+  <link rel="stylesheet" href="lancamento.css?v=20260430i">
 </head>
 <body>
 
@@ -1375,6 +1375,20 @@
     </div>
   </div>
 
+  <!-- MODAL — PROCESSANDO/SUCESSO (PDF/Excel) -->
+  <div class="modal-overlay" id="processModal" style="display:none">
+    <div class="process-modal-wrap" onclick="event.stopPropagation()">
+      <div class="process-modal-icon-wrap">
+        <div class="process-modal-spinner" aria-hidden="true"></div>
+        <svg class="process-modal-check" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h2 class="process-modal-title" id="processModalTitle">Preparando...</h2>
+      <p class="process-modal-desc" id="processModalDesc">Aguarde um instante.</p>
+    </div>
+  </div>
+
   <!-- MODAL — REVISAR CAMPOS OBRIGATÓRIOS (Entradas/Saídas) -->
   <div class="modal-overlay" id="reviewFormModal" style="display:none">
     <div class="review-modal-wrap" onclick="event.stopPropagation()">
@@ -1546,32 +1560,32 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <!-- Constantes globais -->
-  <script src="js/config.js?v=20260430h"></script>
+  <script src="js/config.js?v=20260430i"></script>
 
   <!-- Utilitários -->
-  <script src="js/utils/helpers.js?v=20260430h"></script>
-  <script src="js/utils/format.js?v=20260430h"></script>
+  <script src="js/utils/helpers.js?v=20260430i"></script>
+  <script src="js/utils/format.js?v=20260430i"></script>
 
   <!-- Core -->
-  <script src="js/core/modal.js?v=20260430h"></script>
-  <script src="js/core/firebase.js?v=20260430h"></script>
+  <script src="js/core/modal.js?v=20260430i"></script>
+  <script src="js/core/firebase.js?v=20260430i"></script>
 
   <!-- OCR -->
-  <script src="js/ocr/entradas.js?v=20260430h"></script>
+  <script src="js/ocr/entradas.js?v=20260430i"></script>
 
   <!-- Pages -->
-  <script src="js/pages/login.js?v=20260430h"></script>
-  <script src="js/pages/entradas.js?v=20260430h"></script>
-  <script src="js/pages/saidas.js?v=20260430h"></script>
-  <script src="js/pages/relatorios.js?v=20260430h"></script>
-  <script src="js/pages/tesouraria.js?v=20260430h"></script>
-  <script src="js/pages/dashboard.js?v=20260430h"></script>
-  <script src="js/pages/monitor.js?v=20260430h"></script>
+  <script src="js/pages/login.js?v=20260430i"></script>
+  <script src="js/pages/entradas.js?v=20260430i"></script>
+  <script src="js/pages/saidas.js?v=20260430i"></script>
+  <script src="js/pages/relatorios.js?v=20260430i"></script>
+  <script src="js/pages/tesouraria.js?v=20260430i"></script>
+  <script src="js/pages/dashboard.js?v=20260430i"></script>
+  <script src="js/pages/monitor.js?v=20260430i"></script>
 
   <!-- Navegação (depende das pages) -->
-  <script src="js/core/navigation.js?v=20260430h"></script>
+  <script src="js/core/navigation.js?v=20260430i"></script>
 
   <!-- Entry point -->
-  <script src="js/main.js?v=20260430h"></script>
+  <script src="js/main.js?v=20260430i"></script>
 </body>
 </html>

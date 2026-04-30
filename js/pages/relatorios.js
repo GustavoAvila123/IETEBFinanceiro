@@ -234,9 +234,8 @@ class RelatorioPage {
     }
 
     // No mobile o window.print() pode demorar 2-3s para abrir o picker nativo
-    // sem nenhum feedback visual. Damos um toast + desabilitamos os botões
-    // de exportação enquanto o navegador prepara a janela de impressão.
-    this.modal.showToast('Preparando PDF...', '');
+    // sem nenhum feedback visual. Modal premium animado + botões em loading.
+    if (window.showProcess) window.showProcess('Preparando PDF...', 'Organizando os dados do relatório.');
     const btns = document.querySelectorAll('.btn-export');
     btns.forEach(b => { b.disabled = true; b.classList.add('btn-export--loading'); });
 
@@ -284,16 +283,33 @@ class RelatorioPage {
     // Aguarda um frame para o navegador render antes de abrir o print sheet.
     // No mobile isso evita bloqueio percebido como "botão sem ação".
     setTimeout(() => {
+      let finalizado = false;
+      const finalizar = (sucesso = true) => {
+        if (finalizado) return;
+        finalizado = true;
+        reabilitar();
+        if (sucesso && window.showProcessSuccess) {
+          window.showProcessSuccess('PDF pronto', 'Documento enviado para impressão.');
+        } else if (window.closeProcess) {
+          window.closeProcess();
+        }
+      };
+
       try {
-        const onAfterPrint = () => { window.removeEventListener('afterprint', onAfterPrint); reabilitar(); };
+        const onAfterPrint = () => {
+          window.removeEventListener('afterprint', onAfterPrint);
+          finalizar(true);
+        };
         window.addEventListener('afterprint', onAfterPrint);
         window.print();
+        // No mobile, alguns browsers não disparam afterprint. Dispara
+        // o sucesso após o picker já ter sido apresentado.
+        setTimeout(() => finalizar(true), 1200);
       } catch (_) {
-        // alguns mobiles podem não suportar print direto
+        finalizar(false);
       }
-      // Fallback: se o evento afterprint não disparar (alguns browsers mobile),
-      // reabilita após 8s.
-      setTimeout(reabilitar, 8000);
+      // Fallback: garante reabilitar mesmo se nada disparar.
+      setTimeout(() => finalizar(true), 8000);
     }, 60);
   }
 
@@ -311,8 +327,8 @@ class RelatorioPage {
     };
 
     try {
+      if (window.showProcess) window.showProcess('Preparando Excel...', 'Carregando biblioteca e gerando arquivo.');
       if (typeof XLSX === 'undefined') {
-        this.modal.showToast('Carregando biblioteca, aguarde...', '');
         await loadScript('https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js');
       }
 
@@ -347,8 +363,11 @@ class RelatorioPage {
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
       ws['!cols'] = colWidths.map(w => ({ wch: w }));
       XLSX.writeFile(wb, fileName);
-      this.modal.showToast('Excel exportado com sucesso!', 'success');
+      if (window.showProcessSuccess) {
+        window.showProcessSuccess('Excel exportado!', 'O download foi iniciado.');
+      }
     } catch (err) {
+      if (window.closeProcess) window.closeProcess();
       this.modal.showToast('Não foi possível exportar. Verifique sua conexão.', 'error');
     } finally {
       reabilitar();

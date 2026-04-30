@@ -46,6 +46,35 @@ window.closeModal      = id => modal.close(id);
 window.closeNotifModal = () => modal.closeNotif();
 window.showToast       = (msg, type) => modal.showToast(msg, type);
 
+// Modal "Processando/Sucesso" (export PDF/Excel)
+window.showProcess = (titulo, descricao) => {
+  const wrap = document.querySelector('#processModal .process-modal-wrap');
+  if (wrap) wrap.classList.remove('process-modal-wrap--success');
+  const t = document.getElementById('processModalTitle');
+  const d = document.getElementById('processModalDesc');
+  if (t) t.textContent = titulo || 'Preparando...';
+  if (d) d.textContent = descricao || 'Aguarde um instante.';
+  modal.open('processModal');
+};
+
+window.showProcessSuccess = (titulo, descricao, autoCloseMs = 1500) => {
+  const wrap = document.querySelector('#processModal .process-modal-wrap');
+  if (wrap) wrap.classList.add('process-modal-wrap--success');
+  const t = document.getElementById('processModalTitle');
+  const d = document.getElementById('processModalDesc');
+  if (t) t.textContent = titulo || 'Concluído!';
+  if (d) d.textContent = descricao || '';
+  if (autoCloseMs > 0) {
+    if (window._processCloseTimer) clearTimeout(window._processCloseTimer);
+    window._processCloseTimer = setTimeout(() => modal.close('processModal'), autoCloseMs);
+  }
+};
+
+window.closeProcess = () => {
+  if (window._processCloseTimer) { clearTimeout(window._processCloseTimer); window._processCloseTimer = null; }
+  modal.close('processModal');
+};
+
 // Modal "Revisar campos obrigatórios" (Entradas/Saídas)
 window.revisarFormulario = () => {
   modal.close('reviewFormModal');
@@ -267,6 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       relatorios.fecharFiltroDataModal();
       modal.close('caixaDataModal');
       modal.close('reviewFormModal');
+      modal.close('processModal');
       login.closeLogoutModal();
       nav.closeSidebar();
     }

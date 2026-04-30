@@ -111,8 +111,8 @@ class LoginPage {
     try { sessionStorage.removeItem('ieteb_logout_motivo'); } catch (_) {}
 
     const card = document.getElementById('loginCard');
-    if (!card || card.querySelector('.ls-banner')) return;
-    const accent = card.querySelector('.ls-card-accent');
+    if (!card || document.querySelector('.ls-banner')) return;
+
     const banner = document.createElement('div');
     banner.className = 'ls-banner ls-banner--inactivity';
     banner.innerHTML = `
@@ -124,8 +124,9 @@ class LoginPage {
         <strong>Você foi deslogado por inatividade.</strong>
         <span>Por questão de segurança, faça login novamente para continuar.</span>
       </div>`;
-    if (accent) accent.insertAdjacentElement('afterend', banner);
-    else card.insertBefore(banner, card.firstChild);
+    // Insere FORA do card de login (como sibling acima), para não competir
+    // com o logo nem alterar o layout do card.
+    card.parentNode.insertBefore(banner, card);
   }
 
   openLogoutModal(sidebar) {

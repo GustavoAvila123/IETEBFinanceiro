@@ -2955,16 +2955,27 @@ body.modal-open {
 }
 .ls-card--shake { animation: lsShake .5s cubic-bezier(.36,.07,.19,.97); }
 
-/* Banner de aviso (ex.: deslogado por inatividade) */
+/* Banner de aviso (ex.: deslogado por inatividade).
+   Posicionado como toast no topo da .ls (fora do fluxo do card),
+   para não competir com o logo nem deslocar o layout do login. */
 .ls-banner {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin: 20px 0 -8px;
-  padding: 12px 14px;
-  background: linear-gradient(135deg, rgba(212,175,55,.12), rgba(212,175,55,.04));
-  border: 1px solid rgba(212,175,55,.32);
-  border-radius: 10px;
+  width: calc(100% - 32px);
+  max-width: 420px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(11,31,92,.92), rgba(6,15,46,.92));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(212,175,55,.40);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(6,15,46,.55);
   color: rgba(255,255,255,.92);
   animation: lsBannerIn .4s ease;
 }
@@ -2983,8 +2994,8 @@ body.modal-open {
 .ls-banner-text span   { color: rgba(255,255,255,.65); font-size: .76rem; }
 
 @keyframes lsBannerIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate(-50%, -10px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
 /* ── Logo ── */

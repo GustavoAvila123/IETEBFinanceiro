@@ -65,7 +65,7 @@ class DashboardPage {
     const [yearAtual, mesAtual] = this.dashMes.split('-').map(Number);
     const hoje = new Date();
     const anoHoje = hoje.getFullYear();
-    const anos = [anoHoje, anoHoje - 1, anoHoje - 2]; // 3 últimos, mais recente primeiro
+    const anos = [anoHoje - 2, anoHoje - 1, anoHoje]; // 3 últimos, ordem ascendente
 
     const anosEl = document.getElementById('dashPickerAnos');
     if (anosEl) {

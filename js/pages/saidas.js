@@ -300,17 +300,40 @@ class SaidaPage {
       const n = parseFloat(raw.trim().replace(/\.(?=\d{3}(?:,|$))/g, '').replace(',', '.'));
       return isNaN(n) ? null : n;
     };
-    const vExato =
-      full.match(/valor\s+[aà]\s+pagar\s+r?[s$5]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
-      full.match(/valor\s+(?:total|pago)\s+r?[s$5]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
-      full.match(/total\s+(?:[aà]\s+pagar|geral|nf[ae]?)?\s*r?[s$5]?\s*[:\-]?\s*([0-9]{1,3}(?:\.[0-9]{3})*[,\.][0-9]{2})/i) ||
-      full.match(/r?[$s5]\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})\b/i);
-    if (vExato) {
-      const n = _parseValor(vExato[1]);
-      if (n) result.valor = 'R$ ' + n.toFixed(2).replace('.', ',');
+    // Aceita números com OU sem milhar: 1.234,56 / 1234,56 / 1234.56 / 12,34
+    const NUM_RE = '([0-9]{1,3}(?:[\\.\\s][0-9]{3})*[,\\.][0-9]{2})';
+
+    // ── Valor ──────────────────────────────────────────────────────────
+    // Para NFC-e/cupons fiscais, "Valor a pagar" é o valor final correto.
+    // Permite até 60 chars (incluindo \n) entre o termo e o número, porque
+    // o OCR frequentemente quebra a linha.
+    let vMatch =
+      full.match(new RegExp('valor\\s*[aà]?\\s*pagar[\\s\\S]{0,60}?' + NUM_RE, 'i')) ||
+      full.match(new RegExp('total\\s*(?:da\\s*)?(?:nota|nf[ae]?|geral|liquido|liq)\\b[\\s\\S]{0,40}?' + NUM_RE, 'i')) ||
+      full.match(new RegExp('valor\\s*(?:total|pago)[\\s\\S]{0,40}?' + NUM_RE, 'i')) ||
+      full.match(new RegExp('total\\s*[\\s\\S]{0,40}?' + NUM_RE, 'i'));
+
+    // Se nada bater, tenta o maior valor após "FORMA PAGAMENTO" (NFC-e)
+    if (!vMatch) {
+      const idx = lower.search(/forma\s*(?:de\s*)?pagamento/i);
+      if (idx >= 0) {
+        const trecho = full.slice(idx);
+        const matches = [...trecho.matchAll(new RegExp(NUM_RE, 'g'))]
+          .map(m => _parseValor(m[1]))
+          .filter(v => v !== null && v > 1);
+        if (matches.length) {
+          const v = Math.max(...matches);
+          result.valor = 'R$ ' + v.toFixed(2).replace('.', ',');
+        }
+      }
     }
+    if (vMatch && !result.valor) {
+      const n = _parseValor(vMatch[1]);
+      if (n && n > 0) result.valor = 'R$ ' + n.toFixed(2).replace('.', ',');
+    }
+    // Fallback final: maior valor monetário do documento
     if (!result.valor) {
-      const todos = [...full.matchAll(/\b([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})\b/g)]
+      const todos = [...full.matchAll(new RegExp('\\b' + NUM_RE + '\\b', 'g'))]
         .map(m => _parseValor(m[1]))
         .filter(v => v !== null && v > 1);
       if (todos.length) {
@@ -319,6 +342,7 @@ class SaidaPage {
       }
     }
 
+    // ── Data ───────────────────────────────────────────────────────────
     const normalized = full.replace(/(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})/g, '$1/$2/$3');
     const dataMatch =
       normalized.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
@@ -336,6 +360,7 @@ class SaidaPage {
       }
     }
 
+    // ── Hora ───────────────────────────────────────────────────────────
     const horaMatch =
       full.match(/\d{2}\/\d{2}\/\d{4}[\sT,]+(\d{2}):(\d{2})/) ||
       full.match(/\d{4}-\d{2}-\d{2}[\sT]+(\d{2}):(\d{2})/)    ||
@@ -347,38 +372,70 @@ class SaidaPage {
       result.hora = String(horaMatch[1]).padStart(2, '0') + ':' + String(horaMatch[2]).padStart(2, '0');
     }
 
+    // ── Fornecedor ─────────────────────────────────────────────────────
+    // Em NFC-e/cupom o nome do estabelecimento é uma das primeiras linhas,
+    // logo antes do CNPJ. Estratégia em ordem de prioridade:
+    //   1) Linha imediatamente anterior à do CNPJ
+    //   2) Mesma linha do CNPJ (se houver texto antes dele)
+    //   3) Linha que termina em LTDA/EIRELI/SA/etc nas primeiras 10 linhas
+    //   4) Primeira linha não-vazia "razoável" (com letras, sem ser título)
     {
-      let nome = null;
       const _lines = full.split(/\n/).map(l => l.trim()).filter(Boolean);
-
-      const m1 = full.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'"|-]{3,60})\s+(?:CN[PF]J|CPF)\s*[:.]?\s*[\d]/i);
-      const m3 = full.match(/raz[aã]o\s+social\s*[:\-]?\s*([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'|-]{2,60})/i);
-      const m4 = full.match(/([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,']{4,55}(?:\s+(?:LTDA|EIRELI|S\.A\.|S\/A|MICROEMPRESA)))/i);
       const _cnpjRe = /\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\s\/]?\d{4}[\s\-]?\d{2}/;
-      let m5 = null;
-      for (let i = 0; i < Math.min(_lines.length, 25); i++) {
-        if (/CN[PF]J/i.test(_lines[i]) || _cnpjRe.test(_lines[i])) {
-          const sl = _lines[i].match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,']{3,60}?)\s+(?:CN[PF]J|\d{2}[\.\s]?\d{3})/i);
-          if (sl && sl[1].trim().length >= 4) { m5 = sl[1].trim(); break; }
-          if (i > 0) {
-            const prev = _lines[i - 1];
-            if (prev.length >= 4 && /[A-Za-zÀ-ÿ]{2,}/.test(prev) && !/^\d{2}[\/\.]/.test(prev))
-              { m5 = prev; break; }
+
+      const _looksLikeTitle = s => /^(documento|docucuento|docu[a-z]*\s+aux|auxiliar|nf[ce]?(?:-?e)?\b|cupom\s+fiscal|consumidor|via\s+do|recibo|c[oó]digo|descri|qtde|forma\s*pagamento|valor|total|desconto|cart[aã]o|consulte|protocolo|chave\s+de\s+acesso|https?:|www\.)/i.test(s);
+      const _hasLetters = s => /[A-Za-zÀ-ÿ]{3,}/.test(s);
+      const _looksLikeName = s =>
+        s.length >= 5
+        && _hasLetters(s)
+        && !_looksLikeTitle(s)
+        && !_cnpjRe.test(s)
+        && !/^\d/.test(s);
+
+      let nome = null;
+      // Procura o CNPJ nas primeiras 15 linhas
+      for (let i = 0; i < Math.min(_lines.length, 15); i++) {
+        if (_cnpjRe.test(_lines[i]) || /CN[PF]J/i.test(_lines[i])) {
+          // 1) Linha anterior é forte candidata
+          for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
+            if (_looksLikeName(_lines[j])) { nome = _lines[j]; break; }
+          }
+          if (nome) break;
+
+          // 2) Mesma linha pode ter "Empresa LTDA  CNPJ:..."
+          const sl = _lines[i].match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'|-]{3,60}?)\s+(?:CN[PF]J|\d{2}[\.\s]?\d{3})/i);
+          if (sl && sl[1].trim().length >= 4) { nome = sl[1].trim(); break; }
+        }
+      }
+
+      // 3) Linha terminando em LTDA/EIRELI/SA nas primeiras 10
+      if (!nome) {
+        for (const l of _lines.slice(0, 10)) {
+          if (/(?:LTDA|EIRELI|S[\/.]?A|ME|MEI|EPP)\s*\.?$/i.test(l) && _hasLetters(l) && !_looksLikeTitle(l)) {
+            nome = l; break;
           }
         }
       }
 
-      if      (m1) nome = m1[1];
-      else if (m3) nome = m3[1];
-      else if (m5) nome = m5;
-      else if (m4) nome = m4[1];
+      // 4) Primeira linha "razoável"
+      if (!nome) {
+        for (const l of _lines.slice(0, 8)) {
+          if (_looksLikeName(l)) { nome = l; break; }
+        }
+      }
 
       if (nome) {
-        const n = nome.trim().replace(/^[\s|;"'(]+|[\s|;"')=]+$/g, '');
+        // limpa caracteres residuais e normaliza
+        const n = nome
+          .replace(/CN[PF]J.*$/i, '')
+          .replace(/^[\s|;"'(]+|[\s|;"')=]+$/g, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
         if (n.length >= 3) result.fornecedor = toTitleCase(n);
       }
     }
 
+    // ── Forma de pagamento ─────────────────────────────────────────────
     if      (/cart[aã]o\s+de\s+cr[eé]dito|cr[eé]dito/i.test(lower)) result.formaPagamento = 'Crédito';
     else if (/cart[aã]o\s+de\s+d[eé]bito|d[eé]bito/i.test(lower))   result.formaPagamento = 'Débito';
     else if (lower.includes('pix'))                                    result.formaPagamento = 'Pix';

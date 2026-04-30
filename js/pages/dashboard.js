@@ -197,7 +197,7 @@ class DashboardPage {
 
     this.dashCharts.entradas = new Chart(ctx, {
       type: 'doughnut',
-      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: '#fff', hoverOffset: 14, offset: labels.map(() => 0) }] },
+      data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(), borderWidth: 2, borderColor: '#fff', hoverOffset: 14, offset: labels.map(() => 0) }] },
       options: {
         responsive: true, maintainAspectRatio: false, cutout: '62%',
         plugins: {
@@ -207,6 +207,7 @@ class DashboardPage {
         onClick: (_e, els, chart) => this._onChartSliceClick('entradas', chart, els),
       },
     });
+    this.dashCharts.entradas._origColors = colors.slice();
 
     this._buildLegend('entradas', legendEl, labels, values, colors);
   }
@@ -233,7 +234,7 @@ class DashboardPage {
 
     this.dashCharts.saidas = new Chart(ctx, {
       type: 'bar',
-      data: { labels, datasets: [{ data: values, backgroundColor: colors, borderRadius: 4, borderSkipped: false }] },
+      data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(), borderRadius: 4, borderSkipped: false }] },
       options: {
         indexAxis: 'y', responsive: true, maintainAspectRatio: false,
         plugins: {
@@ -247,6 +248,7 @@ class DashboardPage {
         onClick: (_e, els, chart) => this._onChartSliceClick('saidas', chart, els),
       },
     });
+    this.dashCharts.saidas._origColors = colors.slice();
 
     this._buildLegend('saidas', legendEl, labels, values, colors);
   }
@@ -328,14 +330,38 @@ class DashboardPage {
   _applyHighlight(key, idx) {
     const chart = key === 'entradas' ? this.dashCharts.entradas : this.dashCharts.saidas;
     if (!chart) return;
-    if (chart.config.type === 'doughnut') {
-      const data = chart.data.datasets[0].data;
-      const offset = data.map((_, i) => i === idx ? 18 : 0);
-      chart.data.datasets[0].offset = offset;
+    const ds = chart.data.datasets[0];
+    const orig = chart._origColors || [];
+
+    if (idx == null) {
+      // Restaura: remove offset, restaura cores cheias.
+      if (chart.config.type === 'doughnut') {
+        ds.offset = ds.data.map(() => 0);
+        ds.borderWidth = 2;
+      }
+      ds.backgroundColor = orig.slice();
+      chart.setActiveElements([]);
+    } else {
+      // Destaca: o gomo selecionado salta mais e fica em cor cheia,
+      // os demais ficam atenuados (alpha baixo) para reforçar o foco.
+      if (chart.config.type === 'doughnut') {
+        ds.offset = ds.data.map((_, i) => i === idx ? 28 : 0);
+        ds.borderWidth = ds.data.map((_, i) => i === idx ? 3 : 2);
+      }
+      ds.backgroundColor = orig.map((c, i) => i === idx ? c : this._dimColor(c, 0.18));
+      chart.setActiveElements([{ datasetIndex: 0, index: idx }]);
     }
-    if (idx == null) chart.setActiveElements([]);
-    else chart.setActiveElements([{ datasetIndex: 0, index: idx }]);
     chart.update();
+  }
+
+  // Converte um hex (#RRGGBB) em rgba com a opacidade dada.
+  _dimColor(hex, alpha) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    if (!m) return hex;
+    const r = parseInt(m[1].slice(0, 2), 16);
+    const g = parseInt(m[1].slice(2, 4), 16);
+    const b = parseInt(m[1].slice(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
   }
 
   _syncLegendActive(key, idx) {

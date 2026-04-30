@@ -151,22 +151,64 @@ class SaidaPage {
       img.onload  = () => {
         URL.revokeObjectURL(url);
         try {
+          // Cupom fiscal precisa de boa resolução para o Tesseract pegar
+          // letras pequenas (data/hora no rodapé). Mira em ~3000px no
+          // lado maior; reduz fotos grandes da câmera para evitar memória.
           const maxSide = Math.max(img.width, img.height);
-          const scale   = maxSide < 2500 ? 2500 / maxSide : 1;
+          let scale = 1;
+          if (maxSide < 2800)      scale = 2800 / maxSide;
+          else if (maxSide > 4000) scale = 4000 / maxSide;
+
           const canvas  = document.createElement('canvas');
           canvas.width  = Math.round(img.width  * scale);
           canvas.height = Math.round(img.height * scale);
           const ctx = canvas.getContext('2d');
           ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const d = imageData.data;
+
+          // Passo 1: grayscale + histograma
+          const histogram = new Array(256).fill(0);
           for (let i = 0; i < d.length; i += 4) {
-            const r = d[i], g = d[i + 1], b = d[i + 2];
-            const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+            const gray = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
             d[i] = d[i + 1] = d[i + 2] = gray;
+            histogram[gray]++;
+          }
+
+          // Passo 2: threshold de Otsu (binarização adaptativa)
+          const total = canvas.width * canvas.height;
+          let sumAll = 0;
+          for (let i = 0; i < 256; i++) sumAll += i * histogram[i];
+          let sumB = 0, wB = 0, maxBetween = 0, threshold = 128;
+          for (let t = 0; t < 256; t++) {
+            wB += histogram[t];
+            if (wB === 0) continue;
+            const wF = total - wB;
+            if (wF === 0) break;
+            sumB += t * histogram[t];
+            const mB = sumB / wB;
+            const mF = (sumAll - sumB) / wF;
+            const between = wB * wF * (mB - mF) * (mB - mF);
+            if (between > maxBetween) { maxBetween = between; threshold = t; }
+          }
+          // Suaviza levemente o threshold para preservar contornos finos de
+          // letras pequenas (data/hora). +6 favorece "manter mais preto".
+          threshold = Math.min(threshold + 6, 240);
+
+          // Passo 3: aumenta contraste antes da binarização (preserva
+          // alguns tons cinza para letras na borda). Aplica binarização
+          // só onde a diferença com o threshold é grande.
+          for (let i = 0; i < d.length; i += 4) {
+            const g  = d[i];
+            const cf = (g - 128) * 1.6 + 128;
+            const c  = Math.max(0, Math.min(255, cf));
+            const bw = c >= threshold ? 255 : 0;
+            d[i] = d[i + 1] = d[i + 2] = bw;
           }
           ctx.putImageData(imageData, 0, 0);
+
           resolve(canvas.toDataURL('image/png'));
         } catch (err) { reject(err); }
       };
@@ -193,9 +235,14 @@ class SaidaPage {
           const pct = Math.round((m.progress || 0) * 100);
           this.setStatus(true, `Lendo documento... ${pct}%`);
         }
-      }
+      },
+      // PSM 4: assume coluna única de texto de tamanho variável.
+      // Funciona bem para cupom fiscal/NFC-e onde tudo está empilhado.
+      tessedit_pageseg_mode: '4',
     });
     this.setStatus(false);
+    // Expõe o texto OCR só em debug (admin pode rodar window.__ietebOcrText)
+    try { window.__ietebOcrText = result.data.text; } catch (_) {}
     this.parseAndShow(result.data.text);
   }
 
@@ -276,9 +323,11 @@ class SaidaPage {
           const pct = Math.round((m.progress || 0) * 100);
           this.setStatus(true, `Lendo documento... ${pct}%`);
         }
-      }
+      },
+      tessedit_pageseg_mode: '4',
     });
     this.setStatus(false);
+    try { window.__ietebOcrText = result.data.text; } catch (_) {}
     this.parseAndShow(result.data.text);
     // Fallback: se OCR não leu a data, usar a extraída do pdf.js
     if (!this.ocrExtracted.data && pdfDate) {
@@ -343,31 +392,66 @@ class SaidaPage {
     }
 
     // ── Data ───────────────────────────────────────────────────────────
+    // OCR de cupom amassado costuma trocar dígitos por letras parecidas
+    // (O↔0, l/I↔1, B↔8, S↔5, Z↔2, G↔6). Tentamos primeiro o texto bruto
+    // e, se falhar, uma versão "normalizada" só para esses dígitos.
+    const _ocrDigitFix = s => s
+      .replace(/[Oo]/g, '0').replace(/[QqDÇç]/g, '0')
+      .replace(/[IiLl|!]/g, '1')
+      .replace(/[Zz]/g, '2')
+      .replace(/[BbßĐ]/g, '8')
+      .replace(/[Ss]/g, '5')
+      .replace(/[Gg]/g, '6');
+
     const normalized = full.replace(/(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})/g, '$1/$2/$3');
-    const dataMatch =
+
+    let dataMatch =
       normalized.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
       normalized.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
       normalized.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
+
+    if (!dataMatch) {
+      // Procura candidatos com letras+dígitos+barras e tenta interpretar
+      const candidatos = full.match(/[0-9OoIiLlBbSsZzQqGg!|]{1,2}[\/\.\-][0-9OoIiLlBbSsZzQqGg!|]{1,2}[\/\.\-][0-9OoIiLlBbSsZzQqGg!|]{2,4}/g) || [];
+      for (const c of candidatos) {
+        const fixed = _ocrDigitFix(c).replace(/[.\-]/g, '/');
+        const m = fixed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+        if (m) { dataMatch = [c, fixed]; break; }
+      }
+    }
+
     if (dataMatch && dataMatch[1]) {
       const raw   = dataMatch[1];
       const parts = raw.split('/');
       if (raw.includes('-')) {
         result.data = raw;
       } else if (parts.length === 3) {
-        result.data = parts[2].length === 2
-          ? `20${parts[2]}-${parts[1]}-${parts[0]}`
-          : `${parts[2]}-${parts[1]}-${parts[0]}`;
+        const dd = parts[0].padStart(2, '0');
+        const mm = parts[1].padStart(2, '0');
+        const yyyy = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+        result.data = `${yyyy}-${mm}-${dd}`;
       }
     }
 
     // ── Hora ───────────────────────────────────────────────────────────
-    const horaMatch =
+    let horaMatch =
       full.match(/\d{2}\/\d{2}\/\d{4}[\sT,]+(\d{2}):(\d{2})/) ||
       full.match(/\d{4}-\d{2}-\d{2}[\sT]+(\d{2}):(\d{2})/)    ||
       full.match(/\b(\d{1,2})h(\d{2})\b/i)                     ||
       full.match(/[àa]s\s+(\d{1,2}):(\d{2})/i)                 ||
       full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i) ||
       full.match(/\b((?:[01]\d|2[0-3])):([0-5]\d)(?::\d{2})?\b/);
+
+    if (!horaMatch) {
+      // Tenta com chars OCR-confusos
+      const cand = full.match(/[0-9OoIiLlBbSsZzQqGg!|]{1,2}[:hH][0-9OoIiLlBbSsZzQqGg!|]{2}(?:[:hH][0-9OoIiLlBbSsZzQqGg!|]{2})?/);
+      if (cand) {
+        const fixed = _ocrDigitFix(cand[0]).replace(/[hH]/g, ':');
+        const m = fixed.match(/^(\d{1,2}):(\d{2})/);
+        if (m) horaMatch = [cand[0], m[1], m[2]];
+      }
+    }
+
     if (horaMatch && horaMatch[1] && horaMatch[2]) {
       result.hora = String(horaMatch[1]).padStart(2, '0') + ':' + String(horaMatch[2]).padStart(2, '0');
     }

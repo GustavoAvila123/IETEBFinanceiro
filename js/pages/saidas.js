@@ -405,10 +405,32 @@ class SaidaPage {
 
     const normalized = full.replace(/(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})/g, '$1/$2/$3');
 
+    // Prioriza datas que aparecem em contexto confiável (autorização, emissão,
+    // NFC-e, fim do cupom). Cai no padrão geral se nada bater.
     let dataMatch =
-      normalized.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
-      normalized.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
-      normalized.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
+      normalized.match(/data\s*(?:de|da)?\s*(?:autoriza[çc][aã]o|emiss[aã]o)[\s\S]{0,30}?(\d{2}\/\d{2}\/\d{4})/i) ||
+      normalized.match(/nfc-?e[\s\S]{0,90}?(\d{2}\/\d{2}\/\d{4})/i) ||
+      normalized.match(/protocolo[\s\S]{0,80}?(\d{2}\/\d{2}\/\d{4})/i) ||
+      null;
+
+    // Se nenhuma com contexto bater, usa a data MAIS FREQUENTE no documento
+    // (cupom geralmente repete a data de autorização 2-3x, contra outros
+    // números que parecem data por acidente).
+    if (!dataMatch) {
+      const todas = [...normalized.matchAll(/\b(\d{2}\/\d{2}\/\d{4})\b/g)].map(m => m[1]);
+      if (todas.length) {
+        const cnt = {};
+        todas.forEach(d => { cnt[d] = (cnt[d] || 0) + 1; });
+        const escolhida = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+        dataMatch = [escolhida, escolhida];
+      }
+    }
+
+    if (!dataMatch) {
+      dataMatch =
+        normalized.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
+        normalized.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
+    }
 
     if (!dataMatch) {
       // Procura candidatos com letras+dígitos+barras e tenta interpretar
@@ -458,50 +480,71 @@ class SaidaPage {
 
     // ── Fornecedor ─────────────────────────────────────────────────────
     // Em NFC-e/cupom o nome do estabelecimento é uma das primeiras linhas,
-    // logo antes do CNPJ. Estratégia em ordem de prioridade:
-    //   1) Linha imediatamente anterior à do CNPJ
-    //   2) Mesma linha do CNPJ (se houver texto antes dele)
-    //   3) Linha que termina em LTDA/EIRELI/SA/etc nas primeiras 10 linhas
-    //   4) Primeira linha não-vazia "razoável" (com letras, sem ser título)
+    // próximo ao CNPJ. Estratégia em ordem de prioridade:
+    //   1) Mesma linha do CNPJ — texto APÓS o CNPJ (ex.: Carrefour)
+    //   2) Mesma linha do CNPJ — texto ANTES do CNPJ (ex.: ...LTDA CNPJ:)
+    //   3) Linha imediatamente anterior à do CNPJ
+    //   4) Linha terminando em LTDA/EIRELI/SA nas primeiras 10
+    //   5) Primeira linha "razoável" (não-título, não-endereço)
     {
       const _lines = full.split(/\n/).map(l => l.trim()).filter(Boolean);
       const _cnpjRe = /\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\s\/]?\d{4}[\s\-]?\d{2}/;
 
       const _looksLikeTitle = s => /^(documento|docucuento|docu[a-z]*\s+aux|auxiliar|nf[ce]?(?:-?e)?\b|cupom\s+fiscal|consumidor|via\s+do|recibo|c[oó]digo|descri|qtde|forma\s*pagamento|valor|total|desconto|cart[aã]o|consulte|protocolo|chave\s+de\s+acesso|https?:|www\.)/i.test(s);
+      const _looksLikeAddress = s =>
+        /^(av\.?|avenida|rua|r\.|al\.?|alameda|tv\.?|travessa|rod\.?|rodovia|estrada|pra[cç]a|largo|lote|qd\.?|quadra)\b/i.test(s.trim()) ||
+        /^[A-Za-zÀ-ÿ\s\.\,\-]{3,40}\d{2,5}\s*[\-,]/.test(s); // termina com número e vírgula (CEP, número da rua)
       const _hasLetters = s => /[A-Za-zÀ-ÿ]{3,}/.test(s);
       const _looksLikeName = s =>
         s.length >= 5
         && _hasLetters(s)
         && !_looksLikeTitle(s)
+        && !_looksLikeAddress(s)
         && !_cnpjRe.test(s)
         && !/^\d/.test(s);
 
-      let nome = null;
-      // Procura o CNPJ nas primeiras 15 linhas
-      for (let i = 0; i < Math.min(_lines.length, 15); i++) {
-        if (_cnpjRe.test(_lines[i]) || /CN[PF]J/i.test(_lines[i])) {
-          // 1) Linha anterior é forte candidata
-          for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
-            if (_looksLikeName(_lines[j])) { nome = _lines[j]; break; }
-          }
-          if (nome) break;
+      const _cleanCandidate = s => s
+        .replace(/^\s*CN[PF]J\s*[:.]?\s*\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\s\/]?\d{4}[\s\-]?\d{2}\s*/i, '')
+        .replace(/\s*CN[PF]J\s*[:.]?\s*\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\s\/]?\d{4}[\s\-]?\d{2}\s*$/i, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
 
-          // 2) Mesma linha pode ter "Empresa LTDA  CNPJ:..."
-          const sl = _lines[i].match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'|-]{3,60}?)\s+(?:CN[PF]J|\d{2}[\.\s]?\d{3})/i);
-          if (sl && sl[1].trim().length >= 4) { nome = sl[1].trim(); break; }
+      let nome = null;
+      for (let i = 0; i < Math.min(_lines.length, 15); i++) {
+        const ln = _lines[i];
+        if (!(_cnpjRe.test(ln) || /CN[PF]J/i.test(ln))) continue;
+
+        // 1) Texto APÓS o CNPJ na mesma linha (caso do Carrefour)
+        const after = ln.match(/(?:CN[PF]J\s*[:.]?\s*)?\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\s\/]?\d{4}[\s\-]?\d{2}\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'|-]{3,80})/i);
+        if (after && after[1].trim().length >= 4) {
+          const cand = _cleanCandidate(after[1]);
+          if (_looksLikeName(cand)) { nome = cand; break; }
         }
+
+        // 2) Texto ANTES do CNPJ na mesma linha
+        const before = ln.match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'|-]{3,60}?)\s+(?:CN[PF]J|\d{2}[\.\s]?\d{3})/i);
+        if (before && before[1].trim().length >= 4) {
+          const cand = _cleanCandidate(before[1]);
+          if (_looksLikeName(cand)) { nome = cand; break; }
+        }
+
+        // 3) Linha imediatamente anterior à do CNPJ
+        for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
+          if (_looksLikeName(_lines[j])) { nome = _lines[j]; break; }
+        }
+        if (nome) break;
       }
 
-      // 3) Linha terminando em LTDA/EIRELI/SA nas primeiras 10
+      // 4) Linha terminando em LTDA/EIRELI/SA nas primeiras 10
       if (!nome) {
         for (const l of _lines.slice(0, 10)) {
-          if (/(?:LTDA|EIRELI|S[\/.]?A|ME|MEI|EPP)\s*\.?$/i.test(l) && _hasLetters(l) && !_looksLikeTitle(l)) {
+          if (/(?:LTDA|EIRELI|S[\/.]?A|ME|MEI|EPP)\s*\.?$/i.test(l) && _hasLetters(l) && !_looksLikeTitle(l) && !_looksLikeAddress(l)) {
             nome = l; break;
           }
         }
       }
 
-      // 4) Primeira linha "razoável"
+      // 5) Primeira linha "razoável"
       if (!nome) {
         for (const l of _lines.slice(0, 8)) {
           if (_looksLikeName(l)) { nome = l; break; }
@@ -509,12 +552,7 @@ class SaidaPage {
       }
 
       if (nome) {
-        // limpa caracteres residuais e normaliza
-        const n = nome
-          .replace(/CN[PF]J.*$/i, '')
-          .replace(/^[\s|;"'(]+|[\s|;"')=]+$/g, '')
-          .replace(/\s{2,}/g, ' ')
-          .trim();
+        const n = _cleanCandidate(nome).replace(/^[\s|;"'(]+|[\s|;"')=]+$/g, '');
         if (n.length >= 3) result.fornecedor = toTitleCase(n);
       }
     }

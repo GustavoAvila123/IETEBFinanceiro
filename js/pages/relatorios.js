@@ -227,14 +227,19 @@ class RelatorioPage {
   }
 
   // ── Exportação PDF ────────────────────────────────────────────────────────────
+  // Desktop: window.print() (preview do navegador, comportamento original).
+  // Mobile:  jsPDF + autotable, gera arquivo e baixa direto (igual Excel).
   exportarPDF() {
     if (!this.filteredData.length) {
       this.modal.showToast('Nenhum registro para imprimir.', 'error');
       return;
     }
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile) return this._exportarPdfMobile();
+    return this._exportarPdfDesktop();
+  }
 
-    // No mobile o window.print() pode demorar 2-3s para abrir o picker nativo
-    // sem nenhum feedback visual. Modal premium animado + botões em loading.
+  _exportarPdfDesktop() {
     if (window.showProcess) window.showProcess('Preparando PDF...', 'Organizando os dados do relatório.');
     const btns = document.querySelectorAll('.btn-export');
     btns.forEach(b => { b.disabled = true; b.classList.add('btn-export--loading'); });
@@ -280,8 +285,6 @@ class RelatorioPage {
       btns.forEach(b => { b.disabled = false; b.classList.remove('btn-export--loading'); });
     };
 
-    // Aguarda um frame para o navegador render antes de abrir o print sheet.
-    // No mobile isso evita bloqueio percebido como "botão sem ação".
     setTimeout(() => {
       let finalizado = false;
       const finalizar = (sucesso = true) => {
@@ -302,15 +305,108 @@ class RelatorioPage {
         };
         window.addEventListener('afterprint', onAfterPrint);
         window.print();
-        // No mobile, alguns browsers não disparam afterprint. Dispara
-        // o sucesso após o picker já ter sido apresentado.
         setTimeout(() => finalizar(true), 1200);
-      } catch (_) {
-        finalizar(false);
-      }
-      // Fallback: garante reabilitar mesmo se nada disparar.
+      } catch (_) { finalizar(false); }
       setTimeout(() => finalizar(true), 8000);
     }, 60);
+  }
+
+  async _exportarPdfMobile() {
+    if (window.showProcess) window.showProcess('Preparando PDF...', 'Gerando arquivo para download.');
+    const btns = document.querySelectorAll('.btn-export');
+    btns.forEach(b => { b.disabled = true; b.classList.add('btn-export--loading'); });
+    const reabilitar = () => {
+      btns.forEach(b => { b.disabled = false; b.classList.remove('btn-export--loading'); });
+    };
+
+    try {
+      // jsPDF + autotable carregam sob demanda (evita peso no boot).
+      if (!(window.jspdf && window.jspdf.jsPDF)) {
+        await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js');
+      }
+      const jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
+      if (!jsPDFCtor) throw new Error('jspdf-load');
+      if (typeof jsPDFCtor.API.autoTable !== 'function') {
+        await loadScript('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js');
+      }
+
+      const isSaidas = this.tipo === 'saidas';
+      const titulo   = isSaidas ? 'Relatório de Saídas' : 'Relatório de Lançamentos';
+      const agora    = new Date().toLocaleString('pt-BR');
+      const dataIso  = new Date().toISOString().slice(0, 10);
+
+      let head, body;
+      if (isSaidas) {
+        head = [['Data','Hora','Categoria','Fornecedor','Pagamento','Valor','Obs.']];
+        body = this.filteredData.map(item => [
+          item.data ? item.data.split('-').reverse().join('/') : '—',
+          item.hora || '—',
+          item.categoria || '—',
+          item.fornecedor || '—',
+          item.formaPagamento || '—',
+          `R$ ${item.valor || '0,00'}`,
+          item.observacao || '',
+        ]);
+      } else {
+        head = [['Data','Hora','Aluno','Curso','Igreja','Pagto','Depositante','Banco Dep.','Banco Rec.','Valor']];
+        body = this.filteredData.map(item => [
+          item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '—',
+          item.horaDeposito || '—',
+          item.nomeAluno || '—',
+          item.curso || '—',
+          item.igreja || '—',
+          item.formaPagamento || '—',
+          item.nomeDepositante || '—',
+          item.bancoDepositante || '—',
+          item.bancoRecebedor || '—',
+          `R$ ${item.valor || '0,00'}`,
+        ]);
+      }
+
+      const doc = new jsPDFCtor({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+      // Cabeçalho
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(11, 31, 92);
+      doc.text(`IETEB — ${titulo}`, 40, 36);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Gerado em: ${agora}  |  Total: ${this.filteredData.length} registro(s)`, 40, 52);
+
+      // Tabela
+      doc.autoTable({
+        head, body,
+        startY: 64,
+        theme: 'grid',
+        styles: { fontSize: 7, cellPadding: 3, overflow: 'linebreak' },
+        headStyles: { fillColor: [11, 31, 92], textColor: [212, 175, 55], fontSize: 7, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        margin: { top: 64, left: 24, right: 24, bottom: 30 },
+        didDrawPage: (data) => {
+          // Rodapé
+          const page = doc.internal.getCurrentPageInfo().pageNumber;
+          const total = doc.internal.getNumberOfPages();
+          doc.setFontSize(7);
+          doc.setTextColor(150);
+          doc.text(`IETEB — Centro Educacional Teológico  ·  Página ${page} de ${total}`,
+            data.settings.margin.left, doc.internal.pageSize.getHeight() - 14);
+        },
+      });
+
+      const fileName = `IETEB_${isSaidas ? 'Saidas' : 'Lancamentos'}_${dataIso}.pdf`;
+      doc.save(fileName);
+
+      if (window.showProcessSuccess) {
+        window.showProcessSuccess('PDF pronto', 'O download foi iniciado.');
+      }
+    } catch (err) {
+      if (window.closeProcess) window.closeProcess();
+      this.modal.showToast('Não foi possível gerar o PDF. Verifique sua conexão.', 'error');
+    } finally {
+      reabilitar();
+    }
   }
 
   // ── Exportação Excel ──────────────────────────────────────────────────────────

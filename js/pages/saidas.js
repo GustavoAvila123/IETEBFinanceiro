@@ -640,7 +640,8 @@ class SaidaPage {
   salvarSaida() {
     try {
       if (!this.validate()) {
-        this.modal.showToast('Preencha os campos obrigatórios.', 'error');
+        window._reviewTarget = 'saidas';
+        this.modal.open('reviewFormModal');
         return;
       }
 

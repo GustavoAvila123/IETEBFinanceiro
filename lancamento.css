@@ -3446,6 +3446,99 @@ body.modal-open {
 
 .logout-btn-confirm:active { transform: scale(.97); }
 
+/* ── Modal: Revisar campos obrigatórios (Entradas/Saídas) ── */
+.review-modal-wrap {
+  background: linear-gradient(160deg, #050d27 0%, #091640 60%, #060f2e 100%);
+  border: 1px solid rgba(212,175,55,.18);
+  border-radius: 18px;
+  max-width: 380px;
+  width: 100%;
+  padding: 36px 30px 28px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(212,175,55,.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.review-modal-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+}
+
+.review-modal-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, rgba(212,175,55,.22), rgba(212,175,55,.04) 70%);
+  border: 1.5px solid rgba(212,175,55,.40);
+  box-shadow: 0 0 26px rgba(212,175,55,.18), inset 0 0 18px rgba(212,175,55,.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  margin-bottom: 22px;
+  flex-shrink: 0;
+  animation: reviewIconPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes reviewIconPulse {
+  0%, 100% { box-shadow: 0 0 26px rgba(212,175,55,.18), inset 0 0 18px rgba(212,175,55,.12); }
+  50%      { box-shadow: 0 0 36px rgba(212,175,55,.32), inset 0 0 22px rgba(212,175,55,.20); }
+}
+
+.review-modal-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 10px;
+  letter-spacing: .01em;
+}
+
+.review-modal-desc {
+  font-size: .82rem;
+  color: rgba(255,255,255,.55);
+  line-height: 1.55;
+  margin-bottom: 26px;
+}
+
+.review-modal-actions {
+  width: 100%;
+}
+
+.review-modal-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--gold) 0%, #b8971e 100%);
+  border: 1px solid rgba(212,175,55,.55);
+  border-radius: 10px;
+  color: #050d27;
+  font-size: .9rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity .18s, box-shadow .18s, transform .12s;
+  box-shadow: 0 4px 16px rgba(212,175,55,.30);
+}
+
+.review-modal-btn:hover {
+  opacity: .92;
+  box-shadow: 0 6px 22px rgba(212,175,55,.42);
+}
+
+.review-modal-btn:active { transform: scale(.97); }
+
 /* ── Botão câmera (somente mobile < 1024px) ── */
 .btn-camera {
   display: none; /* oculto em desktop */

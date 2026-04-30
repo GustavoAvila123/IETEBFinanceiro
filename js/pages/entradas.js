@@ -364,7 +364,8 @@ class EntradaPage {
   // ── Salvar ────────────────────────────────────────────────────────────────────
   salvarLancamento() {
     if (!this.validate()) {
-      this.modal.showToast('Preencha os campos obrigatórios.', 'error');
+      window._reviewTarget = 'entradas';
+      this.modal.open('reviewFormModal');
       return;
     }
 

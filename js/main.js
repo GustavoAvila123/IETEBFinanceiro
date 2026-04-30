@@ -46,6 +46,30 @@ window.closeModal      = id => modal.close(id);
 window.closeNotifModal = () => modal.closeNotif();
 window.showToast       = (msg, type) => modal.showToast(msg, type);
 
+// Modal "Revisar campos obrigatórios" (Entradas/Saídas)
+window.revisarFormulario = () => {
+  modal.close('reviewFormModal');
+  const alvo = window._reviewTarget;
+  const target = alvo === 'saidas' ? saidas : entradas;
+  if (target && typeof target.switchTab === 'function') target.switchTab('manual');
+
+  // Foca o primeiro campo com erro depois da troca de aba
+  setTimeout(() => {
+    const errEl = document.querySelector(
+      (alvo === 'saidas' ? '#panelSaidaManual' : '#panelManual') + ' .field-error:not(:empty)'
+    );
+    if (!errEl) return;
+    const grupo = errEl.closest('.form-group') || errEl.parentElement;
+    const input = grupo && grupo.querySelector('input, select, textarea, .select-search-wrap input');
+    if (input) {
+      try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+      input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (errEl.scrollIntoView) {
+      errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 80);
+};
+
 // Entradas — abas, payment, upload
 window.switchTab           = tab => entradas.switchTab(tab);
 window.openChurchDropdown  = () => entradas.openChurchDropdown();
@@ -242,6 +266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       modal.closeNotif();
       relatorios.fecharFiltroDataModal();
       modal.close('caixaDataModal');
+      modal.close('reviewFormModal');
       login.closeLogoutModal();
       nav.closeSidebar();
     }

@@ -570,6 +570,16 @@ class SaidaPage {
     const extracted = this.extractFields(text);
     this.ocrExtracted = extracted;
 
+    // Heurística: se nenhum dos campos chave foi reconhecido, o arquivo
+    // provavelmente não é uma nota fiscal/cupom válido. Avisa e cancela.
+    const camposChave = ['fornecedor', 'valor', 'data'];
+    const reconhecido = camposChave.some(k => !!extracted[k]);
+    if (!reconhecido) {
+      this.modal.showToast('Não foi possível identificar este documento como nota fiscal. Verifique se o arquivo é uma imagem ou PDF de uma NF/cupom válido.', 'error');
+      this.removeFile();
+      return;
+    }
+
     const labels = { fornecedor: 'Fornecedor', valor: 'Valor', data: 'Data', hora: 'Hora' };
     document.getElementById('ocrSummarySaida').innerHTML = Object.keys(labels).map(k =>
       `<div class="ocr-row">

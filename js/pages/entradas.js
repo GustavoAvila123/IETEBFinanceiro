@@ -255,7 +255,7 @@ class EntradaPage {
       <div class="form-group">
         ${labelParcela}
         <input type="text" class="form-input" id="alunoParcela_${id}"
-               placeholder="Ex: 1" inputmode="numeric" oninput="onlyNumbers(this)" />
+               placeholder="Ex: 1" inputmode="numeric" maxlength="3" oninput="onlyNumbers(this)" />
         <span class="field-error" id="alunoParcelaError_${id}"></span>
       </div>
       <div class="aluno-row-btn">
@@ -325,8 +325,18 @@ class EntradaPage {
       const parErr  = document.getElementById(`alunoParcelaError_${id}`);
       if (!nome)    { nomeErr.textContent = 'Informe o nome do aluno.'; ok = false; }
       else            nomeErr.textContent = '';
-      if (!parcela) { parErr.textContent  = 'Informe a parcela.';       ok = false; }
-      else            parErr.textContent  = '';
+      if (!parcela) {
+        parErr.textContent = 'Informe a parcela.';
+        ok = false;
+      } else {
+        const n = parseInt(parcela, 10);
+        if (isNaN(n) || n < 1 || n > 500) {
+          parErr.textContent = 'A parcela deve ser entre 1 e 500.';
+          ok = false;
+        } else {
+          parErr.textContent = '';
+        }
+      }
     });
     return ok;
   }

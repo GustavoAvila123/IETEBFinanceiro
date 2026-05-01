@@ -116,6 +116,18 @@ class OCREntradas {
     const extracted = this.extractFields(text);
     this.ocrExtracted = extracted;
 
+    // Heurística: se nenhum dos campos chave foi reconhecido, o arquivo
+    // provavelmente não é um comprovante válido. Avisa e cancela o fluxo.
+    const camposChave = ['valor','data','formaPagamento','nomeDepositante','nomeRecebedor','bancoDepositante','bancoRecebedor'];
+    const reconhecido = camposChave.some(k => !!extracted[k]);
+    if (!reconhecido) {
+      this.modal.showToast('Não foi possível identificar este documento como comprovante. Verifique se o arquivo é uma imagem ou PDF de um comprovante válido.', 'error');
+      if (this._entradaPage && typeof this._entradaPage.removeFile === 'function') {
+        this._entradaPage.removeFile();
+      }
+      return;
+    }
+
     const fp          = extracted.formaPagamento || document.getElementById('formaPagamento').value;
     const isCredito   = fp === 'Crédito';
     const isDinheiro  = fp === 'Dinheiro';

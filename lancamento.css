@@ -1986,8 +1986,8 @@ body.modal-open {
 }
 .ocr-dados-icon-wrap svg { stroke: #4ade80; }
 
-/* ─── RELATÓRIOS: CARDS MOBILE/TABLET (≤1024px) ─── */
-@media (max-width: 1024px) {
+/* ─── RELATÓRIOS: CARDS MOBILE/TABLET/iPAD LANDSCAPE (≤1280px) ─── */
+@media (max-width: 1280px) {
   /* Desfaz truncamentos do desktop */
   .report-table td[data-label="Aluno"],
   .report-table td[data-label="Curso"],
@@ -3971,3 +3971,56 @@ body.modal-open {
   .home-stats { grid-template-columns: repeat(3, 1fr); }
   .home-modules { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   TABLET / iPAD PORTRAIT (769-1024px) — Bloco 1 da auditoria de layout
+   Ajustes para a faixa cinzenta entre mobile (≤768) e desktop (>1024).
+═══════════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Sidebar mais estreita para sobrar mais espaço ao conteúdo */
+  :root { --sidebar-w: 200px; }
+
+  /* Form rows: tablet portrait fica em 2 colunas (intermediário entre
+     desktop 4-col e mobile 1-col) */
+  .form-row    { grid-template-columns: 1fr 1fr; }
+  .form-row--3 { grid-template-columns: repeat(3, 1fr); }
+  .form-row--4 { grid-template-columns: 1fr 1fr; }
+
+  /* Dashboard / Tesouraria / Monitor: 2 colunas */
+  .dash-summary { grid-template-columns: 1fr 1fr; }
+  .caixa-cards  { grid-template-columns: 1fr 1fr; }
+  .monitor-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Dashboard charts: 1 coluna full-width — fica mais legível com a
+     legenda lateral em telas dessa largura */
+  .dash-charts { grid-template-columns: 1fr; }
+  .dash-chart-legend { width: 200px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   TOUCH TARGETS (mobile + tablet) — Bloco 1 da auditoria de layout
+   Garante mínimo 44x44 em controles tocáveis para conformidade com iOS HIG
+   e Android Material Design.
+═══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .caixa-month-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .topbar-menu-btn,
+  .topbar-refresh-btn,
+  .preview-remove,
+  .btn-delete-row,
+  .pagination-btn,
+  .page-btn,
+  .ls-eye {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Itens da legenda do dashboard ficam mais altos para serem fáceis
+     de tocar sem colidir com vizinhos */
+  .dash-legend-item { min-height: 44px; }
+}
+

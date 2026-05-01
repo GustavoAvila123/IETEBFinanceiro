@@ -566,15 +566,54 @@ class SaidaPage {
     return result;
   }
 
+  // Heurística: avalia se o fornecedor extraído tem cara de nome de
+  // empresa (rejeita lixo de OCR como "Nannn—— ——*", "AAAAAAAA", "—").
+  _fornecedorParecValido(nome) {
+    if (!nome) return false;
+    const t = String(nome).trim();
+    if (t.length < 4 || t.length > 80) return false;
+
+    // Precisa ter ao menos 4 letras alfabéticas no total
+    const letras = t.replace(/[^A-Za-zÀ-ÿ]/g, '');
+    if (letras.length < 4) return false;
+
+    // Tem que existir pelo menos 1 palavra com 3+ letras
+    const palavras = t.split(/\s+/).filter(w => /[A-Za-zÀ-ÿ]{3,}/.test(w));
+    if (palavras.length < 1) return false;
+
+    // Rejeita 2+ caracteres "estranhos" em sequência (—, *, ~, etc)
+    if (/[^\w\s.,'&\-À-ÿ/()]{2,}/.test(t)) return false;
+
+    // Rejeita 4+ repetições da mesma letra (Nnnnn, AAAAA)
+    if (/([A-Za-zÀ-ÿ])\1{3,}/i.test(t)) return false;
+
+    // Rejeita se 50%+ dos caracteres não-espaço forem não-alfabéticos
+    const semEspaco = t.replace(/\s/g, '');
+    const naoLetras = semEspaco.length - letras.length;
+    if (naoLetras / semEspaco.length > 0.5) return false;
+
+    return true;
+  }
+
   parseAndShow(text) {
     const extracted = this.extractFields(text);
     this.ocrExtracted = extracted;
 
-    // Heurística: se nenhum dos campos chave foi reconhecido, o arquivo
-    // provavelmente não é uma nota fiscal/cupom válido. Avisa e cancela.
-    const camposChave = ['fornecedor', 'valor', 'data'];
-    const reconhecido = camposChave.some(k => !!extracted[k]);
-    if (!reconhecido) {
+    // Documento é considerado "reconhecido" só quando temos sinais
+    // múltiplos de NF: pelo menos 2 entre fornecedor (com qualidade
+    // razoável), valor e data. Isso bloqueia fotos aleatórias onde o
+    // OCR extrai lixo (ex.: "Nannn—— ——*" como "fornecedor").
+    if (!this._fornecedorParecValido(extracted.fornecedor)) {
+      // Zera fornecedor inválido para não poluir o formulário depois
+      delete extracted.fornecedor;
+      this.ocrExtracted = extracted;
+    }
+    const sinais =
+      (extracted.fornecedor ? 1 : 0) +
+      (extracted.valor ? 1 : 0) +
+      (extracted.data  ? 1 : 0);
+
+    if (sinais < 2) {
       this.modal.showToast('Não foi possível identificar este documento como nota fiscal. Verifique se o arquivo é uma imagem ou PDF de uma NF/cupom válido.', 'error');
       this.removeFile();
       return;

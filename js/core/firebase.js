@@ -337,23 +337,50 @@ class FirebaseManager {
   // esteve offline (browser em background, sem rede etc).
   _HEARTBEAT_CAP_MS = 3 * 60 * 1000;
 
-  saveSession(user) {
-    if (!this._db) return;
-    const now = Date.now();
-    const iso = new Date(now).toISOString();
-    // Inicia uma nova sessão zerando o contador de sessão atual.
-    // O totalLoggedMs (acumulado de todas as sessões) é preservado.
-    this._db.collection('Sessoes').doc(user.id).set({
-      userId:           user.id,
-      name:             user.name,
-      role:             user.role,
-      loginAt:          iso,
-      loginAtMs:        now,
-      lastSeen:         iso,
-      lastHeartbeatMs:  now,
-      active:           true,
-      currentSessionMs: 0,
-    }, { merge: true }).catch(_ => {});
+  // Idempotente: cria a sessão se ainda não existir, ou apenas toca o
+  // lastSeen/active=true se já está ativa (preserva currentSessionMs
+  // entre reloads). Se estava encerrada (active=false), zera os contadores
+  // para iniciar uma sessão nova.
+  async saveSession(user) {
+    if (!this._db || !user || !user.id) return;
+    try {
+      const ref  = this._db.collection('Sessoes').doc(user.id);
+      const snap = await ref.get();
+      const now  = Date.now();
+      const iso  = new Date(now).toISOString();
+
+      if (!snap.exists) {
+        await ref.set({
+          userId:           user.id,
+          name:             user.name,
+          role:             user.role,
+          loginAt:          iso,
+          loginAtMs:        now,
+          lastSeen:         iso,
+          lastHeartbeatMs:  now,
+          active:           true,
+          currentSessionMs: 0,
+        });
+        return;
+      }
+
+      const data    = snap.data();
+      const updates = {
+        userId:   user.id,
+        name:     user.name,
+        role:     user.role,
+        lastSeen: iso,
+        active:   true,
+      };
+      // Se a sessão anterior estava encerrada, inicia uma nova
+      if (data.active === false) {
+        updates.loginAt          = iso;
+        updates.loginAtMs        = now;
+        updates.lastHeartbeatMs  = now;
+        updates.currentSessionMs = 0;
+      }
+      await ref.update(updates);
+    } catch (_) {}
   }
 
   async clearSession(userId) {

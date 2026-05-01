@@ -28,6 +28,14 @@ class LoginPage {
           this._startHeartbeat(profile.legacyId);
           this._setupInactivityWatch(profile.role);
           try { sessionStorage.removeItem('ieteb_logout_motivo'); } catch (_) {}
+          // Garante que a sessão exista no Firestore — fallback caso a
+          // gravação no handleLogin não tenha completado antes do reload.
+          // Idempotente: se já existe e está ativa, só toca o lastSeen.
+          try {
+            window._firebase.saveSession({
+              id: profile.legacyId, name: profile.name, role: profile.role,
+            });
+          } catch (_) {}
           const el = document.getElementById('loginScreen');
           if (el) el.remove();
           resolve(true);
@@ -247,7 +255,16 @@ class LoginPage {
       const profile = await window._firebase.signIn(user, pass);
 
       this._populateLocalSession(profile);
-      window._firebase.saveSession({ id: profile.legacyId, name: profile.name, role: profile.role });
+
+      // Aguarda gravação da sessão no Firestore (com timeout de 4s)
+      // antes do reload, senão em redes lentas o doc não é gravado.
+      try {
+        await Promise.race([
+          window._firebase.saveSession({ id: profile.legacyId, name: profile.name, role: profile.role }),
+          new Promise(r => setTimeout(r, 4000)),
+        ]);
+      } catch (_) {}
+
       this._startHeartbeat(profile.legacyId);
 
       // Recarrega a tela inteira para que os listeners do Firestore
@@ -255,7 +272,7 @@ class LoginPage {
       const screen = document.getElementById('loginScreen');
       if (screen) {
         screen.classList.add('ls--exit');
-        setTimeout(() => { screen.remove(); window.scrollTo(0, 0); window.location.reload(); }, 400);
+        setTimeout(() => { screen.remove(); window.scrollTo(0, 0); window.location.reload(); }, 250);
       }
     } catch (err) {
       const code = err && err.code;

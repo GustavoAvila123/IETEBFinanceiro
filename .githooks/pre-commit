@@ -1,0 +1,61 @@
+#!/bin/sh
+# IETEB — pre-commit hook
+# Bumpa automaticamente o cache-buster no index.html quando algum
+# arquivo .js ou .css é modificado e o index.html ainda não está
+# entre os arquivos staged (evita sobrescrever bump manual).
+#
+# Formato do cache-buster: ?v=YYYYMMDDx (data + letra incremental)
+# Mesmo dia: a -> b -> c ... -> z
+# Dia novo:  reseta para 'a' do dia atual.
+
+# Quais arquivos staged podem demandar bump?
+CHANGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|css)$')
+
+if [ -z "$CHANGED" ]; then
+  exit 0
+fi
+
+# Se index.html já está staged, assumimos bump manual e não tocamos.
+if git diff --cached --name-only | grep -qx 'index.html'; then
+  exit 0
+fi
+
+if [ ! -f index.html ]; then
+  exit 0
+fi
+
+# Versão atual: pega o primeiro v=YYYYMMDDx do index.html
+CURRENT=$(grep -oE 'v=[0-9]{8}[a-z]' index.html | head -1 | sed 's/v=//')
+if [ -z "$CURRENT" ]; then
+  echo "pre-commit: cache-buster v=YYYYMMDDx não encontrado em index.html — pulando."
+  exit 0
+fi
+
+DATE_PART=$(printf '%s' "$CURRENT" | cut -c 1-8)
+LETTER=$(printf '%s' "$CURRENT" | cut -c 9)
+TODAY=$(date +%Y%m%d)
+
+if [ "$DATE_PART" = "$TODAY" ]; then
+  if [ "$LETTER" = "z" ]; then
+    echo "pre-commit: cache-buster do dia chegou em 'z' — bump manual necessário."
+    exit 0
+  fi
+  NEXT_LETTER=$(printf '%s' "$LETTER" | tr 'a-y' 'b-z')
+  NEW="${DATE_PART}${NEXT_LETTER}"
+else
+  NEW="${TODAY}a"
+fi
+
+# Substitui no index.html (compatível com BSD e GNU sed)
+if sed --version >/dev/null 2>&1; then
+  # GNU sed (Linux, Git Bash no Windows)
+  sed -i "s/v=${CURRENT}/v=${NEW}/g" index.html
+else
+  # BSD sed (macOS)
+  sed -i '' "s/v=${CURRENT}/v=${NEW}/g" index.html
+fi
+
+git add index.html
+
+echo "pre-commit: cache-buster ${CURRENT} -> ${NEW}"
+exit 0

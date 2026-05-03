@@ -3,17 +3,30 @@
 const firebase   = new FirebaseManager();
 window._firebase = firebase; // expõe para login.js usar saveSession/clearSession
 const modal      = new ModalManager();
-const ocr        = new OCREntradas(modal);
-const entradas   = new EntradaPage(modal, firebase, ocr);
-const saidas     = new SaidaPage(modal, firebase);
+
+// Componentes reutilizáveis
+const igrejaDD     = new IgrejaDropdown();
+const alunosMgr    = new AlunosManager();
+
+// OCRs (extração de comprovante / nota fiscal)
+const ocrEntradas  = new OCREntradas(modal);
+const ocrSaidas    = new OCRSaidas(modal);
+
+// Pages
+const entradas   = new EntradaPage(modal, firebase, ocrEntradas, igrejaDD, alunosMgr);
+const saidas     = new SaidaPage(modal, firebase, ocrSaidas);
 const relatorios = new RelatorioPage(modal, firebase);
 const tesouraria = new TesourariaPage(modal);
 const dashboard  = new DashboardPage();
 const monitor    = new MonitorPage(firebase);
 const login      = new LoginPage(modal);
 
-// Injeta referência cruzada (OCR precisa de entradas para selectPayment/switchTab)
-ocr.setEntradaPage(entradas);
+// Referências cruzadas (OCRs precisam da page para selectPayment, switchTab, removeFile)
+ocrEntradas.setEntradaPage(entradas);
+ocrSaidas.setSaidaPage(saidas);
+
+// Aliases para compat com código antigo que ainda referencia "ocr"
+const ocr = ocrEntradas;
 
 const nav = new NavigationManager({
   entradaPage:    entradas,

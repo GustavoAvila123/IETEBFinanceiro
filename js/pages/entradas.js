@@ -1,13 +1,14 @@
 
 class EntradaPage {
-  constructor(modal, firebase, ocr) {
+  constructor(modal, firebase, ocr, igrejaDropdown, alunosManager) {
     this.modal    = modal;
     this.firebase = firebase;
     this.ocr      = ocr;
+    this.igreja   = igrejaDropdown;
+    this.alunos   = alunosManager;
 
     this.currentFile        = null;
     this.currentFileDataUrl = null;
-    this.nextAlunoId        = 0;
   }
 
   resetPage() {
@@ -27,57 +28,10 @@ class EntradaPage {
     document.getElementById('btnLimpar').style.display = isManual ? '' : 'none';
   }
 
-  // ── Igreja dropdown ───────────────────────────────────────────────────────────
-  buildChurchDropdown(filter) {
-    const dd       = document.getElementById('churchDropdown');
-    const selected = document.getElementById('igreja').value;
-    const term     = (filter || '').toLowerCase().trim();
-    const list     = term ? CHURCHES.filter(c => c.toLowerCase().includes(term)) : CHURCHES;
-
-    if (!list.length) {
-      dd.innerHTML = '<div class="church-option" style="color:#8090b0;cursor:default">Nenhuma encontrada</div>';
-      return;
-    }
-
-    dd.innerHTML = list.map(c => {
-      const sel  = c === selected;
-      const safe = c.replace(/'/g, "\\'");
-      return `<div class="church-option${sel ? ' church-option--selected' : ''}"
-        tabindex="0"
-        onclick="selectChurch('${safe}')"
-        onkeydown="if(event.key==='Enter'||event.key===' ')selectChurch('${safe}')">
-        ${escHtml(c)}
-      </div>`;
-    }).join('');
-  }
-
-  openChurchDropdown() {
-    this.buildChurchDropdown(document.getElementById('igrejaSearch').value);
-    document.getElementById('churchDropdown').classList.add('church-dropdown--open');
-    document.addEventListener('mousedown', this._closeChurchOutside);
-  }
-
-  _closeChurchOutside = (e) => {
-    const wrap = document.querySelector('.select-search-wrap');
-    if (wrap && !wrap.contains(e.target)) {
-      document.getElementById('churchDropdown').classList.remove('church-dropdown--open');
-      document.removeEventListener('mousedown', this._closeChurchOutside);
-    }
-  };
-
-  filterChurches(val) {
-    this.buildChurchDropdown(val);
-    document.getElementById('churchDropdown').classList.add('church-dropdown--open');
-    document.getElementById('igreja').value = '';
-  }
-
-  selectChurch(value) {
-    document.getElementById('igreja').value       = value;
-    document.getElementById('igrejaSearch').value = value;
-    document.getElementById('churchDropdown').classList.remove('church-dropdown--open');
-    document.getElementById('igrejaError').textContent = '';
-    document.removeEventListener('mousedown', this._closeChurchOutside);
-  }
+  // ── Igreja dropdown (delegado para IgrejaDropdown component) ─────────────────
+  openChurchDropdown()    { this.igreja.open(); }
+  filterChurches(val)     { this.igreja.filter(val); }
+  selectChurch(value)     { this.igreja.select(value); }
 
   // ── Pagamento ─────────────────────────────────────────────────────────────────
   lockPayment() {
@@ -224,46 +178,12 @@ class EntradaPage {
     this.ocr.lerComprovante(this.currentFile);
   }
 
-  // ── Alunos ────────────────────────────────────────────────────────────────────
-  _buildAlunoRowHTML(id, isFirst) {
-    const labelNome = isFirst
-      ? `<label class="form-label" for="alunoNome_${id}">Nome do Aluno <span class="required">*</span></label>`
-      : `<label class="form-label form-label--dim" for="alunoNome_${id}">Aluno adicional</label>`;
-
-    const labelParcela = isFirst
-      ? `<label class="form-label" for="alunoParcela_${id}">Parcela <span class="required">*</span></label>`
-      : `<label class="form-label form-label--dim" for="alunoParcela_${id}">Parcela</label>`;
-
-    const btn = isFirst
-      ? `<button type="button" class="btn-add-aluno" onclick="addAlunoRow()" title="Adicionar outro aluno">
-           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-           </svg>
-         </button>`
-      : `<button type="button" class="btn-remove-aluno" onclick="removeAlunoRow(${id})" title="Remover aluno">
-           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-           </svg>
-         </button>`;
-
-    return `<div class="aluno-row" id="alunoRow_${id}" data-aluno-id="${id}">
-      <div class="form-group">
-        ${labelNome}
-        <input type="text" class="form-input" id="alunoNome_${id}" placeholder="Nome completo do aluno" />
-        <span class="field-error" id="alunoNomeError_${id}"></span>
-      </div>
-      <div class="form-group">
-        ${labelParcela}
-        <input type="text" class="form-input" id="alunoParcela_${id}"
-               placeholder="Ex: 1" inputmode="numeric" maxlength="3" oninput="onlyNumbers(this)" />
-        <span class="field-error" id="alunoParcelaError_${id}"></span>
-      </div>
-      <div class="aluno-row-btn">
-        <span class="aluno-btn-spacer" aria-hidden="true"></span>
-        ${btn}
-      </div>
-    </div>`;
-  }
+  // ── Alunos (delegado para AlunosManager component) ─────────────────────
+  initAlunosContainer() { this.alunos.init(); }
+  addAlunoRow()         { this.alunos.addRow(); }
+  removeAlunoRow(id)    { this.alunos.removeRow(id); }
+  getAlunosData()       { return this.alunos.getData(); }
+  validateAlunos()      { return this.alunos.validate(); }
 
   initValidationListeners() {
     [
@@ -280,66 +200,6 @@ class EntradaPage {
     });
   }
 
-  _attachAlunoListeners(id) {
-    const nome    = document.getElementById(`alunoNome_${id}`);
-    const parcela = document.getElementById(`alunoParcela_${id}`);
-    if (nome)    nome.addEventListener('input', () => clearFieldError(`alunoNomeError_${id}`));
-    if (parcela) parcela.addEventListener('input', () => clearFieldError(`alunoParcelaError_${id}`));
-  }
-
-  initAlunosContainer() {
-    this.nextAlunoId = 0;
-    document.getElementById('alunosContainer').innerHTML = this._buildAlunoRowHTML(this.nextAlunoId, true);
-    this._attachAlunoListeners(this.nextAlunoId++);
-  }
-
-  addAlunoRow() {
-    const id = this.nextAlunoId++;
-    document.getElementById('alunosContainer').insertAdjacentHTML('beforeend', this._buildAlunoRowHTML(id, false));
-    this._attachAlunoListeners(id);
-  }
-
-  removeAlunoRow(id) {
-    const row = document.getElementById(`alunoRow_${id}`);
-    if (row) row.remove();
-  }
-
-  getAlunosData() {
-    return Array.from(document.querySelectorAll('#alunosContainer .aluno-row')).map(row => {
-      const id = row.dataset.alunoId;
-      return {
-        nome:    document.getElementById(`alunoNome_${id}`).value.trim(),
-        parcela: document.getElementById(`alunoParcela_${id}`).value.trim(),
-      };
-    });
-  }
-
-  validateAlunos() {
-    let ok = true;
-    document.getElementById('alunosError').textContent = '';
-    document.querySelectorAll('#alunosContainer .aluno-row').forEach(row => {
-      const id      = row.dataset.alunoId;
-      const nome    = document.getElementById(`alunoNome_${id}`).value.trim();
-      const parcela = document.getElementById(`alunoParcela_${id}`).value.trim();
-      const nomeErr = document.getElementById(`alunoNomeError_${id}`);
-      const parErr  = document.getElementById(`alunoParcelaError_${id}`);
-      if (!nome)    { nomeErr.textContent = 'Informe o nome do aluno.'; ok = false; }
-      else            nomeErr.textContent = '';
-      if (!parcela) {
-        parErr.textContent = 'Informe a parcela.';
-        ok = false;
-      } else {
-        const n = parseInt(parcela, 10);
-        if (isNaN(n) || n < 1 || n > 500) {
-          parErr.textContent = 'A parcela deve ser entre 1 e 500.';
-          ok = false;
-        } else {
-          parErr.textContent = '';
-        }
-      }
-    });
-    return ok;
-  }
 
   // ── Validação ─────────────────────────────────────────────────────────────────
   validate() {

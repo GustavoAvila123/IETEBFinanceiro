@@ -244,6 +244,7 @@ class OCRSaidas {
     const result = {};
     const full   = text;
     const lower  = full.toLowerCase();
+    const tipoDoc = this._detectarTipoDoc(lower);
 
     const _parseValor = raw => {
       const n = parseFloat(raw.trim().replace(/\.(?=\d{3}(?:,|$))/g, '').replace(',', '.'));
@@ -253,10 +254,19 @@ class OCRSaidas {
     const NUM_RE = '([0-9]{1,3}(?:[\\.\\s][0-9]{3})*[,\\.][0-9]{2})';
 
     // ── Valor ──────────────────────────────────────────────────────────
+    // Padrões originais (NFC-e/NF-e) + adicionados para boleto, fatura,
+    // recibo manual e NFS-e.
     let vMatch =
       full.match(new RegExp('valor\\s*[aà]?\\s*pagar[\\s\\S]{0,60}?' + NUM_RE, 'i')) ||
       full.match(new RegExp('total\\s*(?:da\\s*)?(?:nota|nf[ae]?|geral|liquido|liq)\\b[\\s\\S]{0,40}?' + NUM_RE, 'i')) ||
       full.match(new RegExp('valor\\s*(?:total|pago)[\\s\\S]{0,40}?' + NUM_RE, 'i')) ||
+      // Adicionados:
+      full.match(new RegExp('valor\\s+do\\s+documento[\\s\\S]{0,40}?' + NUM_RE, 'i')) ||  // boleto
+      full.match(new RegExp('valor\\s+cobrado[\\s\\S]{0,40}?' + NUM_RE, 'i')) ||           // fatura
+      full.match(new RegExp('import[âa]ncia\\s+(?:de\\s+)?r?\\$?[\\s\\S]{0,30}?' + NUM_RE, 'i')) || // recibo
+      full.match(new RegExp('valor\\s+do\\s+servi[çc]o[\\s\\S]{0,40}?' + NUM_RE, 'i')) ||  // NFS-e
+      full.match(new RegExp('valor\\s+l[ií]quido[\\s\\S]{0,40}?' + NUM_RE, 'i')) ||        // NFS-e
+      full.match(new RegExp('total\\s+a\\s+pagar[\\s\\S]{0,80}?' + NUM_RE, 'i')) ||        // fatura
       full.match(new RegExp('total\\s*[\\s\\S]{0,40}?' + NUM_RE, 'i'));
 
     // Se nada bater, tenta o maior valor após "FORMA PAGAMENTO" (NFC-e)
@@ -344,12 +354,15 @@ class OCRSaidas {
     }
 
     // ── Hora ───────────────────────────────────────────────────────────
+    // NF-e/DANFE costuma ter HH:MM:SS (com segundos). Captura mas só
+    // retornamos HH:MM no campo final.
     let horaMatch =
-      full.match(/\d{2}\/\d{2}\/\d{4}[\sT,]+(\d{2}):(\d{2})/) ||
-      full.match(/\d{4}-\d{2}-\d{2}[\sT]+(\d{2}):(\d{2})/)    ||
+      full.match(/\d{2}\/\d{2}\/\d{4}[\sT,]+(\d{2}):(\d{2})(?::\d{2})?/) ||
+      full.match(/\d{4}-\d{2}-\d{2}[\sT]+(\d{2}):(\d{2})(?::\d{2})?/)    ||
+      full.match(/(?:data\s*\/?\s*hora\s*(?:de|da)?\s*emiss[aã]o)[\s\S]{0,40}?(\d{2}):(\d{2})(?::\d{2})?/i) ||
       full.match(/\b(\d{1,2})h(\d{2})\b/i)                     ||
       full.match(/[àa]s\s+(\d{1,2}):(\d{2})/i)                 ||
-      full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i) ||
+      full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})(?::\d{2})?/i) ||
       full.match(/\b((?:[01]\d|2[0-3])):([0-5]\d)(?::\d{2})?\b/);
 
     if (!horaMatch) {
@@ -390,7 +403,45 @@ class OCRSaidas {
         .trim();
 
       let nome = null;
-      for (let i = 0; i < Math.min(_lines.length, 15); i++) {
+
+      // Estratégia 0: labels explícitos (independente de CNPJ)
+      // Cobre NF-e (Emitente / Razão Social), NFS-e (Prestador),
+      // boleto (Beneficiário / Cedente), fatura (Empresa Emissora).
+      const labelMatches = [
+        /(?:emitente|raz[aã]o\s+social|raz\.?\s*soc\.?)\s*[:\-]\s*([A-Za-zÀ-ÿ][^\n]{3,80})/i,
+        /(?:prestador\s+(?:de\s+)?servi[çc]os?|prestador)\s*[:\-]\s*([A-Za-zÀ-ÿ][^\n]{3,80})/i,
+        /(?:benefici[áa]rio|cedente)\s*[:\-]\s*([A-Za-zÀ-ÿ][^\n]{3,80})/i,
+        /(?:empresa(?:\s+emissora)?|estabelecimento)\s*[:\-]\s*([A-Za-zÀ-ÿ][^\n]{3,80})/i,
+      ];
+      for (const re of labelMatches) {
+        const m = full.match(re);
+        if (m && m[1]) {
+          // Corta antes do próximo CNPJ ou label inline
+          const cand = _cleanCandidate(m[1]).split(/\s+(?:CN[PF]J|CPF|institui[çc][aã]o|banco\s)/i)[0].trim();
+          if (_looksLikeName(cand)) { nome = cand; break; }
+        }
+      }
+
+      // PIX (especialmente para PF que não tem CNPJ): captura o nome do
+      // recebedor a partir de Favorecido/Recebedor/Beneficiário.
+      if (!nome) {
+        const pixRecebedorMatches = [
+          /(?:favorecido|recebedor)[\s\S]{0,80}?nome\s*[:\-]?\s*([A-Za-zÀ-ÿ][^\n]{3,80})/i,
+          /(?:favorecido|recebedor|benefici[áa]rio)\s*[:\-]\s*([A-Za-zÀ-ÿ][^\n]{3,80})/i,
+          /(?:para|destinat[áa]rio)\s*[:\-]?\s*\n+\s*([A-Za-zÀ-ÿ][^\n]{3,80})/i,
+        ];
+        for (const re of pixRecebedorMatches) {
+          const m = full.match(re);
+          if (m && m[1]) {
+            const cand = _cleanCandidate(m[1]).split(/\s+(?:CN[PF]J|CPF|institui[çc][aã]o|banco\s|chave|ag[eê]ncia)/i)[0].trim();
+            if (_looksLikeName(cand)) { nome = cand; break; }
+          }
+        }
+      }
+
+      // Estratégia 1-3: bloco do CNPJ (lógica original — só roda se
+      // os labels acima não acharem nada)
+      if (!nome) for (let i = 0; i < Math.min(_lines.length, 15); i++) {
         const ln = _lines[i];
         if (!(_cnpjRe.test(ln) || /CN[PF]J/i.test(ln))) continue;
 
@@ -433,12 +484,39 @@ class OCRSaidas {
     }
 
     // ── Forma de pagamento ─────────────────────────────────────────────
-    if      (/cart[aã]o\s+de\s+cr[eé]dito|cr[eé]dito/i.test(lower)) result.formaPagamento = 'Crédito';
-    else if (/cart[aã]o\s+de\s+d[eé]bito|d[eé]bito/i.test(lower))   result.formaPagamento = 'Débito';
-    else if (lower.includes('pix'))                                    result.formaPagamento = 'Pix';
-    else if (lower.includes('dinheiro'))                               result.formaPagamento = 'Dinheiro';
+    // "Crédito"/"Débito" sozinhos eram falsos positivos ("crédito ao
+    // consumidor", "débito vencido"). Exigimos contexto explícito agora.
+    const isCredito =
+      /cart[aã]o\s+(?:de\s+)?cr[eé]dito/i.test(lower) ||
+      /\b(?:no|em|via|pagto\.?|pagamento)\s+cr[eé]dito\b/i.test(lower) ||
+      /cr[eé]dito\s*(?:[(\-]|visa|master|elo|amex|hipercard)/i.test(lower);
+    const isDebito =
+      /cart[aã]o\s+(?:de\s+)?d[eé]bito/i.test(lower) ||
+      /\b(?:no|em|via|pagto\.?|pagamento)\s+d[eé]bito\b/i.test(lower) ||
+      /d[eé]bito\s*(?:[(\-]|visa|master|elo|maestro)/i.test(lower);
+    const isPix = /\bpix\b/i.test(lower);
+    const isDinheiro = /\bdinheiro\b/i.test(lower);
+
+    if      (isCredito)  result.formaPagamento = 'Crédito';
+    else if (isDebito)   result.formaPagamento = 'Débito';
+    else if (isPix)      result.formaPagamento = 'Pix';
+    else if (isDinheiro) result.formaPagamento = 'Dinheiro';
 
     return result;
+  }
+
+  // Detecta o tipo do documento por palavras-chave. Usado para priorizar
+  // certas regex e ativar buscas específicas (ex: PIX para PF não tem CNPJ
+  // e usa "Favorecido"; boleto usa "Cedente"; NFS-e usa "Prestador").
+  _detectarTipoDoc(lower) {
+    if (/nfc-?e\b|cupom\s+fiscal/.test(lower))                              return 'nfce';
+    if (/nfs-?e\b|nota\s+fiscal\s+(?:de\s+)?servi/.test(lower))             return 'nfse';
+    if (/\bnf-?e\b|danfe|nota\s+fiscal\s+eletr/.test(lower))                return 'nfe';
+    if (/boleto|c[oó]digo\s+de\s+barras|linha\s+digit[áa]vel|cedente|sacado|nosso\s+n[uú]mero/.test(lower)) return 'boleto';
+    if (/comprovante\s+de\s+pix|pix\s+(?:enviado|pago|recebido|transferido)|chave\s+pix/.test(lower)) return 'pix';
+    if (/\brecibo\b|recebi\s+de|import[âa]ncia\s+de/.test(lower))           return 'recibo';
+    if (/\bfatura\b|nota\s+promiss/.test(lower))                            return 'fatura';
+    return 'generico';
   }
 
   // Heurística: avalia se o fornecedor extraído tem cara de nome de

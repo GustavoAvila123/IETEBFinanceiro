@@ -130,18 +130,13 @@ class DashboardPage {
       else clearBtn.setAttribute('hidden', '');
     }
 
-    const mesInicio = `${this.dashMes}-01`;
-    const ultimoDia = new Date(year, month, 0).getDate();
-    const mesFim    = `${this.dashMes}-${String(ultimoDia).padStart(2, '0')}`;
+    const { de: mesInicio, ate: mesFim } = inicioFimDoMes(this.dashMes);
 
-    const todasEntradas = getEntradasData();
-    const todasSaidas   = getSaidasData();
+    const entradas = filtrarEntradasPorPeriodo(getEntradasData(), mesInicio, mesFim);
+    const saidas   = filtrarSaidasPorPeriodo  (getSaidasData(),   mesInicio, mesFim);
 
-    const entradas = todasEntradas.filter(i => i.dataDeposito && i.dataDeposito >= mesInicio && i.dataDeposito <= mesFim);
-    const saidas   = todasSaidas.filter(i => i.data && i.data >= mesInicio && i.data <= mesFim);
-
-    const totalEntradas = entradas.reduce((s, i) => s + parseBRL(i.valor), 0);
-    const totalSaidas   = saidas.reduce((s, i) => s + parseBRL(i.valor), 0);
+    const totalEntradas = somarValores(entradas);
+    const totalSaidas   = somarValores(saidas);
     const saldoMes      = totalEntradas - totalSaidas;
 
     document.getElementById('dashTotalEntradas').textContent = `R$ ${formatBRL(totalEntradas)}`;
@@ -150,19 +145,8 @@ class DashboardPage {
     saldoEl.textContent = `R$ ${formatBRL(saldoMes)}`;
     saldoEl.style.color = saldoMes >= 0 ? '' : 'var(--danger, #e53e3e)';
 
-    const porCurso = {};
-    entradas.forEach(i => {
-      const cursos = Array.isArray(i.alunos)
-        ? i.alunos.map(a => a.curso).filter(Boolean)
-        : [i.curso].filter(Boolean);
-      cursos.forEach(c => { porCurso[c] = (porCurso[c] || 0) + parseBRL(i.valor) / (cursos.length || 1); });
-    });
-
-    const porCategoria = {};
-    saidas.forEach(i => {
-      const cat = i.categoria || 'Outros';
-      porCategoria[cat] = (porCategoria[cat] || 0) + parseBRL(i.valor);
-    });
+    const porCurso     = agruparEntradasPorCurso(entradas);
+    const porCategoria = agruparSaidasPorCategoria(saidas);
 
     try {
       await this._loadChartJs();

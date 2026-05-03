@@ -58,16 +58,14 @@ class NavigationManager {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });
 
-    const year  = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const ini   = `${year}-${month}-01`;
-    const fim   = `${year}-${month}-${String(new Date(year, now.getMonth() + 1, 0).getDate()).padStart(2, '0')}`;
+    const anoMes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const { de: ini, ate: fim } = inicioFimDoMes(anoMes);
 
-    const entradas = getEntradasData().filter(i => i.dataDeposito >= ini && i.dataDeposito <= fim);
-    const saidas   = getSaidasData().filter(i => i.data >= ini && i.data <= fim);
+    const entradas = filtrarEntradasPorPeriodo(getEntradasData(), ini, fim);
+    const saidas   = filtrarSaidasPorPeriodo  (getSaidasData(),   ini, fim);
 
-    const totalE = entradas.reduce((s, i) => s + parseBRL(i.valor), 0);
-    const totalS = saidas.reduce((s, i) => s + parseBRL(i.valor), 0);
+    const totalE = somarValores(entradas);
+    const totalS = somarValores(saidas);
     const saldo  = totalE - totalS;
 
     document.getElementById('homeStatEntradas').textContent = `R$ ${formatBRL(totalE)}`;

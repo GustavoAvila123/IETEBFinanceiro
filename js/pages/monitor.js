@@ -98,8 +98,8 @@ class MonitorPage {
     const totalSaiGeral = allSaidas.filter(r => testers.some(t => t.id === r.userId));
 
     // Resumo geral no topo
-    const sumEnt = totalEntGeral.reduce((s, r) => s + parseBRL(r.valor), 0);
-    const sumSai = totalSaiGeral.reduce((s, r) => s + parseBRL(r.valor), 0);
+    const sumEnt     = somarValores(totalEntGeral);
+    const sumSai     = somarValores(totalSaiGeral);
     const saldoGeral = sumEnt - sumSai;
     const onlineCount = testers.filter(t => this._isOnline(this._sessions[t.id])).length;
 
@@ -115,8 +115,8 @@ class MonitorPage {
       const online  = this._isOnline(session);
       const tEnt    = allEntradas.filter(r => r.userId === t.id);
       const tSai    = allSaidas.filter(r => r.userId === t.id);
-      const totEnt  = tEnt.reduce((s, r) => s + parseBRL(r.valor), 0);
-      const totSai  = tSai.reduce((s, r) => s + parseBRL(r.valor), 0);
+      const totEnt  = somarValores(tEnt);
+      const totSai  = somarValores(tSai);
       const saldo   = totEnt - totSai;
       const inicial = t.name.charAt(0).toUpperCase();
 

@@ -111,26 +111,19 @@ class TesourariaPage {
     const todasEntradas = getEntradasData();
     const todasSaidas   = getSaidasData();
 
-    const entradasAnt = todasEntradas.filter(i => i.dataDeposito && i.dataDeposito < saldoAntCutoff);
-    const saidasAnt   = todasSaidas.filter(i => i.data && i.data < saldoAntCutoff);
+    const entradasAnt = entradasAntes(todasEntradas, saldoAntCutoff);
+    const saidasAnt   = saidasAntes(todasSaidas,     saldoAntCutoff);
 
-    const entradas = todasEntradas.filter(i => i.dataDeposito && i.dataDeposito >= filtroDE && i.dataDeposito <= filtroATE);
-    const saidas   = todasSaidas.filter(i => i.data && i.data >= filtroDE && i.data <= filtroATE);
+    const entradas = filtrarEntradasPorPeriodo(todasEntradas, filtroDE, filtroATE);
+    const saidas   = filtrarSaidasPorPeriodo  (todasSaidas,   filtroDE, filtroATE);
 
-    const sumBy = (arr, tipo) =>
-      arr.filter(i => i.formaPagamento === tipo).reduce((s, i) => s + parseBRL(i.valor), 0);
+    const sumBy = somarPorFormaPagamento;
 
-    const ab      = this._getSaldoAbertura();
-    const abMaos  = parseBRL(ab.dinheiro);
-    const abConta = parseBRL(ab.conta);
-
-    const antMaos  = abMaos
-      + sumBy(entradasAnt, 'Dinheiro')
-      - sumBy(saidasAnt,   'Dinheiro');
-    const antConta = abConta
-      + sumBy(entradasAnt, 'Pix') + sumBy(entradasAnt, 'Débito') + sumBy(entradasAnt, 'Crédito')
-      - sumBy(saidasAnt,   'Pix') - sumBy(saidasAnt,   'Débito') - sumBy(saidasAnt,   'Crédito');
-    const antTotal = antMaos + antConta;
+    const ab     = this._getSaldoAbertura();
+    const saldoAnt = calcularSaldoSeparado(entradasAnt, saidasAnt, parseBRL(ab.dinheiro), parseBRL(ab.conta));
+    const antMaos  = saldoAnt.dinheiro;
+    const antConta = saldoAnt.conta;
+    const antTotal = saldoAnt.total;
 
     const eDin = sumBy(entradas, 'Dinheiro');
     const ePix = sumBy(entradas, 'Pix');
@@ -144,9 +137,10 @@ class TesourariaPage {
     const sCre  = sumBy(saidas, 'Crédito');
     const sTotal = sDin + sPix + sDeb + sCre;
 
-    const saldoMaos  = antMaos  + eDin - sDin;
-    const saldoConta = antConta + ePix + eDeb + eCre - sPix - sDeb - sCre;
-    const saldoTotal = saldoMaos + saldoConta;
+    const saldoAtual = calcularSaldoSeparado(entradas, saidas, antMaos, antConta);
+    const saldoMaos  = saldoAtual.dinheiro;
+    const saldoConta = saldoAtual.conta;
+    const saldoTotal = saldoAtual.total;
 
     const cls = v => v >= 0 ? 'caixa-saldo-item-value--positivo' : 'caixa-saldo-item-value--negativo';
     const dot = tipo => `<span class="caixa-dot caixa-dot--${tipo}"></span>`;

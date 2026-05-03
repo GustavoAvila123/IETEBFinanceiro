@@ -163,12 +163,51 @@ class OCREntradas {
     const full   = text;
     const lower  = full.toLowerCase();
 
-    const valorMatch = full.match(/R\$\s*([\d.,]+)/i);
-    if (valorMatch) result.valor = 'R$ ' + valorMatch[1].trim();
+    // ── Valor ──────────────────────────────────────────────────────────
+    // Bancos como Inter/Nubank/Itaú novo mostram o "Saldo disponível"
+    // ANTES do valor da transação. Pegar o primeiro R$ que aparecer
+    // resultava no saldo no lugar do valor real.
+    //
+    // Estratégia em ordem de prioridade:
+    //   1) Valor próximo de palavra-chave do PIX (valor, transferência,
+    //      pix enviado/recebido, pagamento)
+    //   2) Primeiro R$ que NÃO esteja precedido por saldo/tarifa/limite
+    //   3) Fallback: primeiro R$ (compat com versão original)
+    const NUM_RE = '([0-9]{1,3}(?:[\\.\\s][0-9]{3})*[,\\.][0-9]{2})';
+    const _parseV = raw => {
+      const n = parseFloat(String(raw).trim().replace(/\.(?=\d{3}(?:,|$))/g, '').replace(',', '.'));
+      return isNaN(n) ? null : n;
+    };
+
+    let vMatch =
+      full.match(new RegExp('valor[\\s\\S]{0,40}?R?\\$?\\s*' + NUM_RE, 'i')) ||
+      full.match(new RegExp('(?:transferência|transferencia|pix\\s+(?:enviado|recebido|pago|transferido)|pagamento\\s+realizado)[\\s\\S]{0,80}?R?\\$?\\s*' + NUM_RE, 'i'));
+    if (vMatch) {
+      const n = _parseV(vMatch[1]);
+      if (n && n > 0) result.valor = 'R$ ' + n.toFixed(2).replace('.', ',');
+    }
+
+    if (!result.valor) {
+      // Pega o primeiro R$ que NÃO seja saldo / tarifa / limite / disponível
+      const allMatches = [...full.matchAll(/(.{0,30})R\$\s*([\d.,]+)/gi)];
+      for (const m of allMatches) {
+        const contexto = (m[1] || '').toLowerCase();
+        if (/saldo|tarifa|limite|dispon[ií]vel|cr[eé]dito\s+conce/.test(contexto)) continue;
+        const v = _parseV(m[2]);
+        if (v && v > 0) { result.valor = 'R$ ' + m[2].trim(); break; }
+      }
+    }
+
+    if (!result.valor) {
+      // Último recurso: comportamento original
+      const m = full.match(/R\$\s*([\d.,]+)/i);
+      if (m) result.valor = 'R$ ' + m[1].trim();
+    }
 
     const dataMatch =
-      full.match(/(?:segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo)[,.]?\s*(\d{2}\/\d{2}\/\d{4})/i) ||
-      full.match(/data\s+(?:do\s+)?(?:pagamento|dep[oó]sito)?\s*[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i) ||
+      // Aceita nome completo ou abreviado, com/sem "-feira" e com/sem ponto
+      full.match(/(?:segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo|seg|ter|qua|qui|sex|s[áa]b|dom)\.?\s*(?:-?\s*feira)?[,.]?\s*(\d{2}\/\d{2}\/\d{4})/i) ||
+      full.match(/data\s+(?:do\s+)?(?:pagamento|dep[oó]sito|pix|transfer[eê]ncia)?\s*[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i) ||
       full.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
       full.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
       full.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
@@ -239,7 +278,11 @@ class OCREntradas {
       full.match(new RegExp(`\\bde\\s*[:\\-]?\\s*\\n+\\s*${NOME_PAT}`, 'i')) ||
       full.match(new RegExp(`remetente\\s*[:\\-]\\s*${NOME_PAT_LOOSE}`, 'i')) ||
       full.match(new RegExp(`enviado\\s+por\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
-      full.match(new RegExp(`pago\\s+por\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i'));
+      full.match(new RegExp(`pago\\s+por\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      // Adicionados:
+      full.match(new RegExp(`conta\\s+(?:de\\s+)?origem[\\s\\S]{0,200}?(?:nome\\s*[:\\-]?\\s*)?${NOME_PAT_LOOSE}`, 'i')) ||
+      full.match(new RegExp(`pagador\\s*[:\\-]\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      full.match(new RegExp(`debitado\\s+(?:de|na\\s+conta\\s+de)\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i'));
     if (blocoPagou && blocoPagou[1]) {
       const nome = toTitleCase(blocoPagou[1].trim().replace(/\s{2,}/g, ' '));
       result.nomeAluno       = nome;
@@ -249,8 +292,8 @@ class OCREntradas {
     const instPagouMatch =
       full.match(/quem\s+pagou[\s\S]{0,400}?institui[çc][aã]o\s+([\wÀ-ÿ .,-]{3,40})/i) ||
       full.match(/\bde\b[\s\S]{0,250}?institui[çc][aã]o\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,40})/i)  ||
-      full.match(/pagador[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,30})/i) ||
-      full.match(/(?:origem|remetente)[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,30})/i);
+      full.match(/pagador[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,40})/i) ||
+      full.match(/(?:origem|remetente)[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,40})/i);
     if (instPagouMatch && instPagouMatch[1]) {
       result.bancoDepositante = this.normalizarBanco(instPagouMatch[1].trim());
     }
@@ -262,7 +305,14 @@ class OCREntradas {
       full.match(new RegExp(`destinat[aá]rio[\\s\\S]{0,150}?nome\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
       full.match(new RegExp(`\\bpara\\s*[:\\-]?\\s*\\n+\\s*${NOME_PAT}`, 'i')) ||
       full.match(new RegExp(`favorecido\\s*[:\\-]\\s*${NOME_PAT_LOOSE}`, 'i')) ||
-      full.match(new RegExp(`benefici[aá]rio\\s*[:\\-]\\s*${NOME_PAT_LOOSE}`, 'i'));
+      full.match(new RegExp(`benefici[aá]rio\\s*[:\\-]\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      // Adicionados (Santander/Caixa "Recebedor", PicPay "Recebido por",
+      // BB "Crédito a", "Conta destino"):
+      full.match(new RegExp(`recebedor[\\s\\S]{0,150}?nome\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      full.match(new RegExp(`recebedor\\s*[:\\-]\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      full.match(new RegExp(`recebido\\s+por\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      full.match(new RegExp(`cr[eé]dito\\s+a\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      full.match(new RegExp(`conta\\s+destino[\\s\\S]{0,200}?(?:nome\\s*[:\\-]?\\s*)?${NOME_PAT_LOOSE}`, 'i'));
     if (blocoRecebeu && blocoRecebeu[1]) {
       result.nomeRecebedor = toTitleCase(blocoRecebeu[1].trim().replace(/\s{2,}/g, ' '));
     }
@@ -270,9 +320,10 @@ class OCREntradas {
     const instRecebeuMatch =
       full.match(/quem\s+recebeu[\s\S]{0,400}?institui[çc][aã]o\s+([\wÀ-ÿ .,-]{3,40})/i) ||
       full.match(/\bpara\b[\s\S]{0,250}?institui[çc][aã]o\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,40})/i) ||
-      full.match(/favorecido[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,30})/i) ||
-      full.match(/benefici[aá]rio[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,30})/i) ||
-      full.match(/destinat[aá]rio[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,30})/i);
+      full.match(/favorecido[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,40})/i) ||
+      full.match(/benefici[aá]rio[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,40})/i) ||
+      full.match(/destinat[aá]rio[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,40})/i) ||
+      full.match(/recebedor[\s\S]{0,200}?(?:banco|institui[çc][aã]o)\s*[:\-]?\s*([\wÀ-ÿ .,-]{3,40})/i);
     if (instRecebeuMatch && instRecebeuMatch[1]) {
       result.bancoRecebedor = this.normalizarBanco(instRecebeuMatch[1].trim());
     }
@@ -280,10 +331,10 @@ class OCREntradas {
     if (!result.bancoDepositante || !result.bancoRecebedor) {
       const bancos = [
         ['Inter',           /\bbanco\s+inter\b|\binter\s+s\.?a\.?\b/i],
-        ['Nubank',          /nubank/i],
-        ['Itaú',            /ita[uú]/i],
-        ['Bradesco',        /bradesco/i],
-        ['Caixa',           /caixa\s+econ/i],
+        ['Nubank',          /nubank|\bnu\s+pagamentos\b/i],
+        ['Itaú',            /ita[uú](?:\s+unibanco)?/i],
+        ['Bradesco',        /bradesco(?:\s+s\.?a\.?)?|bradescard/i],
+        ['Caixa',           /caixa\s+econ|\bcef\b/i],
         ['Banco do Brasil', /banco\s+do\s+brasil|\bBB\b/i],
         ['Santander',       /santander/i],
         ['C6',              /c6\s+bank/i],
@@ -292,7 +343,22 @@ class OCREntradas {
         ['Sicoob',          /sicoob/i],
         ['Sicredi',         /sicredi/i],
         ['BTG',             /btg\s+pactual/i],
-        ['Neon',            /neon/i],
+        ['Neon',            /\bneon\b/i],
+        ['Next',            /\bnext\b/i],
+        ['Original',        /banco\s+original/i],
+        // Bancos adicionados na revisão de cobertura PIX
+        ['Banrisul',        /banrisul/i],
+        ['Banpará',         /banpar[áa]/i],
+        ['BMG',             /\bbmg\b/i],
+        ['Pan',             /banco\s+pan|\bpan\s+s\.?a\.?\b/i],
+        ['Will Bank',       /will\s+bank|\bwill\b/i],
+        ['XP',              /\bxp\s+(?:investimentos|inc|bank)\b/i],
+        ['Cora',            /\bcora\b/i],
+        ['Safra',           /banco\s+safra|\bsafra\s+s\.?a\.?\b/i],
+        ['Daycoval',        /daycoval/i],
+        ['Modal',           /banco\s+modal/i],
+        ['ABC Brasil',      /abc\s+brasil/i],
+        ['Banco24Horas',    /banco24horas|banco\s+24\s+horas/i],
       ];
       for (const [nome, re] of bancos) {
         if (re.test(full)) {
@@ -307,14 +373,21 @@ class OCREntradas {
 
   normalizarBanco(str) {
     const mapa = [
-      [/inter/i,    'Inter'],    [/bradesco/i,  'Bradesco'],
-      [/ita[uú]/i,  'Itaú'],    [/nubank/i,    'Nubank'],
-      [/caixa/i,    'Caixa'],   [/brasil/i,    'Banco do Brasil'],
-      [/santander/i,'Santander'],[/c6/i,        'C6'],
-      [/picpay/i,   'PicPay'],  [/mercado/i,   'Mercado Pago'],
-      [/sicoob/i,   'Sicoob'],  [/sicredi/i,   'Sicredi'],
-      [/btg/i,      'BTG'],     [/neon/i,      'Neon'],
-      [/next/i,     'Next'],    [/original/i,  'Original'],
+      [/inter/i,        'Inter'],          [/bradesco/i,  'Bradesco'],
+      [/ita[uú]/i,      'Itaú'],           [/nubank|\bnu\s+pag/i, 'Nubank'],
+      [/caixa/i,        'Caixa'],          [/brasil/i,    'Banco do Brasil'],
+      [/santander/i,    'Santander'],      [/c6/i,        'C6'],
+      [/picpay/i,       'PicPay'],         [/mercado/i,   'Mercado Pago'],
+      [/sicoob/i,       'Sicoob'],         [/sicredi/i,   'Sicredi'],
+      [/btg/i,          'BTG'],            [/\bneon\b/i,  'Neon'],
+      [/\bnext\b/i,     'Next'],           [/original/i,  'Original'],
+      // Bancos adicionados
+      [/banrisul/i,     'Banrisul'],       [/banpar[áa]/i, 'Banpará'],
+      [/\bbmg\b/i,      'BMG'],            [/\bpan\b/i,    'Pan'],
+      [/will/i,         'Will Bank'],      [/\bxp\b/i,     'XP'],
+      [/\bcora\b/i,     'Cora'],           [/safra/i,      'Safra'],
+      [/daycoval/i,     'Daycoval'],       [/modal/i,      'Modal'],
+      [/abc/i,          'ABC Brasil'],
     ];
     for (const [re, nome] of mapa) if (re.test(str)) return nome;
     return str;

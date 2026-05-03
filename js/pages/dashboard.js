@@ -1,9 +1,11 @@
 
 class DashboardPage {
-  constructor() {
+  constructor(modal) {
+    this.modal      = modal;
     this.dashMes    = '';
     this.dashCharts = {};
     this._closePickerHandler = null;
+    this.filtroAplicado = false;
   }
 
   _mesAtualISO() {
@@ -18,6 +20,11 @@ class DashboardPage {
 
   resetPage() {
     this.dashMes = this._mesAtualISO();
+    this.filtroAplicado = false;
+    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const ateEl = document.getElementById('dashDiaFiltroATE');
+    if (deEl)  deEl.value  = '';
+    if (ateEl) ateEl.value = '';
     this.render();
   }
 
@@ -25,8 +32,47 @@ class DashboardPage {
     const [year, month] = this.dashMes.split('-').map(Number);
     const d = new Date(year, month - 1 + delta, 1);
     this.dashMes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    // Navegar mês desativa o filtro de datas (que era específico de período)
+    this.filtroAplicado = false;
+    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const ateEl = document.getElementById('dashDiaFiltroATE');
+    if (deEl)  deEl.value  = '';
+    if (ateEl) ateEl.value = '';
     this.fecharPicker();
     this.render();
+  }
+
+  // ── Filtro de datas (período personalizado) ──────────────────────────
+  aplicarFiltroDatas() {
+    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const ateEl = document.getElementById('dashDiaFiltroATE');
+    if (!deEl.value && !ateEl.value) return;
+    if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
+      ateEl.value = '';
+      this.modal.open('dashDataModal');
+      return;
+    }
+    this.filtroAplicado = true;
+    this.fecharPicker();
+    this.render();
+  }
+
+  onFiltroDeBlur() {
+    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const ateEl = document.getElementById('dashDiaFiltroATE');
+    if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
+      ateEl.value = '';
+      this.modal.open('dashDataModal');
+    }
+  }
+
+  onFiltroAteBlur() {
+    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const ateEl = document.getElementById('dashDiaFiltroATE');
+    if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
+      ateEl.value = '';
+      this.modal.open('dashDataModal');
+    }
   }
 
   // ── Picker mês/ano ────────────────────────────────────────────────────
@@ -102,6 +148,11 @@ class DashboardPage {
 
   limparFiltro() {
     this.dashMes = this._mesAtualISO();
+    this.filtroAplicado = false;
+    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const ateEl = document.getElementById('dashDiaFiltroATE');
+    if (deEl)  deEl.value  = '';
+    if (ateEl) ateEl.value = '';
     this.fecharPicker();
     this.render();
   }
@@ -122,18 +173,37 @@ class DashboardPage {
     const labelText = document.getElementById('dashMesLabelText');
     if (labelText) labelText.textContent = `${MESES[month - 1]} ${year}`;
 
-    // Mostra "Limpar filtro" se o mês selecionado não for o atual
+    // Período: se o usuário aplicou filtro de datas, usa De/Até; caso
+    // contrário, usa o mês selecionado (comportamento original).
+    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const ateEl = document.getElementById('dashDiaFiltroATE');
+    const deISO  = deEl  && deEl.value.length  === 10 ? dateInputToISO(deEl.value)  : '';
+    const ateISO = ateEl && ateEl.value.length === 10 ? dateInputToISO(ateEl.value) : '';
+
+    let periodoDe, periodoAte;
+    if (this.filtroAplicado && (deISO || ateISO)) {
+      periodoDe  = deISO  || '0000-01-01';
+      periodoAte = ateISO || '9999-12-31';
+    } else {
+      const r = inicioFimDoMes(this.dashMes);
+      periodoDe  = r.de;
+      periodoAte = r.ate;
+    }
+
+    // Quando o filtro de datas está ativo, esmaece a navegação de mês
+    const monthControls = document.querySelector('.dash-month-controls');
+    if (monthControls) monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);
+
+    // Botão "Limpar filtro" aparece se: filtro de datas ativo OU mês != atual
     const clearBtn = document.getElementById('dashClearFilter');
     if (clearBtn) {
-      const filtroAtivo = this.dashMes !== this._mesAtualISO();
-      if (filtroAtivo) clearBtn.removeAttribute('hidden');
+      const algumFiltro = this.filtroAplicado || (this.dashMes !== this._mesAtualISO());
+      if (algumFiltro) clearBtn.removeAttribute('hidden');
       else clearBtn.setAttribute('hidden', '');
     }
 
-    const { de: mesInicio, ate: mesFim } = inicioFimDoMes(this.dashMes);
-
-    const entradas = filtrarEntradasPorPeriodo(getEntradasData(), mesInicio, mesFim);
-    const saidas   = filtrarSaidasPorPeriodo  (getSaidasData(),   mesInicio, mesFim);
+    const entradas = filtrarEntradasPorPeriodo(getEntradasData(), periodoDe, periodoAte);
+    const saidas   = filtrarSaidasPorPeriodo  (getSaidasData(),   periodoDe, periodoAte);
 
     const totalEntradas = somarValores(entradas);
     const totalSaidas   = somarValores(saidas);

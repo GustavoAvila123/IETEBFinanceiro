@@ -274,11 +274,11 @@
             <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="home-hero-logo" />
           </div>
           <div class="home-hero-text">
+            <span class="home-hero-subtitle">Sistema de Gestão Financeira</span>
             <h1 class="home-greeting" id="homeGreeting">Olá!</h1>
             <p class="home-date" id="homeDate">—</p>
           </div>
         </div>
-        <span class="home-hero-badge">Sistema Financeiro</span>
       </div>
 
       <!-- Stats do mês -->
@@ -423,6 +423,13 @@
     ════════════════════════════════════════════════════════════════════════ -->
     <main class="page-content page-content--hidden" id="pageLancamentos">
       <div class="content-header">
+        <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12L12 3l9 9"/>
+            <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10"/>
+          </svg>
+          <span>Início</span>
+        </button>
         <h1 class="page-title">Lançamento de Entradas</h1>
         <p class="page-desc">Registre manualmente ou envie o comprovante de pagamento.</p>
       </div>
@@ -683,6 +690,13 @@
     ════════════════════════════════════════════════════════════════════════ -->
     <main class="page-content page-content--hidden" id="pageSaidas">
       <div class="content-header">
+        <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12L12 3l9 9"/>
+            <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10"/>
+          </svg>
+          <span>Início</span>
+        </button>
         <h1 class="page-title">Lançamento de Saídas</h1>
         <p class="page-desc">Registre pagamentos a professores, compras de material e demais despesas.</p>
       </div>
@@ -904,6 +918,13 @@
     ════════════════════════════════════════════════════════════════════════ -->
     <main class="page-content page-content--hidden" id="pageRelatorios">
       <div class="content-header">
+        <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12L12 3l9 9"/>
+            <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10"/>
+          </svg>
+          <span>Início</span>
+        </button>
         <h1 class="page-title">Relatórios</h1>
         <p class="page-desc">Consulte, filtre e exporte todos os lançamentos registrados.</p>
       </div>
@@ -1036,6 +1057,13 @@
     ════════════════════════════════════════════════════════════════════════ -->
     <main class="page-content page-content--hidden" id="pageCaixa">
       <div class="content-header">
+        <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12L12 3l9 9"/>
+            <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10"/>
+          </svg>
+          <span>Início</span>
+        </button>
         <h1 class="page-title">Tesouraria</h1>
         <p class="page-desc">Controle financeiro mensal — entradas, saídas e saldo disponível.</p>
       </div>
@@ -1141,11 +1169,18 @@
     ════════════════════════════════════════════════════════════════════════ -->
     <main class="page-content page-content--hidden" id="pageDashboard">
       <div class="content-header">
+        <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12L12 3l9 9"/>
+            <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10"/>
+          </svg>
+          <span>Início</span>
+        </button>
         <h1 class="page-title">Dashboard</h1>
         <p class="page-desc">Visualização gráfica das entradas e despesas do mês.</p>
       </div>
 
-      <!-- Navegação de mês -->
+      <!-- Navegação de mês + filtro de datas -->
       <div class="caixa-month-nav">
         <div class="caixa-month-controls dash-month-controls">
           <button class="caixa-month-btn" onclick="dashMesNavegar(-1)" title="Mês anterior">
@@ -1178,12 +1213,30 @@
           </div>
         </div>
 
-        <button class="dash-clear-filter" id="dashClearFilter" hidden onclick="limparDashFiltro()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
-          </svg>
-          Limpar filtro
-        </button>
+        <div class="caixa-day-filter">
+          <div class="filter-group" style="margin:0">
+            <label class="form-label" for="dashDiaFiltroDE">De</label>
+            <input type="text" class="form-input filter-input" id="dashDiaFiltroDE" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onDashFiltroDeBlur',true)" />
+          </div>
+          <div class="filter-group" style="margin:0">
+            <label class="form-label" for="dashDiaFiltroATE">Até</label>
+            <input type="text" class="form-input filter-input" id="dashDiaFiltroATE" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onDashFiltroAteBlur',true)" />
+          </div>
+          <div class="caixa-day-filter-actions">
+            <button class="caixa-filter-btn caixa-filter-btn--apply" onclick="aplicarDashFiltroDatas()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              Filtrar
+            </button>
+            <button class="dash-clear-filter caixa-filter-btn caixa-filter-btn--clear" id="dashClearFilter" hidden onclick="limparDashFiltro()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.96"/>
+              </svg>
+              Limpar filtro
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Cards de resumo -->
@@ -1270,6 +1323,13 @@
     ════════════════════════════════════════════════════════════════════════ -->
     <main class="page-content page-content--hidden" id="pageMonitor">
       <div class="content-header">
+        <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12L12 3l9 9"/>
+            <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10"/>
+          </svg>
+          <span>Início</span>
+        </button>
         <h1 class="page-title">Monitor de Testers</h1>
         <p class="page-desc">Acompanhe em tempo real os testers conectados e seus lançamentos.</p>
       </div>
@@ -1345,6 +1405,20 @@
       </div>
       <div class="modal-footer">
         <button class="btn-primary" onclick="fecharCaixaDataModal()">Entendi</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="dashDataModal" style="display:none">
+    <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Data inválida</h2>
+      </div>
+      <div style="padding:22px 26px;font-size:.9rem;color:var(--text);line-height:1.55">
+        O campo <strong>Data Até</strong> deve ser igual ou maior que o campo <strong>Data De</strong>.
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="fecharDashDataModal()">Entendi</button>
       </div>
     </div>
   </div>

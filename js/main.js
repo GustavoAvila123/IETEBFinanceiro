@@ -17,7 +17,7 @@ const entradas   = new EntradaPage(modal, firebase, ocrEntradas, igrejaDD, aluno
 const saidas     = new SaidaPage(modal, firebase, ocrSaidas);
 const relatorios = new RelatorioPage(modal, firebase);
 const tesouraria = new TesourariaPage(modal);
-const dashboard  = new DashboardPage();
+const dashboard  = new DashboardPage(modal);
 const monitor    = new MonitorPage(firebase);
 const login      = new LoginPage(modal);
 
@@ -194,6 +194,14 @@ window.toggleDashMonthPicker = e  => dashboard.togglePicker(e);
 window.selectDashAno         = a  => dashboard.selectAno(a);
 window.selectDashMes         = m  => dashboard.selectMes(m);
 window.limparDashFiltro      = () => dashboard.limparFiltro();
+window.aplicarDashFiltroDatas = () => dashboard.aplicarFiltroDatas();
+window.onDashFiltroDeBlur     = () => dashboard.onFiltroDeBlur();
+window.onDashFiltroAteBlur    = () => dashboard.onFiltroAteBlur();
+window.fecharDashDataModal    = () => {
+  modal.close('dashDataModal');
+  const ate = document.getElementById('dashDiaFiltroATE');
+  if (ate) ate.focus();
+};
 
 // Monitor (admin only)
 window.reloadMonitor   = () => monitor.render();
@@ -358,6 +366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       modal.closeNotif();
       relatorios.fecharFiltroDataModal();
       modal.close('caixaDataModal');
+      modal.close('dashDataModal');
       modal.close('reviewFormModal');
       modal.close('processModal');
       login.closeLogoutModal();

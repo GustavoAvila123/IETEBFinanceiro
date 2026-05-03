@@ -37,6 +37,9 @@ class TesourariaPage {
   }
 
   clearDia() {
+    // Limpa datas E volta o mês para o atual (estado inicial completo).
+    const now      = new Date();
+    this.caixaMes  = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const deEl  = document.getElementById('caixaDiaFiltroDE');
     const ateEl = document.getElementById('caixaDiaFiltroATE');
     if (deEl)  deEl.value  = '';

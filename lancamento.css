@@ -346,6 +346,50 @@ body {
   margin-top: 5px;
 }
 
+/* Botão "Início" — discreto no canto superior direito do content-header */
+.btn-back-home {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(212,175,55,.22);
+  border-radius: 8px;
+  color: rgba(212,175,55,.82);
+  font: inherit;
+  font-size: .76rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, color .18s, transform .12s;
+  backdrop-filter: blur(4px);
+}
+
+.btn-back-home:hover {
+  background: rgba(212,175,55,.13);
+  border-color: rgba(212,175,55,.45);
+  color: var(--gold-light);
+}
+
+.btn-back-home:active { transform: scale(.96); }
+
+.btn-back-home svg { flex-shrink: 0; }
+
+@media (max-width: 768px) {
+  .btn-back-home {
+    top: 14px;
+    right: 14px;
+    padding: 8px;
+    min-width: 36px;
+    justify-content: center;
+  }
+  .btn-back-home span { display: none; }
+}
+
 /* ─── FORM CARD ─── */
 .form-card {
   background: var(--white);
@@ -3773,20 +3817,27 @@ body.modal-open {
   letter-spacing: .01em;
 }
 
-.home-hero-badge {
-  position: relative;
-  z-index: 1;
-  padding: 8px 18px;
-  border: 1px solid rgba(212,175,55,.3);
-  border-radius: 24px;
-  font-size: .67rem;
+/* Subtítulo "Sistema de Gestão Financeira" — texto discreto acima do
+   nome (era um pill com cara de botão, gerava confusão). Sem borda,
+   sem fundo, sem cursor de clique. */
+.home-hero-subtitle {
+  display: block;
+  font-size: .62rem;
   font-weight: 700;
-  letter-spacing: .13em;
+  letter-spacing: .22em;
   text-transform: uppercase;
-  color: var(--gold);
-  background: rgba(212,175,55,.07);
-  white-space: nowrap;
-  backdrop-filter: blur(6px);
+  color: rgba(212,175,55,.62);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 480px) {
+  .home-hero-subtitle { font-size: .58rem; letter-spacing: .18em; margin-bottom: 6px; }
+}
+
+/* Mantido apenas como fallback se algum cache antigo renderizar a
+   classe legada — sem padding/borda agora. */
+.home-hero-badge {
+  display: none !important;
 }
 
 /* ── Stats ── */

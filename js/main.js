@@ -277,6 +277,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Topbar ganha sombra ao rolar (apenas mobile, onde a topbar é visível)
+  const topbarEl = document.querySelector('.topbar');
+  if (topbarEl) {
+    let ticking = false;
+    const updateTopbarShadow = () => {
+      topbarEl.classList.toggle('topbar--scrolled', window.scrollY > 8);
+      ticking = false;
+    };
+    window.addEventListener('scroll', () => {
+      if (!ticking) { requestAnimationFrame(updateTopbarShadow); ticking = true; }
+    }, { passive: true });
+    updateTopbarShadow();
+  }
+
   // Reconecta silenciosamente quando o app volta ao foco (mobile suspende WebSocket)
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') firebase.silentRefresh();

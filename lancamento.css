@@ -4078,3 +4078,82 @@ body.modal-open {
   .ls-banner-text span  { font-size: .74rem; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   BLOCO 3 da auditoria de layout — polimento
+═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 11. Chart legend embaixo em iPad portrait (769-1024) ─────────────
+   Em iPad portrait a legenda lateral comprimia o donut. Mesmo padrão
+   do mobile: legenda abaixo do gráfico, em grid de 2 colunas. */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dash-chart-body {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .dash-chart-legend {
+    width: 100%;
+    max-height: 220px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .dash-chart-legend .dash-legend-item {
+    flex: 1 1 calc(50% - 3px);
+  }
+}
+
+/* ── 13. Topbar com sombra ao rolar (mobile) ──────────────────────────
+   Quando o usuário rola o conteúdo, a topbar sticky ganha sombra para
+   reforçar a separação visual. JS adiciona/remove a classe. */
+.topbar { transition: box-shadow .18s ease; }
+
+.topbar--scrolled {
+  box-shadow: 0 6px 18px rgba(5,13,39,.32);
+}
+
+/* ── 16. prefers-reduced-motion: respeita preferência do sistema ──────
+   Para usuários com sensibilidade a movimento, desliga animações e
+   reduz transições para o mínimo. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── 17. Foco visível premium (acessibilidade de teclado) ─────────────
+   Outline dourado discreto ao navegar com Tab. Usa :focus-visible
+   para não aparecer em cliques de mouse, só com teclado. */
+*:focus { outline: none; }
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+/* Itens internos com fundo escuro (sidebar, modais navy) ganham aro
+   gold mais saturado para contrastar com o navy. */
+.sidebar :focus-visible,
+.review-modal-wrap :focus-visible,
+.process-modal-wrap :focus-visible,
+.logout-modal-wrap :focus-visible,
+.boot-splash :focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}
+

@@ -300,7 +300,7 @@ body {
 /* ─── PAGE CONTENT ─── */
 .page-content {
   flex: 1;
-  padding: 32px 28px 60px;
+  /* padding aplicado via tokens em "BLOCO 4 da auditoria" */
   width: 100%;
   min-width: 0;
 }
@@ -1862,7 +1862,7 @@ body.modal-open {
 
   .topbar { display: flex; }
 
-  .page-content { padding: 20px 16px 50px; }
+  /* page-content padding agora vem dos tokens em BLOCO 4 */
 
   .tab-btn { font-size: .76rem; padding: 14px 10px; gap: 5px; }
 
@@ -1915,7 +1915,7 @@ body.modal-open {
   .ocr-row { flex-direction: column; gap: 2px; }
   .ocr-row-label { min-width: unset; }
   .modal-card { margin: 0 4px; }
-  .page-content { padding: 16px 12px 40px; }
+  /* page-content padding agora vem dos tokens em BLOCO 4 */
 }
 
 /* ─── SNACKBAR SAÍDA SALVA ─── */
@@ -2821,7 +2821,7 @@ body.modal-open {
 
 /* ─── NOTEBOOK / TABLET LANDSCAPE ─── */
 @media (min-width: 769px) and (max-width: 1200px) {
-  .page-content { padding: 24px 18px 50px; }
+  /* page-content padding agora vem dos tokens em BLOCO 4 */
   .report-table th { padding: 10px 7px; font-size: .65rem; }
   .report-table td { padding: 8px 7px; font-size: .77rem; }
 }
@@ -4155,5 +4155,96 @@ textarea:focus-visible {
 .boot-splash :focus-visible {
   outline: 2px solid var(--gold-light);
   outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   BLOCO 4 da auditoria de layout — polimento opcional
+═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 9. Tokens de espaçamento de página (refactor invisível) ──────────
+   Mantém os mesmos valores visuais por breakpoint, mas centraliza num
+   token só — facilita ajuste futuro. Zero mudança visual. */
+:root {
+  --page-pad-top:    32px;
+  --page-pad-x:      28px;
+  --page-pad-bottom: 60px;
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  :root { --page-pad-top: 24px; --page-pad-x: 18px; --page-pad-bottom: 50px; }
+}
+@media (max-width: 768px) {
+  :root { --page-pad-top: 20px; --page-pad-x: 16px; --page-pad-bottom: 50px; }
+}
+@media (max-width: 480px) {
+  :root { --page-pad-top: 16px; --page-pad-x: 12px; --page-pad-bottom: 40px; }
+}
+
+.page-content {
+  padding-top:    var(--page-pad-top);
+  padding-right:  var(--page-pad-x);
+  padding-left:   var(--page-pad-x);
+  padding-bottom: var(--page-pad-bottom);
+}
+
+/* ── 10. Picker do dashboard com safe-area mínima ─────────────────────
+   Em iPhones com notch, o picker pode ficar encostado nas bordas
+   laterais. Garante margem mínima e respeita safe-area-inset. */
+@media (max-width: 480px) {
+  .dash-month-picker {
+    width: min(320px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+  }
+}
+
+/* ── 14. Botões de exportação — limita largura em mobile médio ────────
+   Em telas 481-768 os botões ficavam grandes ocupando ~50% da tela
+   cada um. Limita o conjunto para não estourar visualmente. */
+@media (min-width: 481px) and (max-width: 768px) {
+  .report-export-btns {
+    max-width: 480px;
+    justify-content: flex-end;
+  }
+  .btn-export { flex: 0 1 220px; }
+}
+
+/* ── 15. Print mode reforçado ─────────────────────────────────────────
+   Garante que sidebar/topbar/modais fixos NUNCA apareçam ao imprimir,
+   mesmo se algum tiver z-index alto ou position fixed inesperado. */
+@media print {
+  .sidebar,
+  .topbar,
+  .sidebar-overlay,
+  .modal-overlay,
+  .toast,
+  .saved-snackbar,
+  .snackbar-overlay,
+  .home-footer,
+  .boot-splash {
+    display: none !important;
+  }
+
+  .page-wrapper { margin-left: 0 !important; }
+
+  body { background: #fff !important; }
+}
+
+/* ── 12. Sidebar drawer: visual de "swipeable" (handle vertical) ──────
+   Pequeno indicador visual (handle gold discreto) que reforça que o
+   drawer pode ser arrastado. JS faz o gesture; isso só sinaliza. */
+@media (max-width: 768px) {
+  .sidebar.sidebar--open::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -3px;
+    width: 4px;
+    height: 56px;
+    background: linear-gradient(180deg, transparent, rgba(212,175,55,.35), transparent);
+    border-radius: 4px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    opacity: .7;
+  }
 }
 

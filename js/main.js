@@ -291,6 +291,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateTopbarShadow();
   }
 
+  // Sidebar: swipe-to-close (drag para a esquerda)
+  const sidebarEl = document.getElementById('sidebar');
+  if (sidebarEl) {
+    let startX = 0, startY = 0, dragging = false, deltaX = 0;
+
+    sidebarEl.addEventListener('touchstart', (e) => {
+      if (!sidebarEl.classList.contains('sidebar--open')) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      dragging = true;
+      deltaX = 0;
+      sidebarEl.style.transition = 'none';
+    }, { passive: true });
+
+    sidebarEl.addEventListener('touchmove', (e) => {
+      if (!dragging) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      // Só ativa se for gesto predominantemente horizontal pra esquerda
+      if (Math.abs(dx) < Math.abs(dy)) return;
+      if (dx < 0) {
+        deltaX = dx;
+        sidebarEl.style.transform = `translateX(${dx}px)`;
+      }
+    }, { passive: true });
+
+    sidebarEl.addEventListener('touchend', () => {
+      if (!dragging) return;
+      dragging = false;
+      sidebarEl.style.transition = '';
+      sidebarEl.style.transform = '';
+      // Se arrastou mais de 80px pra esquerda, fecha
+      if (deltaX < -80) nav.closeSidebar();
+    });
+  }
+
   // Reconecta silenciosamente quando o app volta ao foco (mobile suspende WebSocket)
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') firebase.silentRefresh();

@@ -4024,3 +4024,57 @@ body.modal-open {
   .dash-legend-item { min-height: 44px; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   BLOCO 2 da auditoria de layout
+═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 5. Botões de pagamento em telas muito pequenas (≤380px) ──────────
+   Em iPhone SE / telas pequenas o texto "Crédito" / "Dinheiro" cortava
+   no grid 2x2. Reduzimos padding, ícone e fonte sem mudar o layout. */
+@media (max-width: 380px) {
+  .payment-types { gap: 6px; }
+  .payment-btn   { padding: 11px 4px 10px; font-size: .70rem; gap: 5px; letter-spacing: .01em; }
+  .payment-icon  { width: 30px; height: 30px; }
+  .payment-icon svg { width: 16px; height: 16px; }
+}
+
+/* ── 6. Aluno-row em mobile pequeno (≤480px) ──────────────────────────
+   Grid 1fr 90px 40px ficava colado em iPhone SE. Aperta um pouco mais
+   pra dar respiro entre nome + parcela + botão. */
+@media (max-width: 480px) {
+  .aluno-row {
+    grid-template-columns: 1fr 76px 40px;
+    gap: 8px;
+  }
+  .btn-add-aluno,
+  .btn-remove-aluno {
+    width: 40px;  /* mantém 44px de touch target via padding visual abaixo */
+    height: 40px;
+  }
+}
+
+/* ── 7. Modais OCR/Confirmar mais largos em tablet (769-1024) ─────────
+   Modais com muitos campos (ocrModal, ocrModalSaida, ocrDadosModal)
+   ficavam estreitos em iPad portrait. Aumenta o max-width só para
+   esses três — modais informativos seguem 500px. */
+@media (min-width: 769px) and (max-width: 1024px) {
+  #ocrModal       .modal-card,
+  #ocrModalSaida  .modal-card,
+  #ocrDadosModal  .modal-card {
+    max-width: 600px;
+  }
+}
+
+/* ── 8. Banner de inatividade mais discreto em tablet ─────────────────
+   Em tablet o banner ocupava quase toda a largura visual e parecia um
+   "alerta gigante". Limita largura e reduz padding/fonte. */
+@media (min-width: 769px) {
+  .ls-banner {
+    width: min(420px, 92vw);
+    padding: 12px 14px;
+  }
+  .ls-banner-text       { font-size: .80rem; }
+  .ls-banner-text strong { font-size: .82rem; }
+  .ls-banner-text span  { font-size: .74rem; }
+}
+

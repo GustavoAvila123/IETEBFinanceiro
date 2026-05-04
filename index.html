@@ -980,10 +980,21 @@
         </div>
         <div class="filter-group" id="filtroAlunoGrupo">
           <label class="form-label" for="filtroAluno">Aluno</label>
-          <input type="text" class="form-input filter-input" id="filtroAluno"
-            list="filtroAlunoLista" placeholder="Nome do aluno"
-            oninput="aplicarFiltros()" autocomplete="off" />
-          <datalist id="filtroAlunoLista"></datalist>
+          <div class="combobox-wrap">
+            <input type="text" class="form-input filter-input combobox-input" id="filtroAluno"
+              placeholder="Nome do aluno" autocomplete="off"
+              oninput="onFiltroAlunoInput()"
+              onfocus="onFiltroAlunoFocus()" />
+            <button type="button" class="combobox-clear" id="filtroAlunoClear"
+              onclick="onFiltroAlunoClear()" aria-label="Limpar aluno" hidden>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="6" y1="6" x2="18" y2="18"/>
+                <line x1="18" y1="6" x2="6" y2="18"/>
+              </svg>
+            </button>
+            <div class="combobox-dropdown" id="filtroAlunoDropdown"></div>
+          </div>
         </div>
         <div class="filter-group" id="filtroCursoGrupo">
           <label class="form-label" for="filtroCurso">Curso</label>

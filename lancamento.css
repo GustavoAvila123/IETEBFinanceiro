@@ -1080,10 +1080,12 @@ body {
 }
 
 .report-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 14px;
+  display: grid;
+  /* auto-fit: 1 col em telas estreitas (<260px), 2-3 em tablet,
+     5+ em desktop. Mantém todos os filtros com largura uniforme. */
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  align-items: end;
+  gap: 14px 16px;
   background: linear-gradient(135deg, #050d27 0%, #091640 100%);
   border-radius: var(--radius-lg);
   padding: 22px 24px;
@@ -1091,7 +1093,14 @@ body {
   margin-bottom: 18px;
   border: 1px solid rgba(212,175,55,.13);
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* dropdown do combobox precisa "vazar" */
+}
+
+/* O botão "Limpar filtros" ocupa a célula final do grid e alinha à direita */
+.report-filters .btn-ghost {
+  align-self: end;
+  justify-self: end;
+  height: 42px;
 }
 
 .report-filters::before {
@@ -1157,6 +1166,83 @@ body {
 }
 
 .filter-input { min-width: 130px; }
+
+/* ─── COMBOBOX (filtro Aluno) ─────────────────────────────────────────
+   Combobox custom no padrão premium do app — substitui o <datalist>
+   nativo (estilo inconsistente entre browsers/mobile) por um dropdown
+   que casa visualmente com .form-input/.church-dropdown. */
+.combobox-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.combobox-input {
+  padding-right: 36px; /* espaço para o botão clear */
+}
+
+.combobox-clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(11, 31, 92, .08);
+  color: var(--gray-700);
+  cursor: pointer;
+  padding: 0;
+  transition: background .15s, color .15s;
+}
+.combobox-clear:hover {
+  background: rgba(11, 31, 92, .18);
+  color: var(--navy);
+}
+.combobox-clear[hidden] { display: none; }
+
+.combobox-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1.5px solid var(--navy-light);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px rgba(5, 13, 39, .22);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 350;
+}
+.combobox-dropdown--open { display: block; }
+
+.combobox-option {
+  padding: 10px 14px;
+  font-size: .86rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background .12s, color .12s;
+  border-bottom: 1px solid var(--gray-100);
+}
+.combobox-option:last-child { border-bottom: none; }
+.combobox-option:hover,
+.combobox-option:focus {
+  background: var(--gold-bg);
+  color: var(--navy);
+  outline: none;
+}
+
+.combobox-empty {
+  padding: 14px;
+  font-size: .82rem;
+  color: var(--gray-500);
+  text-align: center;
+  font-style: italic;
+}
 
 .report-actions {
   display: flex;

@@ -30,6 +30,8 @@ class RelatorioPage {
     document.getElementById('filtroAluno').value     = '';
     document.getElementById('filtroCurso').value     = '';
     document.getElementById('filtroPagamento').value = '';
+    this._toggleClearAluno();
+    this.closeAlunoDropdown();
     this.carregar();
   }
 
@@ -74,14 +76,77 @@ class RelatorioPage {
   }
 
   _popularDatalistAlunos() {
-    const dl = document.getElementById('filtroAlunoLista');
-    if (!dl) return;
-    if (this.tipo !== 'entradas') { dl.innerHTML = ''; return; }
-    // Lista única, ordenada, ignorando vazios — usada como autocomplete
-    const nomes = Array.from(new Set(
+    if (this.tipo !== 'entradas') { this._alunosUnicos = []; return; }
+    // Lista única, ordenada, ignorando vazios — base do combobox custom
+    this._alunosUnicos = Array.from(new Set(
       this.reportData.map(it => (it.nomeAluno || '').trim()).filter(Boolean)
     )).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-    dl.innerHTML = nomes.map(n => `<option value="${escHtml(n)}"></option>`).join('');
+  }
+
+  // ── Combobox de Aluno ──────────────────────────────────────────────────
+  // Substitui o <datalist> nativo (visual inconsistente entre browsers
+  // e mobile) por um dropdown estilizado igual ao .church-dropdown.
+  _renderAlunoDropdown(termo) {
+    const dd = document.getElementById('filtroAlunoDropdown');
+    if (!dd) return;
+    const list = this._alunosUnicos || [];
+    const t    = (termo || '').trim().toLowerCase();
+    const filt = t ? list.filter(n => n.toLowerCase().includes(t)) : list;
+    if (!filt.length) {
+      dd.innerHTML = `<div class="combobox-empty">Nenhum aluno encontrado</div>`;
+    } else {
+      dd.innerHTML = filt.slice(0, 50).map(n =>
+        `<div class="combobox-option" onmousedown="selectAluno(this)" data-value="${escHtml(n)}">${escHtml(n)}</div>`
+      ).join('');
+    }
+    dd.classList.add('combobox-dropdown--open');
+  }
+
+  _toggleClearAluno() {
+    const inp   = document.getElementById('filtroAluno');
+    const clear = document.getElementById('filtroAlunoClear');
+    if (inp && clear) clear.hidden = !(inp.value || '').trim();
+  }
+
+  onFiltroAlunoFocus() {
+    this._renderAlunoDropdown(document.getElementById('filtroAluno').value);
+  }
+
+  onFiltroAlunoInput() {
+    this._renderAlunoDropdown(document.getElementById('filtroAluno').value);
+    this._toggleClearAluno();
+    this.aplicarFiltros();
+  }
+
+  selectAluno(el) {
+    const inp = document.getElementById('filtroAluno');
+    inp.value = el.dataset.value || '';
+    this.closeAlunoDropdown();
+    this._toggleClearAluno();
+    this.aplicarFiltros();
+  }
+
+  onFiltroAlunoClear() {
+    const inp = document.getElementById('filtroAluno');
+    inp.value = '';
+    this._toggleClearAluno();
+    this._renderAlunoDropdown('');
+    inp.focus();
+    this.aplicarFiltros();
+  }
+
+  closeAlunoDropdown() {
+    const dd = document.getElementById('filtroAlunoDropdown');
+    if (dd) dd.classList.remove('combobox-dropdown--open');
+  }
+
+  // Fecha o dropdown ao clicar fora — chamado uma vez no init.
+  bindAlunoOutsideClose() {
+    document.addEventListener('click', (ev) => {
+      const wrap = document.querySelector('#filtroAlunoGrupo .combobox-wrap');
+      if (!wrap) return;
+      if (!wrap.contains(ev.target)) this.closeAlunoDropdown();
+    });
   }
 
   onFiltroDeChange() {
@@ -145,6 +210,8 @@ class RelatorioPage {
     document.getElementById('filtroAluno').value     = '';
     document.getElementById('filtroCurso').value     = '';
     document.getElementById('filtroPagamento').value = '';
+    this._toggleClearAluno();
+    this.closeAlunoDropdown();
     this.aplicarFiltros();
   }
 

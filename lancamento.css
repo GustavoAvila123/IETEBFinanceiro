@@ -1299,7 +1299,15 @@ body {
 
 .report-table tbody tr:last-child td { border-bottom: none; }
 
-.report-table tbody tr:hover td { background: rgba(212,175,55,.04); }
+/* Hover só em devices com ponteiro real (mouse). No mobile/tablet/iPad,
+   :hover gruda no toque e ofuscava o strip azul de Data/Hora e o
+   destaque dourado do Valor. Excluímos também essas 3 células do
+   tint pra preservar o gradiente original mesmo no desktop. */
+@media (hover: hover) {
+  .report-table tbody tr:hover td:not([data-label="Data"]):not([data-label="Hora"]):not(.col-valor) {
+    background: rgba(212,175,55,.04);
+  }
+}
 
 .badge {
   display: inline-block;

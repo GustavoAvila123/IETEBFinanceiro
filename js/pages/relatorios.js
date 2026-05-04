@@ -27,6 +27,7 @@ class RelatorioPage {
     document.getElementById('tipoBtnSaidas').classList.remove('tipo-btn--active');
     document.getElementById('filtroDataDe').value    = '';
     document.getElementById('filtroDataAte').value   = '';
+    document.getElementById('filtroAluno').value     = '';
     document.getElementById('filtroCurso').value     = '';
     document.getElementById('filtroPagamento').value = '';
     this.carregar();
@@ -37,8 +38,13 @@ class RelatorioPage {
     document.getElementById('tipoBtnEntradas').classList.toggle('tipo-btn--active', tipo === 'entradas');
     document.getElementById('tipoBtnSaidas').classList.toggle('tipo-btn--active',   tipo === 'saidas');
 
+    // Aluno e Curso só fazem sentido em Entradas
+    document.getElementById('filtroAlunoGrupo').style.display = tipo === 'saidas' ? 'none' : '';
     document.getElementById('filtroCursoGrupo').style.display = tipo === 'saidas' ? 'none' : '';
-    if (tipo === 'saidas') document.getElementById('filtroCurso').value = '';
+    if (tipo === 'saidas') {
+      document.getElementById('filtroAluno').value = '';
+      document.getElementById('filtroCurso').value = '';
+    }
 
     const { de, ate } = this._monthRange();
     document.getElementById('filtroDataDe').value  = isoToDateInput(de);
@@ -63,7 +69,19 @@ class RelatorioPage {
       return;
     }
     this.reportData = this.tipo === 'saidas' ? getSaidasData() : getEntradasData();
+    this._popularDatalistAlunos();
     this.aplicarFiltros();
+  }
+
+  _popularDatalistAlunos() {
+    const dl = document.getElementById('filtroAlunoLista');
+    if (!dl) return;
+    if (this.tipo !== 'entradas') { dl.innerHTML = ''; return; }
+    // Lista única, ordenada, ignorando vazios — usada como autocomplete
+    const nomes = Array.from(new Set(
+      this.reportData.map(it => (it.nomeAluno || '').trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    dl.innerHTML = nomes.map(n => `<option value="${escHtml(n)}"></option>`).join('');
   }
 
   onFiltroDeChange() {
@@ -98,6 +116,7 @@ class RelatorioPage {
   aplicarFiltros() {
     const de        = dateInputToISO(document.getElementById('filtroDataDe').value);
     const ate       = dateInputToISO(document.getElementById('filtroDataAte').value);
+    const aluno     = (document.getElementById('filtroAluno').value || '').trim().toLowerCase();
     const curso     = document.getElementById('filtroCurso').value;
     const pagamento = document.getElementById('filtroPagamento').value;
     const isSaidas  = this.tipo === 'saidas';
@@ -106,6 +125,7 @@ class RelatorioPage {
       const itemDate = isSaidas ? item.data : item.dataDeposito;
       if (de  && itemDate < de)  return false;
       if (ate && itemDate > ate) return false;
+      if (!isSaidas && aluno && !(item.nomeAluno || '').toLowerCase().includes(aluno)) return false;
       if (!isSaidas && curso && item.curso !== curso) return false;
       if (pagamento && item.formaPagamento !== pagamento) return false;
       return true;
@@ -122,6 +142,7 @@ class RelatorioPage {
     const { de, ate } = this._monthRange();
     document.getElementById('filtroDataDe').value    = isoToDateInput(de);
     document.getElementById('filtroDataAte').value   = isoToDateInput(ate);
+    document.getElementById('filtroAluno').value     = '';
     document.getElementById('filtroCurso').value     = '';
     document.getElementById('filtroPagamento').value = '';
     this.aplicarFiltros();

@@ -978,6 +978,13 @@
           <label class="form-label" for="filtroDataAte">Até</label>
           <input type="text" class="form-input filter-input" id="filtroDataAte" placeholder="DD/MM/AAAA" maxlength="10" oninput="onDateInput(this)" onblur="onDateBlur(this,'onFiltroAteChange',true)" />
         </div>
+        <div class="filter-group" id="filtroAlunoGrupo">
+          <label class="form-label" for="filtroAluno">Aluno</label>
+          <input type="text" class="form-input filter-input" id="filtroAluno"
+            list="filtroAlunoLista" placeholder="Nome do aluno"
+            oninput="aplicarFiltros()" autocomplete="off" />
+          <datalist id="filtroAlunoLista"></datalist>
+        </div>
         <div class="filter-group" id="filtroCursoGrupo">
           <label class="form-label" for="filtroCurso">Curso</label>
           <select class="form-select filter-input" id="filtroCurso" onchange="aplicarFiltros()">

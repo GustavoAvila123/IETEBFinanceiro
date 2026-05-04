@@ -1950,8 +1950,13 @@ body.modal-open {
 
   .content-header {
     padding: 18px 18px;
-    /* Reserva espaço para o botão "Ir para Home" tile (~64px + margem) */
-    padding-right: 92px;
+    /* Reserva espaço para o botão "Ir para Home" tile.
+       O botão tile no mobile tem ~95-110px de largura (ícone + texto
+       "Ir para Home") + margem direita 12px. Folga para nunca colidir. */
+    padding-right: 120px;
+    /* min-height garante que o header acomode o botão (≈70px de altura)
+       mesmo se o texto for curto. */
+    min-height: 84px;
     border-radius: 12px;
   }
   .page-title { font-size: 1.2rem; }
@@ -2002,10 +2007,11 @@ body.modal-open {
   .modal-card { margin: 0 4px; }
   /* page-content padding agora vem dos tokens em BLOCO 4 */
 
-  /* Botão "Ir para Home" fica menor (~58px) — reduz a reserva. */
+  /* Botão "Ir para Home" tile compacto em iPhone — folga generosa. */
   .content-header {
     padding: 16px 14px;
-    padding-right: 78px;
+    padding-right: 110px;
+    min-height: 80px;
   }
 }
 

@@ -30,7 +30,7 @@ class OCREntradas {
     }
   }
 
-  async preprocessImageForOcr(file) {
+  async preprocessImageForOcr(file, maxTarget) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(file);
@@ -39,7 +39,13 @@ class OCREntradas {
         URL.revokeObjectURL(url);
         try {
           const maxSide = Math.max(img.width, img.height);
-          const scale   = maxSide < 2000 ? 2000 / maxSide : 1;
+          // Padrão: só upscale se imagem muito pequena. Quando maxTarget
+          // é passado, força esse tamanho — usado no 2º pass pra
+          // shrink texto MUITO grande (R$ 200 do Mercado Pago) até um
+          // tamanho que o Tesseract reconhece bem (~30-60px de altura).
+          const scale   = maxTarget
+            ? maxTarget / maxSide
+            : (maxSide < 2000 ? 2000 / maxSide : 1);
           const canvas  = document.createElement('canvas');
           canvas.width  = Math.round(img.width  * scale);
           canvas.height = Math.round(img.height * scale);
@@ -89,8 +95,41 @@ class OCREntradas {
         }
       }
     });
+    let text = result.data.text;
+
+    // Comprovantes como Mercado Pago renderizam o "R$ 200" em fonte
+    // gigante. O PSM 3 (padrão, auto) costuma tratar texto muito
+    // grande como gráfico e pular a linha inteira. Se não achamos
+    // nenhuma marca de "R$" na 1ª passada, fazemos uma 2ª com PSM 11
+    // (sparse text) — agressivo em encontrar texto isolado de
+    // qualquer tamanho. Só roda quando precisa, pra não dobrar o
+    // tempo no caso normal.
+    const semRS = !/\bR\s*[\$Ss5%#&8B]?\s*\d/i.test(text);
+    if (semRS) {
+      try {
+        this.setStatus(true, 'Refazendo leitura para texto grande...');
+        // Imagem reduzida pra ~1000px no maior lado. O "R$ 200" gigante
+        // vira um número de ~60-80px, que o Tesseract reconhece bem.
+        let fileSmall = fileParaOcr;
+        try {
+          fileSmall = await this.preprocessImageForOcr(currentFile, 1000);
+        } catch (e) { console.warn('[OCR] Downscale falhou:', e); }
+
+        const worker = await Tesseract.createWorker('por');
+        try {
+          await worker.setParameters({ tessedit_pageseg_mode: '11' });
+          const r2 = await worker.recognize(fileSmall);
+          text = text + '\n\n' + (r2.data.text || '');
+        } finally {
+          await worker.terminate();
+        }
+      } catch (e) {
+        console.warn('[OCR] 2º pass (PSM 11) falhou:', e);
+      }
+    }
+
     this.setStatus(false);
-    this.parseAndShow(result.data.text);
+    this.parseAndShow(text);
   }
 
   async extrairDoPdf(currentFile) {

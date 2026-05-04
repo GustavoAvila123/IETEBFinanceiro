@@ -155,6 +155,11 @@ class OCREntradas {
       </div>`
     ).join('');
 
+    // Debug: expõe o texto OCR bruto pra calibração quando algum campo
+    // sai vazio. Default colapsado — não atrapalha o fluxo normal.
+    const rawEl = document.getElementById('ocrRawText');
+    if (rawEl) rawEl.value = text;
+
     this.modal.open('ocrModal');
   }
 

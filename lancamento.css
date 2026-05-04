@@ -207,8 +207,15 @@ body {
   display: none;
   align-items: center;
   gap: 14px;
-  padding: 0 16px;
-  height: 56px;
+  /* Inclui o inset top do device (notch do iPhone, status bar do
+     Android) quando o app está instalado em modo standalone — evita
+     o conteúdo "comer" o menu por trás da barra de status. */
+  padding: env(safe-area-inset-top) 16px 0;
+  padding-left:  max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  /* O height fica 56px DEPOIS do safe-area; o min-height garante o
+     compute total para clicar nos itens internos. */
+  min-height: calc(56px + env(safe-area-inset-top));
   background: var(--navy);
   border-bottom: 2px solid var(--gold);
   position: sticky;
@@ -346,7 +353,9 @@ body {
   margin-top: 5px;
 }
 
-/* Botão "Início" — discreto no canto superior direito do content-header */
+/* Botão "Início" — discreto no canto superior direito do content-header.
+   Desktop: linha (ícone + "Início").
+   Mobile/Tablet/iPad: tile vertical (ícone grande + "Ir para Home"). */
 .btn-back-home {
   position: absolute;
   top: 18px;
@@ -356,13 +365,13 @@ body {
   align-items: center;
   gap: 6px;
   padding: 7px 13px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(212,175,55,.22);
+  background: rgba(212,175,55,.10);
+  border: 1px solid rgba(212,175,55,.38);
   border-radius: 8px;
-  color: rgba(212,175,55,.82);
+  color: var(--gold);
   font: inherit;
   font-size: .76rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: .03em;
   cursor: pointer;
   transition: background .18s, border-color .18s, color .18s, transform .12s;
@@ -370,24 +379,48 @@ body {
 }
 
 .btn-back-home:hover {
-  background: rgba(212,175,55,.13);
-  border-color: rgba(212,175,55,.45);
+  background: rgba(212,175,55,.20);
+  border-color: rgba(212,175,55,.60);
   color: var(--gold-light);
 }
 
 .btn-back-home:active { transform: scale(.96); }
 
-.btn-back-home svg { flex-shrink: 0; }
+.btn-back-home svg { flex-shrink: 0; color: var(--gold); }
 
-@media (max-width: 768px) {
+/* Texto curto desktop / longo mobile — ambos no HTML, alterna por CSS */
+.btn-back-home .btn-back-home-mobile { display: none; }
+
+/* Em telas até iPad landscape (≤1024) o botão vira "tile" vertical
+   com ícone maior + texto "Ir para Home" embaixo, mais legível e
+   tocável (44px+ de touch target). */
+@media (max-width: 1024px) {
   .btn-back-home {
-    top: 14px;
-    right: 14px;
-    padding: 8px;
-    min-width: 36px;
-    justify-content: center;
+    top: 12px;
+    right: 12px;
+    padding: 8px 10px;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 64px;
+    line-height: 1.05;
+    background: rgba(5, 13, 39, .55);
+    border-color: rgba(212, 175, 55, .50);
+    box-shadow: 0 4px 14px rgba(5, 13, 39, .35);
   }
-  .btn-back-home span { display: none; }
+  .btn-back-home svg { width: 22px; height: 22px; }
+  .btn-back-home .btn-back-home-desktop { display: none; }
+  .btn-back-home .btn-back-home-mobile  { display: inline; font-size: .60rem; letter-spacing: .04em; }
+}
+
+@media (max-width: 480px) {
+  .btn-back-home {
+    top: 10px;
+    right: 10px;
+    padding: 7px 8px;
+    min-width: 58px;
+  }
+  .btn-back-home svg { width: 20px; height: 20px; }
+  .btn-back-home .btn-back-home-mobile { font-size: .56rem; }
 }
 
 /* ─── FORM CARD ─── */

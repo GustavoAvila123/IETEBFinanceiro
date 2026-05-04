@@ -1,5 +1,5 @@
 const USERS = [
-  { id: 'admin',   name: 'Jader Dias',      pass: 'IETEB@2030', role: 'admin'  },
+  { id: 'admin',   name: 'Jader Dias',      pass: '863891',     role: 'admin'  },
   { id: 'Tester1', name: 'Maurício Junior',  pass: 'Tester1@',   role: 'tester' },
   { id: 'Tester2', name: 'Isaac Junior',     pass: 'Tester2@',   role: 'tester' },
   { id: 'Tester3', name: 'Tiago Junior',     pass: 'Tester3@',   role: 'tester' },

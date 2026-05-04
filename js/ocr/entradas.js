@@ -181,7 +181,10 @@ class OCREntradas {
 
     let vMatch =
       full.match(new RegExp('valor[\\s\\S]{0,40}?R?\\$?\\s*' + NUM_RE, 'i')) ||
-      full.match(new RegExp('(?:transferência|transferencia|pix\\s+(?:enviado|recebido|pago|transferido)|pagamento\\s+realizado)[\\s\\S]{0,80}?R?\\$?\\s*' + NUM_RE, 'i'));
+      // Para palavras-chave de transação, exige R$ literal — evita capturar
+      // dígitos de CNPJ/CPF que apareçam logo após "Pix Enviado" no layout
+      // do BB (onde o valor real está ANTES da palavra-chave).
+      full.match(new RegExp('(?:transferência|transferencia|pix\\s+(?:enviado|recebido|pago|transferido)|pagamento\\s+realizado)[\\s\\S]{0,80}?R\\$\\s*' + NUM_RE, 'i'));
     if (vMatch) {
       const n = _parseV(vMatch[1]);
       if (n && n > 0) result.valor = 'R$ ' + n.toFixed(2).replace('.', ',');
@@ -204,22 +207,53 @@ class OCREntradas {
       if (m) result.valor = 'R$ ' + m[1].trim();
     }
 
-    const dataMatch =
-      // Aceita nome completo ou abreviado, com/sem "-feira" e com/sem ponto
-      full.match(/(?:segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo|seg|ter|qua|qui|sex|s[áa]b|dom)\.?\s*(?:-?\s*feira)?[,.]?\s*(\d{2}\/\d{2}\/\d{4})/i) ||
-      full.match(/data\s+(?:do\s+)?(?:pagamento|dep[oó]sito|pix|transfer[eê]ncia)?\s*[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i) ||
-      full.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
-      full.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
-      full.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
-    if (dataMatch && dataMatch[1]) {
-      const raw = dataMatch[1];
-      if (raw.includes('-')) {
-        result.data = raw;
-      } else {
-        const parts = raw.split('/');
-        result.data = parts[2].length === 2
-          ? `20${parts[2]}-${parts[1]}-${parts[0]}`
-          : `${parts[2]}-${parts[1]}-${parts[0]}`;
+    // Normaliza para formato BR completo "R$ X,XX". Se o OCR capturou
+    // "R$ 200" sem centavos (ex.: Mercado Pago), completa com ",00".
+    if (result.valor) {
+      const numStr = result.valor.replace(/^R\$?\s*/i, '').trim();
+      if (!/[,.]\d{2}$/.test(numStr)) {
+        result.valor = 'R$ ' + numStr + ',00';
+      }
+    }
+
+    // Data com nome do mês: "3/maio/2026", "3 de maio de 2026", "03-mai-2026"
+    const MESES_NOME = {
+      janeiro:'01', jan:'01', fevereiro:'02', fev:'02',
+      marco:'03',   mar:'03',
+      abril:'04',   abr:'04', maio:'05', mai:'05',
+      junho:'06',   jun:'06', julho:'07', jul:'07',
+      agosto:'08',  ago:'08', setembro:'09', set:'09',
+      outubro:'10', out:'10', novembro:'11', nov:'11',
+      dezembro:'12', dez:'12',
+    };
+    const dataNomeMes = full.match(
+      /\b(\d{1,2})\s*(?:[\/\-]|\sde\s)\s*(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s*(?:[\/\-]|\sde\s)\s*(\d{4})\b/i
+    );
+    if (dataNomeMes) {
+      const dia    = String(dataNomeMes[1]).padStart(2, '0');
+      const mesKey = dataNomeMes[2].toLowerCase().replace('ç', 'c');
+      const mes    = MESES_NOME[mesKey];
+      if (mes) result.data = `${dataNomeMes[3]}-${mes}-${dia}`;
+    }
+
+    if (!result.data) {
+      const dataMatch =
+        // Aceita nome completo ou abreviado, com/sem "-feira" e com/sem ponto
+        full.match(/(?:segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo|seg|ter|qua|qui|sex|s[áa]b|dom)\.?\s*(?:-?\s*feira)?[,.]?\s*(\d{2}\/\d{2}\/\d{4})/i) ||
+        full.match(/data\s+(?:do\s+)?(?:pagamento|dep[oó]sito|pix|transfer[eê]ncia)?\s*[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i) ||
+        full.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
+        full.match(/\b(\d{4}-\d{2}-\d{2})\b/)   ||
+        full.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
+      if (dataMatch && dataMatch[1]) {
+        const raw = dataMatch[1];
+        if (raw.includes('-')) {
+          result.data = raw;
+        } else {
+          const parts = raw.split('/');
+          result.data = parts[2].length === 2
+            ? `20${parts[2]}-${parts[1]}-${parts[0]}`
+            : `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
       }
     }
 
@@ -228,7 +262,8 @@ class OCREntradas {
       full.match(/hor[aá]rio\s*[:\-]\s*(\d{1,2}):(\d{2})/i)         ||
       full.match(/\b(\d{1,2})h(\d{2})\b/i)                          ||
       full.match(/[àa]s\s+(\d{1,2}):(\d{2})/i)                      ||
-      full.match(/\d{2}\/\d{2}\/\d{4}[T\s,]+(\d{2}):(\d{2})/)       ||
+      // "DD/MM/AAAA - HH:MM" (Bradesco usa hífen entre data e hora)
+      full.match(/\d{2}\/\d{2}\/\d{4}[T\s,\-]+(\d{2}):(\d{2})/)     ||
       full.match(/\d{4}-\d{2}-\d{2}[T\s]+(\d{2}):(\d{2})/)          ||
       full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i);
     if (horaMatch && horaMatch[1] && horaMatch[2]) {
@@ -282,7 +317,9 @@ class OCREntradas {
       // Adicionados:
       full.match(new RegExp(`conta\\s+(?:de\\s+)?origem[\\s\\S]{0,200}?(?:nome\\s*[:\\-]?\\s*)?${NOME_PAT_LOOSE}`, 'i')) ||
       full.match(new RegExp(`pagador\\s*[:\\-]\\s*${NOME_PAT_LOOSE}`, 'i')) ||
-      full.match(new RegExp(`debitado\\s+(?:de|na\\s+conta\\s+de)\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i'));
+      full.match(new RegExp(`debitado\\s+(?:de|na\\s+conta\\s+de)\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      // BB usa "Pagador\nNome" sem dois-pontos nem rótulo "Nome:"
+      full.match(new RegExp(`pagador\\s*\\n+\\s*${NOME_PAT_LOOSE}`, 'i'));
     if (blocoPagou && blocoPagou[1]) {
       const nome = toTitleCase(blocoPagou[1].trim().replace(/\s{2,}/g, ' '));
       result.nomeAluno       = nome;
@@ -312,7 +349,9 @@ class OCREntradas {
       full.match(new RegExp(`recebedor\\s*[:\\-]\\s*${NOME_PAT_LOOSE}`, 'i')) ||
       full.match(new RegExp(`recebido\\s+por\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
       full.match(new RegExp(`cr[eé]dito\\s+a\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
-      full.match(new RegExp(`conta\\s+destino[\\s\\S]{0,200}?(?:nome\\s*[:\\-]?\\s*)?${NOME_PAT_LOOSE}`, 'i'));
+      full.match(new RegExp(`conta\\s+destino[\\s\\S]{0,200}?(?:nome\\s*[:\\-]?\\s*)?${NOME_PAT_LOOSE}`, 'i')) ||
+      // BB usa "Recebedor\nNome" sem dois-pontos nem rótulo "Nome:"
+      full.match(new RegExp(`recebedor\\s*\\n+\\s*${NOME_PAT_LOOSE}`, 'i'));
     if (blocoRecebeu && blocoRecebeu[1]) {
       result.nomeRecebedor = toTitleCase(blocoRecebeu[1].trim().replace(/\s{2,}/g, ' '));
     }
@@ -337,7 +376,8 @@ class OCREntradas {
         ['Caixa',           /caixa\s+econ|\bcef\b/i],
         ['Banco do Brasil', /banco\s+do\s+brasil|\bBB\b/i],
         ['Santander',       /santander/i],
-        ['C6',              /c6\s+bank/i],
+        // Cobre "C6 Bank", "C6 S.A.", "BANCO C6 S.A." (Mercado Pago/PIX)
+        ['C6',              /\bc6\s+(?:bank|s\.?a\.?)\b|\bbanco\s+c6\b/i],
         ['PicPay',          /picpay/i],
         ['Mercado Pago',    /mercado\s+pago/i],
         ['Sicoob',          /sicoob/i],

@@ -76,6 +76,41 @@ describe('OCR Entradas — fixtures de bancos', () => {
     expect(r.nomeDepositante).toMatch(/Carlos Henrique/i);
     expect(r.nomeRecebedor).toMatch(/Tesouraria/i);
   });
+
+  it('Mercado Pago (R$ sem centavos, data 3/maio/2026, Banco C6 S.A.)', () => {
+    const r = extract(fix('mercadopago-pix.txt'));
+    expect(r.valor).toBe('R$ 200,00');               // R$ 200 → completar com ,00
+    expect(r.data).toBe('2026-05-03');               // "3/maio/2026"
+    expect(r.hora).toBe('17:20');                     // "17h20"
+    expect(r.formaPagamento).toBe('Pix');
+    expect(r.nomeDepositante).toMatch(/Diogo Soares/i);
+    expect(r.nomeRecebedor).toMatch(/Gustavo Soares/i);
+    // Bancos: depositante = Mercado Pago; recebedor = C6 (era falha)
+    const bancos = [r.bancoDepositante, r.bancoRecebedor];
+    expect(bancos).toContain('Mercado Pago');
+    expect(bancos).toContain('C6');
+  });
+
+  it('Bradesco PIX (hora separada por hífen DD/MM/AAAA - HH:MM:SS)', () => {
+    const r = extract(fix('bradesco-pix.txt'));
+    expect(r.valor).toBe('R$ 10,00');
+    expect(r.data).toBe('2026-05-03');
+    expect(r.hora).toBe('19:46');                     // separador "-" entre data/hora era a falha
+    expect(r.formaPagamento).toBe('Pix');
+    expect(r.nomeDepositante).toMatch(/Edson Soares/i);
+    expect(r.nomeRecebedor).toMatch(/Igreja/i);
+  });
+
+  it('BB Pagador/Recebedor com quebra de linha (sem :)', () => {
+    const r = extract(fix('bb-pagador-recebedor.txt'));
+    expect(r.valor).toBe('R$ 33,00');                 // não pode pegar 73,06 do CNPJ
+    expect(r.data).toBe('2026-05-03');
+    expect(r.formaPagamento).toBe('Pix');
+    // Recebedor = Adbras Osasco (não pode aparecer em Depositante)
+    expect(r.nomeRecebedor).toMatch(/Adbras\s+Osasco/i);
+    // Depositante = Paula (era a falha — ficava vazio)
+    expect(r.nomeDepositante).toMatch(/Paula/i);
+  });
 });
 
 describe('OCR Entradas — heurísticas isoladas', () => {

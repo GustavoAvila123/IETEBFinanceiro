@@ -1,0 +1,43 @@
+Comprovante BB
+R$ 33,00
+03/05/2026 às 09:11:33
+Pix Enviado
+
+Recebedor
+Adbras Osasco
+CNPJ
+73.063.471/0001-12
+Agência
+2963
+Conta
+10370
+Instituição
+00746948 BCO BRADESCO S.A.
+Tipo de conta
+Conta corrente
+Chave Pix
+73063471000112
+
+Pagador
+Paula S Alves Schneider
+CPF
+***.427.558-**
+Agência
+4867-x
+Conta
+11573-8
+Instituição
+00100000 BCO DO BRASIL S.A.
+
+Informações adicionais
+ID: F00000000202605032122144399FA046
+
+Comprovante emitido em: 03/05/2026 às 09:11:33
+Documento: 000000005240353
+Autenticação SISBB: 2CD24F3.5814F.A05
+
+Central de Relacionamento:
+4004 0001 Capitais e regiões metropolitanas
+0800 729 0001 Demais localidades
+SAC: 0800 729 2722
+Ouvidoria: 0800 729 5678

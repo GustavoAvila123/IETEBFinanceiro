@@ -1,0 +1,31 @@
+bradesco
+Comprovante de pagamento Pix
+03/05/2026 - 19:46:33
+
+Valor: R$ 10,00
+
+Dados de quem recebeu
+Nome
+IGREJA EVANGELICA ASSEMBLEIA DE DEUS MIN
+CPF/CNPJ
+73.063.471/0001-12
+Instituição
+Banco Bradesco S.A.
+
+Dados do pagamento
+Tipo
+PIX
+Valor
+R$ 10,00
+Identificador
+***
+Data do débito
+03/05/2026 - 19:46:31
+Número de controle
+E60746948202605032246A0127TzeDf8
+
+Dados de quem pagou
+Nome
+EDSON SOARES DOS SANTOS
+CPF
+***.129.778-**

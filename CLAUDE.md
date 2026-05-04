@@ -14,6 +14,7 @@ persistência no Firebase Firestore.
 - **Charts**: Chart.js (carregado sob demanda)
 - **Export**: jsPDF/autotable + SheetJS (xlsx) — sob demanda
 - **Tests**: Vitest
+- **PWA**: manifest.json + service worker (cache offline)
 
 ## Como rodar localmente
 
@@ -122,6 +123,33 @@ contraste 1.6× e PSM=4 do Tesseract, dá boa cobertura para NFC-e.
 Decisão pragmática: sem build, scripts são concatenados pelo browser.
 Para os testes no Node, usamos `eval` controlado em `tests/setup.js` que
 carrega os arquivos no escopo global do módulo de teste.
+
+## PWA (Progressive Web App)
+
+O app é instalável e funciona offline com cache básico.
+
+- **Instalável**: o navegador mostra prompt "Adicionar à tela inicial"
+  automaticamente quando o usuário acessa por uma 2ª vez.
+- **Banner próprio** (`#pwaInstallBanner`) aparece após o login, em
+  mobile, com botão "Instalar" (Android) ou instruções (iOS).
+- **Cache**: `sw.js` na raiz com 3 estratégias:
+  - **Network-first** para HTML/JS/CSS (pega versão nova quando online)
+  - **Cache-first** para imagens/assets locais
+  - **Network-only** para Firestore/Auth (não cacheia dados de banco)
+- **Versionamento**: bumpe `CACHE_VERSION` em `sw.js` para forçar
+  invalidação total do cache do SW (raro — só se mudar estrutura).
+
+### Testar PWA local
+```bash
+npx serve .  # SW só funciona em https ou localhost
+# Abrir http://localhost:3000 e clicar em "Instalar" no Chrome
+```
+
+### Quando bumpar CACHE_VERSION em sw.js
+- Se mudar a lista APP_SHELL ou a estratégia de roteamento
+- Se um bug de cache estiver "preso" no client e o ?v=YYYYMMDDx
+  do index.html não conseguir invalidar
+- (No dia a dia, o ?v= já cuida da maioria dos casos.)
 
 ## Como adicionar uma nova página
 

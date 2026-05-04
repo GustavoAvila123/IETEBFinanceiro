@@ -85,10 +85,10 @@ describe('OCR Entradas — fixtures de bancos', () => {
     expect(r.formaPagamento).toBe('Pix');
     expect(r.nomeDepositante).toMatch(/Diogo Soares/i);
     expect(r.nomeRecebedor).toMatch(/Gustavo Soares/i);
-    // Bancos: depositante = Mercado Pago; recebedor = C6 (era falha)
-    const bancos = [r.bancoDepositante, r.bancoRecebedor];
-    expect(bancos).toContain('Mercado Pago');
-    expect(bancos).toContain('C6');
+    // Bancos: o pagador (De) vem antes do recebedor (Para) no texto,
+    // então a ordem de aparição decide a atribuição correta.
+    expect(r.bancoDepositante).toBe('Mercado Pago');
+    expect(r.bancoRecebedor).toBe('C6');
   });
 
   it('Bradesco PIX (hora separada por hífen DD/MM/AAAA - HH:MM:SS)', () => {
@@ -144,5 +144,18 @@ describe('OCR Entradas — heurísticas isoladas', () => {
   it('XP é detectado (banco adicionado)', () => {
     const r = extract('XP Investimentos R$ 10,00 em 01/01/2026');
     expect(r.bancoDepositante).toBe('XP');
+  });
+
+  it('valor: tolera "$" lido como "S" pela OCR (RS 200 → R$ 200,00)', () => {
+    // Tesseract frequentemente lê o "$" como "S" em comprovantes.
+    // Sem o fallback tolerante, valor ficava vazio e o usuário
+    // precisava digitar manualmente.
+    const r = extract('Comprovante de Pix\nRS 200\nDe João\nPara Maria');
+    expect(r.valor).toBe('R$ 200,00');
+  });
+
+  it('valor: tolera "$" lido como "5" pela OCR (R5 350,00)', () => {
+    const r = extract('Comprovante\nR5 350,00\nPix recebido');
+    expect(r.valor).toBe('R$ 350,00');
   });
 });

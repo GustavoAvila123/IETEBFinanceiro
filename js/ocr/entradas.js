@@ -207,6 +207,18 @@ class OCREntradas {
       if (m) result.valor = 'R$ ' + m[1].trim();
     }
 
+    if (!result.valor) {
+      // OCR tolerante: o Tesseract frequentemente lê "$" como "S" ou "5"
+      // ("RS 200", "R5 200"). Casa apenas LINHA INTEIRA começando com R+
+      // símbolo+número, evitando falso positivo dentro de outras palavras.
+      const reTolerant = /^[\s>•·●○◯|]*R\s*[\$Ss5]\s*([\dOo][\dOo.,\s]{0,14})\s*\.?\s*$/gim;
+      for (const m of full.matchAll(reTolerant)) {
+        const raw = m[1].trim().replace(/[Oo]/g, '0').replace(/\s+/g, '');
+        const v   = _parseV(raw);
+        if (v && v > 0) { result.valor = 'R$ ' + raw; break; }
+      }
+    }
+
     // Normaliza para formato BR completo "R$ X,XX". Se o OCR capturou
     // "R$ 200" sem centavos (ex.: Mercado Pago), completa com ",00".
     if (result.valor) {
@@ -400,10 +412,30 @@ class OCREntradas {
         ['ABC Brasil',      /abc\s+brasil/i],
         ['Banco24Horas',    /banco24horas|banco\s+24\s+horas/i],
       ];
+      // Atribui na ORDEM DE APARIÇÃO no texto (não na ordem do array).
+      // Comprovantes como Mercado Pago só têm "De / Para" — sem rótulos
+      // "Quem pagou / Instituição" — então o banco do pagador é o que
+      // aparece primeiro e o do recebedor é o que aparece depois.
+      const found = [];
       for (const [nome, re] of bancos) {
-        if (re.test(full)) {
-          if      (!result.bancoDepositante)                                    result.bancoDepositante = nome;
-          else if (!result.bancoRecebedor && result.bancoDepositante !== nome)  result.bancoRecebedor   = nome;
+        const m = full.match(re);
+        if (m) found.push({ nome, pos: m.index });
+      }
+      found.sort((a, b) => a.pos - b.pos);
+      const ordemAparicao = [];
+      const seen = new Set();
+      for (const f of found) {
+        if (!seen.has(f.nome)) { seen.add(f.nome); ordemAparicao.push(f.nome); }
+      }
+      if (!result.bancoDepositante && ordemAparicao[0]) {
+        result.bancoDepositante = ordemAparicao[0];
+      }
+      if (!result.bancoRecebedor) {
+        for (const nome of ordemAparicao) {
+          if (nome !== result.bancoDepositante) {
+            result.bancoRecebedor = nome;
+            break;
+          }
         }
       }
     }

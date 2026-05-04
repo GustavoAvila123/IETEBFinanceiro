@@ -318,6 +318,9 @@ body {
   margin-bottom: 24px;
   position: relative;
   padding: 22px 26px;
+  /* Reserva espaço à direita para o botão "Início" não sobrepor o
+     título nem a descrição em nenhuma largura. */
+  padding-right: 140px;
   background: linear-gradient(135deg, #050d27 0%, #091640 60%, #0c1d52 100%);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1945,7 +1948,12 @@ body.modal-open {
 
   .tab-panel { padding: 18px 16px 0; }
 
-  .content-header { padding: 18px 18px; border-radius: 12px; }
+  .content-header {
+    padding: 18px 18px;
+    /* Reserva espaço para o botão "Ir para Home" tile (~64px + margem) */
+    padding-right: 92px;
+    border-radius: 12px;
+  }
   .page-title { font-size: 1.2rem; }
 
   .form-section { padding: 0 16px 16px; }
@@ -1993,6 +2001,12 @@ body.modal-open {
   .ocr-row-label { min-width: unset; }
   .modal-card { margin: 0 4px; }
   /* page-content padding agora vem dos tokens em BLOCO 4 */
+
+  /* Botão "Ir para Home" fica menor (~58px) — reduz a reserva. */
+  .content-header {
+    padding: 16px 14px;
+    padding-right: 78px;
+  }
 }
 
 /* ─── SNACKBAR SAÍDA SALVA ─── */

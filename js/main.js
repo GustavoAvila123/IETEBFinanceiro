@@ -245,6 +245,115 @@ window.forceRefresh = () => {
   }, { passive: false });
 })();
 
+// ── PWA: registra Service Worker e captura prompt de instalação ──────
+//
+// Service Worker dá cache offline básico. Só registra em HTTPS (ou
+// localhost) — file:// e http:// não suportam.
+//
+// O evento beforeinstallprompt é disparado pelo Chrome/Edge quando o
+// app é "instalável". Guardamos para mostrar o banner quando o usuário
+// estiver autenticado.
+window._pwaInstallPrompt = null;
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {/* falha silenciosa */});
+  });
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  window._pwaInstallPrompt = e;
+  // Banner é exibido depois (no checkAuth completed) se usuário não dispensou
+  if (typeof window._tryShowInstallBanner === 'function') window._tryShowInstallBanner();
+});
+
+window.addEventListener('appinstalled', () => {
+  window._pwaInstallPrompt = null;
+  try { localStorage.setItem('ieteb_pwa_installed', '1'); } catch (_) {}
+  const banner = document.getElementById('pwaInstallBanner');
+  if (banner) banner.remove();
+});
+
+// Mostra o banner de instalação se: (a) está em mobile/tablet,
+// (b) usuário não dispensou nem instalou, (c) já está autenticado.
+window._tryShowInstallBanner = function () {
+  // Já instalado (rodando em standalone) ou usuário dispensou?
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+  if (isStandalone) return;
+
+  let dispensado = false;
+  try {
+    dispensado = localStorage.getItem('ieteb_pwa_dispensed') === '1'
+              || localStorage.getItem('ieteb_pwa_installed') === '1';
+  } catch (_) {}
+  if (dispensado) return;
+
+  // Precisa estar autenticado pra não atrapalhar o login
+  if (sessionStorage.getItem('ieteb_auth') !== '1') return;
+
+  // Não mostra se já existe
+  if (document.getElementById('pwaInstallBanner')) return;
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const podeInstalarAndroid = !!window._pwaInstallPrompt;
+
+  // Em Android sem o prompt disponível, não tem como instalar via banner
+  if (!isIOS && !podeInstalarAndroid) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'pwaInstallBanner';
+  banner.className = 'pwa-install-banner';
+  banner.innerHTML = `
+    <div class="pwa-install-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </div>
+    <div class="pwa-install-text">
+      <strong>Instalar IETEB Financeiro</strong>
+      <span>${isIOS
+        ? 'Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.'
+        : 'Tenha o app na sua tela inicial — abre como um aplicativo nativo.'}</span>
+    </div>
+    <div class="pwa-install-actions">
+      ${isIOS ? '' : '<button class="pwa-install-btn pwa-install-btn--apply" id="pwaInstallApply">Instalar</button>'}
+      <button class="pwa-install-btn pwa-install-btn--dismiss" id="pwaInstallDismiss" title="Dispensar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>`;
+  document.body.appendChild(banner);
+
+  document.getElementById('pwaInstallDismiss').addEventListener('click', () => {
+    try { localStorage.setItem('ieteb_pwa_dispensed', '1'); } catch (_) {}
+    banner.remove();
+  });
+
+  const applyBtn = document.getElementById('pwaInstallApply');
+  if (applyBtn) {
+    applyBtn.addEventListener('click', async () => {
+      const prompt = window._pwaInstallPrompt;
+      if (!prompt) return;
+      try {
+        prompt.prompt();
+        const { outcome } = await prompt.userChoice;
+        if (outcome === 'accepted') {
+          banner.remove();
+        } else {
+          try { localStorage.setItem('ieteb_pwa_dispensed', '1'); } catch (_) {}
+          banner.remove();
+        }
+      } catch (_) {/* user fechou modal */}
+      window._pwaInstallPrompt = null;
+    });
+  }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   firebase.init();
 
@@ -267,6 +376,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!authed) return; // sem sessão: para por aqui, espera o user logar
 
   nav.initAdminUI();
+
+  // Banner "Instalar IETEB" — após autenticação, em mobile, se ainda não
+  // dispensado/instalado. Aguarda 2s para não brigar com o splash.
+  setTimeout(() => {
+    if (typeof window._tryShowInstallBanner === 'function') window._tryShowInstallBanner();
+  }, 2000);
 
   // Re-renderiza a página ativa ao receber atualização em tempo real do Firestore
   firebase.setDataUpdateCallback(() => {

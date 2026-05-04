@@ -1,0 +1,27 @@
+{
+  "name": "IETEB Financeiro",
+  "short_name": "IETEB",
+  "description": "Sistema de Gestão Financeira IETEB — entradas, saídas, dashboard e tesouraria.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#060f2e",
+  "theme_color": "#0b1f5c",
+  "lang": "pt-BR",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "assets/images/logo-ieteb-moderno.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/images/logo-ieteb-moderno.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

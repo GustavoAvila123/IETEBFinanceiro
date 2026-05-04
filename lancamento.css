@@ -1891,37 +1891,6 @@ body.modal-open {
 .ocr-row-label { font-weight: 600; color: var(--navy); min-width: 138px; flex-shrink: 0; }
 .ocr-row-value { color: var(--text-light); word-break: break-word; }
 
-/* Bloco de debug do OCR — colapsado por padrão. Útil quando o
-   reconhecimento erra algum campo: o usuário expande, copia o
-   texto bruto e envia pra calibração. */
-.ocr-debug {
-  margin: 0 26px 14px;
-  font-size: .78rem;
-  color: var(--text-light);
-}
-.ocr-debug summary {
-  cursor: pointer;
-  padding: 6px 0;
-  user-select: none;
-  color: #888;
-}
-.ocr-debug summary:hover { color: var(--navy); }
-.ocr-debug textarea {
-  width: 100%;
-  min-height: 140px;
-  margin-top: 6px;
-  padding: 8px;
-  border: 1px solid #d8d8d8;
-  border-radius: 6px;
-  background: #f8f8f8;
-  color: #333;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: .72rem;
-  line-height: 1.35;
-  resize: vertical;
-  white-space: pre;
-}
-
 .modal-footer {
   display: flex;
   gap: 10px;

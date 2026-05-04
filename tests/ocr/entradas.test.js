@@ -179,6 +179,21 @@ describe('OCR Entradas — heurísticas isoladas', () => {
     expect(r.valor).toBe('R$ 200,00');
   });
 
+  it('valor: heurística NÃO confunde "C6" / "S2" de nome de banco com valor', () => {
+    // Cenário real do Mercado Pago: o "R$ 200" foi destruído pelo OCR
+    // mas o "BANCO C6 S.A." sobreviveu. Não pode pegar "6" como valor.
+    const txt = [
+      'Comprovante de Pix',
+      'BANCO C6 S.A.',
+      'Mercado Pago',
+      'Diogo',
+      'Gustavo',
+    ].join('\n');
+    const r = extract(txt);
+    // Sem nenhum candidato válido → valor fica indefinido (melhor que errado)
+    expect(r.valor).toBeUndefined();
+  });
+
   it('valor: heurística agressiva NÃO confunde CPF/CNPJ/ID com valor', () => {
     // Sem nenhuma pista de valor → não inventa nada (CPF/ID rejeitados)
     const txt = [

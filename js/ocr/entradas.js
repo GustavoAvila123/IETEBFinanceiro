@@ -208,10 +208,10 @@ class OCREntradas {
     }
 
     if (!result.valor) {
-      // OCR tolerante: o Tesseract frequentemente lê "$" como "S" ou "5"
-      // ("RS 200", "R5 200"). Casa apenas LINHA INTEIRA começando com R+
-      // símbolo+número, evitando falso positivo dentro de outras palavras.
-      const reTolerant = /^[\s>•·●○◯|]*R\s*[\$Ss5]\s*([\dOo][\dOo.,\s]{0,14})\s*\.?\s*$/gim;
+      // OCR tolerante: o Tesseract pode ler o "$" como "S", "5", "#",
+      // "%", "&", "8", "B" — ou perdê-lo de vez (sobrando só "R 200").
+      // Casa apenas LINHA INTEIRA começando com R + símbolo/espaço + número.
+      const reTolerant = /^[\s>•·●○◯|]*R(?:[\$Ss5%#&8B]\s*|\s+)([\dOo][\dOo.,\s]{0,14})\s*\.?\s*$/gim;
       for (const m of full.matchAll(reTolerant)) {
         const raw = m[1].trim().replace(/[Oo]/g, '0').replace(/\s+/g, '');
         const v   = _parseV(raw);
@@ -225,7 +225,9 @@ class OCREntradas {
       // monetário, filtrando CPF/CNPJ/data/hora/ID/agência/conta/CEP.
       // Cobre o caso onde o OCR degradou o "R$" a ponto de nenhuma
       // âncora textual sobreviver — mas o número do valor ainda está lá.
-      const skipKw = /CPF|CNPJ|ag[eê]ncia|\bconta\b|\bid\b|transa[çc][aã]o|telefone|\bfone\b|c[eé]p|c[oó]digo|aut[eê]nti|0800|chave|atendimento|ouvidoria/i;
+      // Adicionados "banco", "institui[çc][aã]o" e sufixos jurídicos
+      // pra evitar capturar "6" de "BANCO C6 S.A." como valor.
+      const skipKw = /banco|institui[çc][aã]o|\bs\.?\s*a\.?\b|\bltda\b|\beireli\b|\bme\b|CPF|CNPJ|ag[eê]ncia|\bconta\b|\bid\b|transa[çc][aã]o|telefone|\bfone\b|c[eé]p|c[oó]digo|aut[eê]nti|0800|chave|atendimento|ouvidoria/i;
       const lines  = full.split(/\r?\n/);
       const max    = Math.min(lines.length, 25);
       for (let i = 0; i < max; i++) {
@@ -240,6 +242,9 @@ class OCREntradas {
           const raw    = c[1].replace(/\s+/g, '');
           const digits = raw.replace(/[.,]/g, '');
           if (digits.length === 0 || digits.length >= 8) continue;
+          // 1 dígito sozinho ("C6", "S2") é quase sempre código, não valor.
+          // Pix de R$ 5 inteiros sem ",00" é caso limite aceitável.
+          if (digits.length < 2) continue;
           // 4+ dígitos sem separador é provável código (agência/conta/ID)
           if (digits.length >= 4 && !/[.,]/.test(raw)) continue;
 

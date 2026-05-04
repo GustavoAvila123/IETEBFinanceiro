@@ -158,4 +158,38 @@ describe('OCR Entradas — heurísticas isoladas', () => {
     const r = extract('Comprovante\nR5 350,00\nPix recebido');
     expect(r.valor).toBe('R$ 350,00');
   });
+
+  it('valor: heurística agressiva pega número curto sem R$ (OCR perdeu o símbolo)', () => {
+    // Cenário: Tesseract degradou o "R$" completamente. A linha do valor
+    // virou só o número. Heurística do "linha curta no topo + filtros"
+    // deve resgatá-lo. CPFs/datas/IDs próximos não podem confundir.
+    const txt = [
+      'Comprovante de Pix',
+      '3/maio/2026',           // tem "/" → ignorado
+      '200',                    // ← este é o valor
+      'De',
+      'Diogo Soares de Avila',
+      'CPF: ***.365.708-**',   // máscara CPF → ignorado
+      'Mercado Pago',
+      'Para',
+      'Gustavo Soares de Avila',
+      '157548267626',          // ID 12 dígitos sem separador → ignorado
+    ].join('\n');
+    const r = extract(txt);
+    expect(r.valor).toBe('R$ 200,00');
+  });
+
+  it('valor: heurística agressiva NÃO confunde CPF/CNPJ/ID com valor', () => {
+    // Sem nenhuma pista de valor → não inventa nada (CPF/ID rejeitados)
+    const txt = [
+      'Comprovante',
+      'CPF: ***.365.708-**',
+      'Agência 4867-x',
+      'Conta 11573-8',
+      'ID transação F00000202605032122144399FA046',
+      '0800 729 2722',
+    ].join('\n');
+    const r = extract(txt);
+    expect(r.valor).toBeUndefined();
+  });
 });

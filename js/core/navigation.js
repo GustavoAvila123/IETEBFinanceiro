@@ -78,12 +78,28 @@ class NavigationManager {
   openSidebar() {
     document.getElementById('sidebar').classList.add('sidebar--open');
     document.getElementById('sidebarOverlay').classList.add('sidebar-overlay--show');
-    document.body.style.overflow = 'hidden';
+    // No iOS PWA, "overflow: hidden" no body sozinho não trava o scroll
+    // do html. Reusa a trava do modal (position: fixed + top negativo)
+    // mas só se ainda não estiver travado por um modal — evita quebrar
+    // o restore-scroll do ModalManager se sidebar e modal coexistirem.
+    if (!document.body.classList.contains('modal-open')) {
+      this._sidebarLockedY = window.scrollY || window.pageYOffset || 0;
+      document.body.style.top = `-${this._sidebarLockedY}px`;
+      document.body.classList.add('modal-open');
+      this._sidebarOwnsLock = true;
+    }
   }
 
   closeSidebar() {
     document.getElementById('sidebar').classList.remove('sidebar--open');
     document.getElementById('sidebarOverlay').classList.remove('sidebar-overlay--show');
-    document.body.style.overflow = '';
+    if (this._sidebarOwnsLock) {
+      document.body.classList.remove('modal-open');
+      document.body.style.top = '';
+      const y = this._sidebarLockedY;
+      this._sidebarLockedY  = null;
+      this._sidebarOwnsLock = false;
+      if (y != null) window.scrollTo(0, y);
+    }
   }
 }

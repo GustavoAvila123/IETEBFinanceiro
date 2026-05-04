@@ -219,6 +219,52 @@ class OCREntradas {
       }
     }
 
+    if (!result.valor) {
+      // Heurística agressiva (último recurso real): percorre as primeiras
+      // linhas curtas do documento procurando algo que pareça valor
+      // monetário, filtrando CPF/CNPJ/data/hora/ID/agência/conta/CEP.
+      // Cobre o caso onde o OCR degradou o "R$" a ponto de nenhuma
+      // âncora textual sobreviver — mas o número do valor ainda está lá.
+      const skipKw = /CPF|CNPJ|ag[eê]ncia|\bconta\b|\bid\b|transa[çc][aã]o|telefone|\bfone\b|c[eé]p|c[oó]digo|aut[eê]nti|0800|chave|atendimento|ouvidoria/i;
+      const lines  = full.split(/\r?\n/);
+      const max    = Math.min(lines.length, 25);
+      for (let i = 0; i < max; i++) {
+        const t = lines[i].trim();
+        if (!t || t.length > 40) continue;
+        if (skipKw.test(t))      continue;
+        // CPF mascarado/completo: 3+3+3-2 (com asteriscos ou dígitos)
+        if (/[\d*]{3}\s*\.\s*[\d*]{3}\s*\.\s*[\d*]{3}\s*-\s*[\d*]{2}/.test(t)) continue;
+
+        const candidates = t.matchAll(/(\d{1,3}(?:[.\s]\d{3})*[,.]\d{2}|\d{1,7})/g);
+        for (const c of candidates) {
+          const raw    = c[1].replace(/\s+/g, '');
+          const digits = raw.replace(/[.,]/g, '');
+          if (digits.length === 0 || digits.length >= 8) continue;
+          // 4+ dígitos sem separador é provável código (agência/conta/ID)
+          if (digits.length >= 4 && !/[.,]/.test(raw)) continue;
+
+          const start  = c.index;
+          const before = t.slice(Math.max(0, start - 4), start);
+          const after  = t.slice(start + c[0].length, start + c[0].length + 4);
+          // Vizinhança que indica data, ID, telefone, hora, máscara CPF.
+          // "3/maio" — o "3" tem "/" em after mas não dígito depois;
+          // por isso testamos `^[\/\-]` (qualquer / ou - logo após).
+          if (/[\/\-]/.test(before))     continue;
+          if (/^[\/\-]/.test(after))     continue;
+          if (/\*/.test(before) || /\*/.test(after)) continue;
+          if (/^[hH:]/.test(after))      continue;
+          if (/[hH:]$/.test(before))     continue;
+
+          const v = _parseV(raw);
+          if (!v || v <= 0 || v > 1_000_000) continue;
+
+          result.valor = 'R$ ' + raw;
+          break;
+        }
+        if (result.valor) break;
+      }
+    }
+
     // Normaliza para formato BR completo "R$ X,XX". Se o OCR capturou
     // "R$ 200" sem centavos (ex.: Mercado Pago), completa com ",00".
     if (result.valor) {

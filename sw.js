@@ -12,7 +12,7 @@
 // Atenção: por design, NÃO cacheamos requisições POST/PUT/DELETE.
 // Apenas GETs entram em cache.
 
-const CACHE_VERSION = 'ieteb-v1-20260503';
+const CACHE_VERSION = 'ieteb-v1-20260504';
 const CACHE_STATIC  = `${CACHE_VERSION}-static`;
 const CACHE_RUNTIME = `${CACHE_VERSION}-runtime`;
 

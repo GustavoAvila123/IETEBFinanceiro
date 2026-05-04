@@ -439,28 +439,43 @@ class OCRSaidas {
         }
       }
 
-      // Estratégia 1-3: bloco do CNPJ (lógica original — só roda se
-      // os labels acima não acharem nada)
+      // Estratégia 1-3: bloco do CNPJ (lógica original)
+      // ORDEM:
+      //  a) Linha anterior ao CNPJ se terminar em LTDA/EIRELI/SA/ME/MEI/EPP
+      //     (sinal forte de nome de empresa)
+      //  b) Texto APÓS o CNPJ na mesma linha (caso Carrefour)
+      //  c) Texto ANTES do CNPJ na mesma linha
+      //  d) Linha anterior sem terminação corporativa (fallback)
+      const _termCorp = /(?:LTDA|EIRELI|S[\/.]?A|ME|MEI|EPP)\s*\.?$/i;
       if (!nome) for (let i = 0; i < Math.min(_lines.length, 15); i++) {
         const ln = _lines[i];
         if (!(_cnpjRe.test(ln) || /CN[PF]J/i.test(ln))) continue;
 
+        // Coleta linha anterior "razoável" (até 3 linhas atrás)
+        let prev = null;
+        for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
+          if (_looksLikeName(_lines[j])) { prev = _lines[j]; break; }
+        }
+
+        // a) Linha anterior com terminação corporativa = sinal forte
+        if (prev && _termCorp.test(prev)) { nome = prev; break; }
+
+        // b) Texto APÓS o CNPJ na mesma linha (Carrefour)
         const after = ln.match(/(?:CN[PF]J\s*[:.]?\s*)?\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\s\/]?\d{4}[\s\-]?\d{2}\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'|-]{3,80})/i);
         if (after && after[1].trim().length >= 4) {
           const cand = _cleanCandidate(after[1]);
           if (_looksLikeName(cand)) { nome = cand; break; }
         }
 
+        // c) Texto ANTES do CNPJ na mesma linha
         const before = ln.match(/^([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ0-9 &.,'|-]{3,60}?)\s+(?:CN[PF]J|\d{2}[\.\s]?\d{3})/i);
         if (before && before[1].trim().length >= 4) {
           const cand = _cleanCandidate(before[1]);
           if (_looksLikeName(cand)) { nome = cand; break; }
         }
 
-        for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
-          if (_looksLikeName(_lines[j])) { nome = _lines[j]; break; }
-        }
-        if (nome) break;
+        // d) Linha anterior sem terminação corporativa (fallback)
+        if (prev) { nome = prev; break; }
       }
 
       if (!nome) {

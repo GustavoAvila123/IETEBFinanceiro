@@ -1,0 +1,23 @@
+inter
+Pix enviado
+R$ 120,00
+Sexta, 18/04/2026
+Horário 17:35
+ID da transação
+E00416968202604181735ABCDEFGHIJ
+
+Quem recebeu
+Nome
+Centro Educacional Teológico
+CNPJ
+04.508.083/0001-04
+Instituição
+Bradesco S.A.
+
+Quem pagou
+Nome
+LAUDICEA DE JESUS OLIVEIRA
+CPF
+***123.456-**
+Instituição
+Banco Inter S.A.

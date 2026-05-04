@@ -1,0 +1,27 @@
+MercadoCar Mercantil de Pecas Ltda
+CNPJ:43.158.302/0006-00 Barra Funda
+Marques de Sao Vicente, 1697
+Varzea da Barra Funda, SAO PAULO, SP
+
+Documento Auxiliar de Nota Fiscal de Consumidor Eletronica
+
+Codigo Descricao        Qtde UN  Vl Unit  Vl Total
+321948 MOTOR OW30 ACEA C2 SELENIA  1 UN  62,90  62,90
+321948 MOTOR OW30 ACEA C2 SELENIA  1 UN  62,90  62,90
+254722 FILTRO OLEO       1 UN  33,90  33,90
+321948 MOTOR OW30 ACEA C2 SELENIA  1 UN  62,90  62,90
+321948 MOTOR OW30 ACEA C2 SELENIA  1 UN  62,90  62,90
+321948 MOTOR OW30 ACEA C2 SELENIA  1 UN  62,90  62,90
+
+Qtde. total de itens               6
+Valor total R$                  348,40
+Desconto total R$                 0,00
+Valor a pagar R$                348,40
+
+FORMA PAGAMENTO         VALOR PAGO R$
+Cartao de Credito                348,40
+Troco R$                          0,00
+
+NFC-e No. 000522247 serie 001
+18/04/2026 15:04:42
+Protocolo de autorizacao: 135 2626141347 77

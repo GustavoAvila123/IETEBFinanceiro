@@ -1,0 +1,19 @@
+Nubank
+Comprovante de Pix
+
+Saldo disponível R$ 2.500,00
+
+Valor R$ 350,00
+
+Pix realizado
+Quinta-feira, 22/05/2026 às 14:23
+
+Origem
+Nome: Maria das Dores Silva
+CPF: 123.456.789-00
+Instituição: Nubank
+
+Destinatário
+Nome: Igreja Batista do Brás
+CNPJ: 11.222.333/0001-44
+Instituição: Caixa Econômica Federal

@@ -1,0 +1,18 @@
+Itaú
+Comprovante de Pix
+
+Valor da transação
+R$ 480,50
+
+Data: 03/06/2026
+Horário: 09h12
+
+De:
+JOÃO PEDRO DE OLIVEIRA
+CPF ***.456.789-**
+Instituição: Banco do Brasil
+
+Para:
+IETEB - INSTITUTO ETC LTDA
+CNPJ 99.888.777/0001-66
+Instituição: Itaú Unibanco

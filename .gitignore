@@ -15,3 +15,13 @@ node_modules/
 # Build/deploy artifacts
 .netlify/
 assets/media/
+
+# Firebase local
+.firebase/
+firebase-debug.log
+
+# Editor / agent local
+.claude/
+
+# Test coverage
+coverage/

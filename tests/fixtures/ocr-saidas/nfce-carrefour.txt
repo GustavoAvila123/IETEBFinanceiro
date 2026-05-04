@@ -1,0 +1,23 @@
+CNPJ: 45.543.915/0054-93 CARREFOUR COMERCIO E INDUSTRIA L
+AV DOS AUTONOMISTAS 1542
+VILA YARA - Osasco - SP
+
+Documento Auxiliar Nota Fiscal de Consumidor Eletronica
+
+# CODIGO DESCRICAO QTDE UN VALOR UNIT (VL TR) VALOR TOTAL
+
+001 8812128 AGUA MIN S GAS CRYS 12 un x 3,89 (7,08) 46,68
+
+Qtde total de itens                12
+Valor total R$                  46,68
+FORMA PAGAMENTO         VALOR PAGO R$
+Cartao de Credito                46,68
+
+Consulte pela Chave de Acesso em
+https://www.nfce.fazenda.sp.gov.br/NFCeConsultaPublica
+3526 0445 5439 1500 5493 6509 2000 1117 1315 5911 0267
+
+Consumidor Nao Identificado
+NFC-e N:000111713 Serie:092 18/04/2026 20:54:55
+Protocolo de Autorizacao: 135262625088259
+Data da Autorizacao: 18/04/2026 20:54:55

@@ -1,13 +1,33 @@
 #!/bin/sh
 # IETEB — pre-commit hook
-# Bumpa automaticamente o cache-buster no index.html quando algum
-# arquivo .js ou .css é modificado e o index.html ainda não está
-# entre os arquivos staged (evita sobrescrever bump manual).
 #
-# Formato do cache-buster: ?v=YYYYMMDDx (data + letra incremental)
-# Mesmo dia: a -> b -> c ... -> z
-# Dia novo:  reseta para 'a' do dia atual.
+# 1) Roda os testes (npm test). Aborta o commit se algum falhar.
+# 2) Bumpa automaticamente o cache-buster ?v=YYYYMMDDx no index.html
+#    quando algum .js ou .css é modificado e o index.html ainda não
+#    está staged (evita sobrescrever bump manual).
+#
+# Para pular tudo (ex.: commit de docs ou WIP), use:
+#   git commit --no-verify -m "..."
 
+# ── 1. Testes ────────────────────────────────────────────────────────
+# Só roda se o package.json existir e o npm estiver disponível.
+if [ -f package.json ] && command -v npm >/dev/null 2>&1; then
+  if [ -d node_modules ]; then
+    if ! npm test --silent >/tmp/ieteb-test-out.log 2>&1; then
+      echo "❌ pre-commit: testes falharam. Saída:"
+      tail -50 /tmp/ieteb-test-out.log
+      echo ""
+      echo "   (use 'git commit --no-verify' para bypassar)"
+      exit 1
+    fi
+  else
+    echo "⚠ pre-commit: node_modules ausente — rodando 'npm install' primeiro?"
+    echo "   (ou ignore com 'git commit --no-verify')"
+    # Não aborta — primeira vez do clone pode não ter npm install ainda.
+  fi
+fi
+
+# ── 2. Cache-buster ──────────────────────────────────────────────────
 # Quais arquivos staged podem demandar bump?
 CHANGED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|css)$')
 

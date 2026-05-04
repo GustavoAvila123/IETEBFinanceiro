@@ -1,0 +1,17 @@
+COMPROVANTE DE PAGAMENTO DE BOLETO
+
+Cedente: ENERGIA ELETRICA SA
+CNPJ Cedente: 33.444.555/0001-22
+Sacado: IETEB
+
+Vencimento: 15/04/2026
+Valor do documento: R$ 580,00
+Valor pago: R$ 580,00
+
+Pago em: 15/04/2026 às 11:23
+Banco pagador: Itaú Unibanco
+
+Linha digitável:
+34191.79001 01043.510047 91020.150008 6 90370000058000
+
+Nosso Numero: 1234567890

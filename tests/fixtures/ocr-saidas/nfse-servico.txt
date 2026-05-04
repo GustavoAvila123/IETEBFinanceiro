@@ -1,0 +1,25 @@
+PREFEITURA DE SAO PAULO
+NOTA FISCAL DE SERVICOS ELETRONICA - NFS-e
+
+Numero da Nota: 00045
+Data de Emissao: 10/04/2026 14:32:18
+
+PRESTADOR DE SERVICOS
+Razão Social: CONSULTORIA ALFA LTDA
+CNPJ: 12.345.678/0001-99
+Endereço: Rua das Flores, 200
+
+TOMADOR DE SERVICOS
+Razão Social: IETEB
+CNPJ: 04.508.083/0001-04
+
+DESCRICAO DOS SERVICOS
+Consultoria em gestão financeira referente abril/2026
+
+Valor do Servico R$ 2.500,00
+Desconto R$ 0,00
+Base de Calculo R$ 2.500,00
+ISS R$ 125,00
+Valor Liquido R$ 2.375,00
+
+Forma de Pagamento: Boleto

@@ -4383,8 +4383,10 @@ body.modal-open {
 
 .ls-input-wrap {
   position: relative;
-  display: flex;
-  align-items: center;
+  /* display: block (default) — os ícones .ls-icon e .ls-eye já são
+     position:absolute, então flex no wrap só causava interferências
+     sutis no width do input em alguns browsers. */
+  display: block;
 }
 
 .ls-icon {
@@ -4430,33 +4432,29 @@ body.modal-open {
 }
 
 .ls-input--pw {
-  /* Folga maior pra evitar overlap com o botão olho mesmo em zoom */
-  padding-right: 52px;
+  /* Padding que dá espaço pro olho dentro do input sem cortar o
+     placeholder. Eye width ~25px + right:14px = ~39px ocupados,
+     45px de folga sem invadir texto. */
+  padding-right: 45px;
 }
 
 .ls-eye {
   position: absolute;
-  right: 8px;
-  /* Centraliza verticalmente em qualquer altura do input — sem isso
-     o botão "vaza" pra fora quando o input cresce em algum estado */
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
-  color: rgba(212, 175, 55, 0.45);
+  color: rgba(212, 175, 55, 0.55);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 4px;
+  border-radius: 4px;
   transition:
     color 0.2s,
     background 0.18s;
-  /* Garante que o botão fica colável e o ícone não escapa */
-  width: 32px;
-  height: 32px;
-  box-sizing: border-box;
 }
 .ls-eye:hover {
   color: var(--gold);
@@ -4468,6 +4466,7 @@ body.modal-open {
 .ls-eye svg {
   width: 17px;
   height: 17px;
+  display: block;
 }
 
 /* ── Error geral ── */

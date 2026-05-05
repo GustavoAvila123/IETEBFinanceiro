@@ -29,33 +29,45 @@ test.describe('Regressão #1 — PWA splash não pode ficar em loop', () => {
 });
 
 test.describe('Regressão #2 — Campo de senha do login não pode ficar "quebrado"', () => {
-  test('input de senha tem largura/altura razoáveis e o botão "olho" cabe dentro', async ({ page }) => {
+  test('inputs de usuário e senha têm a mesma largura visual', async ({ page }) => {
     await page.goto('/');
 
+    const userInput = page.locator('#loginUsuario');
     const senhaInput = page.locator('#loginSenha');
+    const eyeBtn = page.locator('#loginEyeBtn');
+
+    await expect(userInput).toBeVisible();
     await expect(senhaInput).toBeVisible();
+    await expect(eyeBtn).toBeVisible();
 
-    const bbox = await senhaInput.boundingBox();
-    expect(bbox).not.toBeNull();
-    // Sanidade: input não pode ser microscópico nem fora da tela
-    expect(bbox.width).toBeGreaterThan(150);
-    expect(bbox.height).toBeGreaterThan(30);
-    expect(bbox.height).toBeLessThan(80);
+    const userBox = await userInput.boundingBox();
+    const senhaBox = await senhaInput.boundingBox();
+    expect(userBox).not.toBeNull();
+    expect(senhaBox).not.toBeNull();
 
-    // Botão "olho" tem que estar DENTRO do wrap visual (que é o input).
-    // Medimos contra o wrap (parent direto) pra evitar arredondamentos
-    // de subpixel entre input e wrap.
-    const wrapBox = await page.locator('#loginSenha').locator('xpath=..').boundingBox();
-    const eyeBox = await page.locator('#loginEyeBtn').boundingBox();
-    expect(wrapBox).not.toBeNull();
-    expect(eyeBox).not.toBeNull();
-    expect(eyeBox.x).toBeGreaterThanOrEqual(wrapBox.x);
-    expect(eyeBox.x + eyeBox.width).toBeLessThanOrEqual(wrapBox.x + wrapBox.width + 1);
-    // Tolerância vertical de ±10px: o wrap.y é o início visual do
-    // input (que tem padding interno), mas o olho centra-se no centro
-    // visual do INPUT (não do wrap). Pequena diferença é OK.
-    expect(eyeBox.y).toBeGreaterThanOrEqual(wrapBox.y - 10);
-    expect(eyeBox.y + eyeBox.height).toBeLessThanOrEqual(wrapBox.y + wrapBox.height + 10);
+    // Ambos inputs devem ter MESMA largura (tolerância 1px pra
+    // rounding). Era o bug original: senha ficava menor que usuário.
+    expect(Math.abs(userBox.width - senhaBox.width)).toBeLessThanOrEqual(1);
+    // E mesma posição X
+    expect(Math.abs(userBox.x - senhaBox.x)).toBeLessThanOrEqual(1);
+
+    // Sanidade do input
+    expect(senhaBox.width).toBeGreaterThan(150);
+    expect(senhaBox.height).toBeGreaterThan(30);
+    expect(senhaBox.height).toBeLessThan(80);
+
+    // Bug original (tooltip.js + utils.css): o helper de tooltip
+    // convertia title="..." em data-tooltip e o CSS
+    // [data-tooltip] { position: relative } sobrescrevia o
+    // position:absolute do .ls-eye, mandando o olho pra esquerda.
+    // Verificamos que position é absolute (não foi sobreposto).
+    const eyeStyle = await eyeBtn.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { position: cs.position, right: cs.right };
+    });
+    expect(eyeStyle.position).toBe('absolute');
+    // E que o `right` foi aplicado (não "auto")
+    expect(eyeStyle.right).not.toBe('auto');
   });
 
   test('CSS de anti-autofill amarelo está aplicado no .ls-input', async ({ page }) => {

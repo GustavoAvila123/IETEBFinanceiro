@@ -171,7 +171,11 @@ a:focus-visible,
    em devices com hover real (mouse) — toque em mobile usaria long-press
    nativo via aria-label que segue intacto. */
 @media (hover: hover) {
-  [data-tooltip] {
+  /* :where() zera a especificidade — sem isso, esta regra vencia
+     contra .ls-eye (que é position:absolute) e quebrava o
+     posicionamento de TODO botão com title="..." que o helper
+     tooltip.js convertesse em data-tooltip. */
+  :where([data-tooltip]) {
     position: relative;
   }
 

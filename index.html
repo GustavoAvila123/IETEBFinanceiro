@@ -48,6 +48,11 @@
       referrerpolicy="no-referrer"
     />
     <link rel="stylesheet" href="lancamento.css?v=20260505d" />
+    <!-- CSS modular extraído (admin pages, onboarding, utils) — carrega
+         em paralelo após o principal. Ver MIGRATION.md item #5 do roadmap. -->
+    <link rel="stylesheet" href="css/admin.css?v=20260505d" />
+    <link rel="stylesheet" href="css/onboarding.css?v=20260505d" />
+    <link rel="stylesheet" href="css/utils.css?v=20260505d" />
     <!-- Anti-FOUC: aplica o tema ANTES do CSS render. Sem isso, o user
          em dark mode veria flash branco enquanto o JS tradicional
          carrega. Roda sincronamente, lê localStorage e seta data-theme. -->

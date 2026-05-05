@@ -33,6 +33,10 @@ html {
   --gray-700: #4a5470;
   --text: #1a2340;
   --text-light: #5a6480;
+  /* Texto "forte" — usado em títulos, valores em destaque, labels.
+     Em light mode = navy (azul-marinho premium). Em dark mode é
+     redefinido para um tom claro/gold pra manter legibilidade. */
+  --text-strong: #0b1f5c;
   --danger: #e53e3e;
   --success: #2f855a;
   --sidebar-w: 240px;
@@ -61,7 +65,16 @@ html[data-theme='dark'] {
   --gray-700: #c2cae0;
   --text: #e7ecf7;
   --text-light: #b8c0d6;
+  /* Em dark mode, texto "forte" vira gold-claro: mantém a hierarquia
+     visual (títulos chamam atenção) com contraste WCAG AA contra
+     fundos escuros (#15192c, #1b2042, etc.). Contraste medido:
+     #f5d97a sobre #15192c = 11.4:1 — excelente. */
+  --text-strong: #f5d97a;
   --gold-bg: rgba(212, 175, 55, 0.18);
+  /* danger/success precisam ser mais claros em dark pra ter contraste
+     mínimo de 4.5:1 com fundos escuros (~#15192c-#1b2042). */
+  --danger: #ff7a7a;
+  --success: #5fcf94;
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.42);
   --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.55);
 }
@@ -662,7 +675,7 @@ html[data-theme='dark'] .theme-icon-moon {
 
 /* ─── SEÇÃO BLOCO ─── */
 .form-section {
-  background: #fff;
+  background: var(--white);
   border: 1px solid rgba(212, 175, 55, 0.15);
   border-radius: 12px;
   padding: 0 20px 20px;
@@ -760,7 +773,7 @@ html[data-theme='dark'] .theme-icon-moon {
 .form-input:focus,
 .form-select:focus {
   border-color: var(--navy-light);
-  background: #fff;
+  background: var(--white);
   box-shadow: 0 0 0 3px rgba(11, 31, 92, 0.09);
 }
 
@@ -812,13 +825,13 @@ html[data-theme='dark'] .theme-icon-moon {
 .church-option:hover,
 .church-option:focus {
   background: var(--gold-bg);
-  color: var(--navy);
+  color: var(--text-strong);
   outline: none;
 }
 
 .church-option--selected {
   background: var(--gold-bg);
-  color: var(--navy);
+  color: var(--text-strong);
   font-weight: 600;
 }
 
@@ -850,7 +863,7 @@ html[data-theme='dark'] .theme-icon-moon {
 
 .payment-btn:hover {
   border-color: rgba(212, 175, 55, 0.5);
-  color: var(--navy);
+  color: var(--text-strong);
   background: rgba(212, 175, 55, 0.04);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(5, 13, 39, 0.1);
@@ -859,7 +872,7 @@ html[data-theme='dark'] .theme-icon-moon {
 .payment-btn--active {
   border-color: var(--gold);
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.13) 0%, rgba(212, 175, 55, 0.06) 100%);
-  color: var(--navy);
+  color: var(--text-strong);
   box-shadow:
     0 0 0 3px rgba(212, 175, 55, 0.15),
     0 4px 16px rgba(5, 13, 39, 0.08);
@@ -938,7 +951,7 @@ html[data-theme='dark'] .theme-icon-moon {
 .upload-title {
   font-size: 0.98rem;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--text-strong);
   margin-bottom: 5px;
 }
 .upload-hint {
@@ -972,7 +985,7 @@ html[data-theme='dark'] .theme-icon-moon {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--navy);
+  color: var(--text-strong);
   min-width: 0;
 }
 
@@ -984,7 +997,7 @@ html[data-theme='dark'] .theme-icon-moon {
 .preview-filename {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--text-strong);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1036,7 +1049,7 @@ html[data-theme='dark'] .theme-icon-moon {
   background: rgba(11, 31, 92, 0.05);
   border-radius: var(--radius);
   font-size: 0.86rem;
-  color: var(--navy);
+  color: var(--text-strong);
   font-weight: 500;
   margin-bottom: 14px;
 }
@@ -1045,7 +1058,7 @@ html[data-theme='dark'] .theme-icon-moon {
   width: 18px;
   height: 18px;
   border: 2px solid rgba(11, 31, 92, 0.15);
-  border-top-color: var(--navy);
+  border-top-color: var(--text-strong);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   flex-shrink: 0;
@@ -1487,7 +1500,7 @@ html[data-theme='dark'] .theme-icon-moon {
 }
 .combobox-clear:hover {
   background: rgba(11, 31, 92, 0.18);
-  color: var(--navy);
+  color: var(--text-strong);
 }
 .combobox-clear[hidden] {
   display: none;
@@ -1527,7 +1540,7 @@ html[data-theme='dark'] .theme-icon-moon {
 .combobox-option:hover,
 .combobox-option:focus {
   background: var(--gold-bg);
-  color: var(--navy);
+  color: var(--text-strong);
   outline: none;
 }
 
@@ -1728,7 +1741,7 @@ html[data-theme='dark'] .theme-icon-moon {
 .report-table td.col-valor {
   text-align: right;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--text-strong);
   white-space: nowrap;
 }
 
@@ -1777,6 +1790,29 @@ html[data-theme='dark'] .theme-icon-moon {
   background: rgba(116, 66, 16, 0.1);
   color: #8a4a10;
   border: 1px solid rgba(116, 66, 16, 0.22);
+}
+
+/* Dark mode: cores dos badges precisam ficar mais claras pra contraste
+   sobre os backgrounds translúcidos que ficam escuros em fundo escuro. */
+html[data-theme='dark'] .badge--pix {
+  background: rgba(39, 103, 73, 0.25);
+  color: #5fcf94;
+  border-color: rgba(95, 207, 148, 0.45);
+}
+html[data-theme='dark'] .badge--debito {
+  background: rgba(43, 108, 176, 0.25);
+  color: #74b3f0;
+  border-color: rgba(116, 179, 240, 0.45);
+}
+html[data-theme='dark'] .badge--credito {
+  background: rgba(107, 70, 193, 0.25);
+  color: #b08cee;
+  border-color: rgba(176, 140, 238, 0.45);
+}
+html[data-theme='dark'] .badge--dinheiro {
+  background: rgba(116, 66, 16, 0.28);
+  color: #e6a35c;
+  border-color: rgba(230, 163, 92, 0.45);
 }
 
 .table-empty {
@@ -2179,7 +2215,7 @@ html[data-theme='dark'] .theme-icon-moon {
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-strong);
   cursor: pointer;
   font-family: inherit;
   transition:
@@ -2361,7 +2397,7 @@ html[data-theme='dark'] .theme-icon-moon {
   font-size: 1.05rem;
   font-weight: 700;
   font-family: inherit;
-  color: var(--navy);
+  color: var(--text-strong);
   background: var(--white);
   border: 1px solid var(--gray-200);
   border-radius: 6px;
@@ -2389,7 +2425,7 @@ html[data-theme='dark'] .theme-icon-moon {
   text-align: center;
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-strong);
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -2527,7 +2563,7 @@ body.modal-open {
 }
 .ocr-row-label {
   font-weight: 600;
-  color: var(--navy);
+  color: var(--text-strong);
   min-width: 138px;
   flex-shrink: 0;
 }
@@ -2973,7 +3009,7 @@ body.modal-open {
     border-left: 4px solid var(--gold);
     font-size: 1.08rem;
     font-weight: 800;
-    color: var(--navy);
+    color: var(--text-strong);
     text-align: right;
     justify-content: space-between;
   }
@@ -3183,7 +3219,7 @@ body.modal-open {
 
 .dash-clear-filter:hover {
   background: var(--gray-100);
-  color: var(--navy);
+  color: var(--text-strong);
   border-color: var(--gray-300);
 }
 
@@ -3250,7 +3286,7 @@ body.modal-open {
 
 .caixa-filter-btn--clear:hover {
   background: var(--gray-100);
-  color: var(--navy);
+  color: var(--text-strong);
   border-color: var(--gray-300);
 }
 
@@ -3273,7 +3309,7 @@ body.modal-open {
   border-radius: 50%;
   background: var(--white);
   cursor: pointer;
-  color: var(--navy);
+  color: var(--text-strong);
   transition:
     border-color 0.18s,
     background 0.18s,
@@ -3295,7 +3331,7 @@ body.modal-open {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-strong);
   min-width: 160px;
   text-align: center;
   letter-spacing: 0.01em;
@@ -3419,7 +3455,7 @@ body.modal-open {
   color: var(--danger);
 }
 .caixa-card--saldo .caixa-card-header {
-  color: var(--navy);
+  color: var(--text-strong);
 }
 
 .caixa-card-body {
@@ -3461,13 +3497,13 @@ body.modal-open {
 }
 
 .caixa-row--total .caixa-row-label {
-  color: var(--navy);
+  color: var(--text-strong);
   font-weight: 700;
   font-size: 0.9rem;
 }
 .caixa-row--total .caixa-row-value {
   font-size: 1.1rem;
-  color: var(--navy);
+  color: var(--text-strong);
   font-weight: 800;
 }
 
@@ -3533,7 +3569,7 @@ body.modal-open {
 .caixa-saldo-item-value {
   font-size: 1.45rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-strong);
   letter-spacing: -0.02em;
   line-height: 1;
 }
@@ -3554,7 +3590,7 @@ body.modal-open {
 
 .caixa-saldo-item--total .caixa-saldo-item-label {
   font-weight: 800;
-  color: var(--navy);
+  color: var(--text-strong);
   font-size: 0.68rem;
 }
 .caixa-saldo-item--total .caixa-saldo-item-value {
@@ -3700,7 +3736,7 @@ body.modal-open {
 .dash-summary-value {
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--navy);
+  color: var(--text-strong);
   letter-spacing: -0.02em;
   line-height: 1;
 }
@@ -3727,7 +3763,7 @@ body.modal-open {
   gap: 8px;
   font-size: 0.63rem;
   font-weight: 800;
-  color: var(--navy);
+  color: var(--text-strong);
   text-transform: uppercase;
   letter-spacing: 0.14em;
   padding-bottom: 14px;
@@ -3824,7 +3860,7 @@ body.modal-open {
 }
 
 .dash-legend-value strong {
-  color: var(--navy);
+  color: var(--text-strong);
   font-weight: 700;
 }
 
@@ -5317,7 +5353,7 @@ body.modal-open {
 .home-stat-value {
   font-size: 1.45rem;
   font-weight: 800;
-  color: var(--navy);
+  color: var(--text-strong);
   line-height: 1;
   letter-spacing: -0.02em;
 }
@@ -5394,7 +5430,7 @@ body.modal-open {
 }
 .home-module-icon--relatorio {
   background: rgba(11, 31, 92, 0.07);
-  color: var(--navy);
+  color: var(--text-strong);
 }
 .home-module-icon--caixa {
   background: rgba(212, 175, 55, 0.12);
@@ -5413,7 +5449,7 @@ body.modal-open {
 .home-module-title {
   font-size: 0.93rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-strong);
   margin-bottom: 3px;
 }
 
@@ -5914,7 +5950,7 @@ textarea:focus-visible {
   border: 1px solid var(--gray-200);
   border-bottom-width: 2px;
   border-radius: 5px;
-  color: var(--navy);
+  color: var(--text-strong);
   min-width: 22px;
   text-align: center;
   line-height: 1.2;
@@ -5987,14 +6023,14 @@ textarea:focus-visible {
   transition: color 0.12s, background 0.12s;
 }
 .onboarding-skip:hover {
-  color: var(--navy);
+  color: var(--text-strong);
   background: var(--gray-100);
 }
 
 .onboarding-title {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--text-strong);
   font-family: 'Playfair Display', Georgia, serif;
   margin-bottom: 8px;
   line-height: 1.25;
@@ -6019,7 +6055,7 @@ html[data-theme='dark'] .onboarding-title {
   border: 1px solid var(--gray-200);
   border-bottom-width: 2px;
   border-radius: 4px;
-  color: var(--navy);
+  color: var(--text-strong);
 }
 
 .onboarding-actions {
@@ -6053,7 +6089,7 @@ html[data-theme='dark'] .onboarding-title {
 }
 .onboarding-next {
   background: var(--gold);
-  color: var(--navy);
+  color: var(--text-strong);
   border: 1px solid var(--gold);
 }
 .onboarding-next:hover {

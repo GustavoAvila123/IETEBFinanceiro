@@ -1559,12 +1559,42 @@ body {
     0 1px 4px rgba(5, 13, 39, 0.07);
   overflow-x: auto;
   border: 1px solid rgba(212, 175, 55, 0.12);
+  /* Sombras laterais como gradient — sinalizam "tem mais conteúdo
+     pra rolar" quando o overflow-x está ativo. As sombras navy
+     ficam no canto direito/esquerdo. */
+  background-image:
+    linear-gradient(to right, var(--white), var(--white)),
+    linear-gradient(to right, var(--white), var(--white)),
+    linear-gradient(to right, rgba(5, 13, 39, 0.18), rgba(5, 13, 39, 0)),
+    linear-gradient(to left, rgba(5, 13, 39, 0.18), rgba(5, 13, 39, 0));
+  background-position:
+    left center,
+    right center,
+    left center,
+    right center;
+  background-repeat: no-repeat;
+  background-size:
+    20px 100%,
+    20px 100%,
+    14px 100%,
+    14px 100%;
+  background-attachment: local, local, scroll, scroll;
 }
 
 .report-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8rem;
+}
+
+/* Desktop: força largura mínima pra todas as colunas terem ar e
+   ativa scroll horizontal quando a viewport é estreita demais.
+   Mobile (≤1280px) ignora — vira card layout (definido no media query
+   bem mais embaixo). */
+@media (min-width: 1281px) {
+  .report-table {
+    min-width: 1280px;
+  }
 }
 
 .report-table thead tr {
@@ -2200,12 +2230,21 @@ body {
 
 .modal-img-body {
   padding: 20px;
-  overflow-y: auto;
+  /* overflow em ambas direções pra permitir pan quando ampliado */
+  overflow: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--gray-100);
   min-height: 200px;
+  /* iOS PWA: pan via touch suave */
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-img-zoom-wrap {
+  display: inline-block;
+  /* O wrap acompanha o tamanho do scale: */
+  transform-origin: center center;
 }
 
 .modal-img-body img {
@@ -2214,12 +2253,92 @@ body {
   border-radius: var(--radius);
   object-fit: contain;
   box-shadow: var(--shadow);
+  /* Animação suave entre níveis de zoom */
+  transition: transform 0.15s ease-out;
+  cursor: zoom-in;
+  /* Quando o user scale via transform, queremos scroll/pan no body */
+  display: block;
+}
+
+/* Controles de zoom no header do modal */
+.modal-img-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  margin-right: 8px;
+  padding: 3px 6px;
+  background: rgba(11, 31, 92, 0.05);
+  border-radius: 8px;
+}
+
+.modal-img-zoom-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--navy);
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+.modal-img-zoom-btn:hover {
+  background: var(--gold-bg);
+  border-color: var(--gold);
+}
+.modal-img-zoom-btn:active {
+  transform: translateY(1px);
+}
+.modal-img-zoom-btn--reset {
+  font-size: 0.95rem;
+}
+
+.modal-img-zoom-level {
+  display: inline-block;
+  min-width: 44px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .img-modal-empty {
   color: var(--gray-500);
   font-size: 0.88rem;
   font-weight: 500;
+}
+
+/* Em mobile, header do modal de imagem pode quebrar — controls de
+   zoom ficam embaixo do título se faltar largura. */
+@media (max-width: 480px) {
+  .modal-img-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+  }
+  .modal-img-zoom-controls {
+    order: 3;
+    width: 100%;
+    margin: 0;
+    justify-content: center;
+  }
+  .modal-img-zoom-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.15rem;
+  }
 }
 
 /* ─── TOAST ─── */
@@ -5671,6 +5790,68 @@ textarea:focus-visible {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ─── ATALHOS DE TECLADO (modal "?") ──────────────────────────────────── */
+.shortcuts-list {
+  padding: 18px 26px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.shortcuts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.shortcuts-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+.shortcut-row span:first-child {
+  display: inline-flex;
+  gap: 4px;
+}
+.shortcuts-list kbd {
+  display: inline-block;
+  padding: 3px 8px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  color: var(--navy);
+  min-width: 22px;
+  text-align: center;
+  line-height: 1.2;
+}
+.shortcuts-hint {
+  margin-top: 6px;
+  padding: 12px 14px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--gray-600, #5b6478);
+  background: rgba(212, 175, 55, 0.07);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 6px 6px 0;
+}
+.shortcuts-hint kbd {
+  font-size: 0.7rem;
+  padding: 2px 6px;
 }
 
 /* Skip link para usuários de teclado/leitor de tela: pular direto pro

@@ -2685,6 +2685,12 @@
       <div class="modal-img-card" onclick="event.stopPropagation()">
         <div class="modal-img-header">
           <span class="modal-img-title">Comprovante</span>
+          <div class="modal-img-zoom-controls" id="imgModalZoomCtrls">
+            <button class="modal-img-zoom-btn" onclick="zoomImg(-1)" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
+            <span class="modal-img-zoom-level" id="imgModalZoomLevel">100%</span>
+            <button class="modal-img-zoom-btn" onclick="zoomImg(+1)" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
+            <button class="modal-img-zoom-btn modal-img-zoom-btn--reset" onclick="zoomImg(0)" title="Restaurar zoom (100%)" aria-label="Restaurar zoom">⤺</button>
+          </div>
           <button class="modal-img-close" onclick="closeImgModal()" title="Fechar">
             <svg
               width="18"
@@ -2699,8 +2705,10 @@
             </svg>
           </button>
         </div>
-        <div class="modal-img-body">
-          <img id="imgModalImg" src="" alt="Comprovante" style="display: none" />
+        <div class="modal-img-body" id="imgModalBody">
+          <div class="modal-img-zoom-wrap" id="imgModalZoomWrap">
+            <img id="imgModalImg" src="" alt="Comprovante" style="display: none" ondblclick="zoomImg(0)" />
+          </div>
           <iframe id="imgModalPdf" src="" style="display: none" width="100%" height="500"></iframe>
           <div id="imgModalEmpty" style="display: none" class="img-modal-empty">
             Comprovante não disponível
@@ -2753,6 +2761,40 @@
         ></div>
         <div class="modal-footer" style="justify-content: center">
           <button class="btn-primary" onclick="closeNotifModal()">Entendi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL ATALHOS DE TECLADO (aberto via "?") -->
+    <div class="modal-overlay" id="shortcutsModal" style="display: none">
+      <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">Atalhos de teclado</h2>
+          <p class="modal-desc">Navegue pelo app sem mouse.</p>
+        </div>
+        <div class="shortcuts-list">
+          <div class="shortcuts-section">
+            <span class="shortcuts-section-title">Navegação</span>
+            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>H</kbd></span><span>Home</span></div>
+            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>E</kbd></span><span>Entradas</span></div>
+            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>S</kbd></span><span>Saídas</span></div>
+            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>R</kbd></span><span>Relatórios</span></div>
+            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>T</kbd></span><span>Tesouraria</span></div>
+            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>D</kbd></span><span>Dashboard</span></div>
+          </div>
+          <div class="shortcuts-section">
+            <span class="shortcuts-section-title">Geral</span>
+            <div class="shortcut-row"><span><kbd>?</kbd></span><span>Mostrar atalhos</span></div>
+            <div class="shortcut-row"><span><kbd>Esc</kbd></span><span>Fechar modal aberto</span></div>
+            <div class="shortcut-row"><span><kbd>Tab</kbd></span><span>Próximo elemento focável</span></div>
+          </div>
+          <p class="shortcuts-hint">
+            Atalhos de navegação são em duas teclas: pressione <kbd>G</kbd> e em
+            seguida (até 1.2s) pressione a letra do destino.
+          </p>
+        </div>
+        <div class="modal-footer" style="justify-content: center">
+          <button class="btn-primary" onclick="closeModal('shortcutsModal')">Fechar</button>
         </div>
       </div>
     </div>
@@ -2829,6 +2871,7 @@
     <script src="js/utils/format.js?v=20260505a"></script>
     <script src="js/utils/tooltip.js?v=20260505a"></script>
     <script src="js/utils/a11y.js?v=20260505a"></script>
+    <script src="js/utils/shortcuts.js?v=20260505a"></script>
 
     <!-- Domínio -->
     <script src="js/domain/financeiro.js?v=20260505a"></script>

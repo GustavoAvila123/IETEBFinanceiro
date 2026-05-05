@@ -185,6 +185,7 @@ window.confirmarExclusao = () => relatorios.confirmarExclusao();
 window.closeDeleteModal = () => relatorios.closeDeleteModal();
 window.verComprovante = (idx) => relatorios.verComprovante(idx);
 window.closeImgModal = () => relatorios.closeImgModal();
+window.zoomImg = (delta) => relatorios.zoomImg(delta);
 
 // Tesouraria
 window.initCaixa = () => tesouraria.init();

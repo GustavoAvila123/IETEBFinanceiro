@@ -720,6 +720,7 @@ class RelatorioPage {
     const imgEl = document.getElementById('imgModalImg');
     const pdfEl = document.getElementById('imgModalPdf');
     const emptyEl = document.getElementById('imgModalEmpty');
+    const zoomCtrls = document.getElementById('imgModalZoomCtrls');
 
     imgEl.style.display = 'none';
     pdfEl.style.display = 'none';
@@ -729,12 +730,16 @@ class RelatorioPage {
     const isImg =
       src.startsWith('data:image') || item.comprovanteType === 'image' || src.startsWith('http');
 
+    // Zoom controls só aparecem para imagem (PDF já tem zoom nativo do iframe)
+    if (zoomCtrls) zoomCtrls.style.display = isImg ? '' : 'none';
+
     if (isPdf) {
       pdfEl.src = src;
       pdfEl.style.display = 'block';
     } else if (isImg) {
       imgEl.src = src;
       imgEl.style.display = 'block';
+      this.zoomImg(0); // reset zoom ao abrir
     } else {
       emptyEl.style.display = 'flex';
     }
@@ -742,9 +747,34 @@ class RelatorioPage {
     this.modal.open('imgModal');
   }
 
+  // Zoom da imagem do comprovante. delta: +1 amplia, -1 reduz, 0 reseta.
+  // Sem zoom nativo do browser (viewport bloqueia), implementamos via
+  // CSS transform: scale. Pan vem via overflow: auto no body do modal.
+  zoomImg(delta) {
+    const STEPS = [0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4];
+    if (this._imgZoomIdx == null) this._imgZoomIdx = 2; // 100%
+
+    if (delta === 0) {
+      this._imgZoomIdx = 2;
+    } else {
+      this._imgZoomIdx = Math.max(0, Math.min(STEPS.length - 1, this._imgZoomIdx + delta));
+    }
+
+    const scale = STEPS[this._imgZoomIdx];
+    const img = document.getElementById('imgModalImg');
+    const lvl = document.getElementById('imgModalZoomLevel');
+    if (img) {
+      img.style.transform = `scale(${scale})`;
+      img.style.transformOrigin = 'center center';
+      img.style.cursor = scale > 1 ? 'grab' : 'zoom-in';
+    }
+    if (lvl) lvl.textContent = `${Math.round(scale * 100)}%`;
+  }
+
   closeImgModal() {
     this.modal.close('imgModal');
     document.getElementById('imgModalImg').src = '';
     document.getElementById('imgModalPdf').src = '';
+    this._imgZoomIdx = null;
   }
 }

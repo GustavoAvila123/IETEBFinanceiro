@@ -3,7 +3,10 @@ class LoginPage {
     this.modal = modal;
     this._heartbeatInterval = null;
     this._inactivityTimer = null;
+    this._inactivityWarningTimer = null;
+    this._inactivityCountdownTimer = null;
     this._inactivityHandler = null;
+    this._inactivityWarningOpen = false;
   }
 
   // Restaura sessão a partir do Firebase Auth (que persiste no localStorage).
@@ -77,13 +80,20 @@ class LoginPage {
     );
   }
 
-  // Auto-logout por inatividade (5 min) — apenas para testers.
+  // Auto-logout por inatividade (5 min total) — apenas para testers.
   // Admin permanece logado indefinidamente.
+  //
+  // Fluxo de 2 etapas:
+  //   1. WARNING_AT_MS (4 min sem atividade) → abre modal "Sessão expira
+  //      em 60s" com countdown e 2 botões. Atividade durante o modal NÃO
+  //      reseta — usuário precisa decidir explicitamente (caminho à
+  //      prova de toques acidentais em mobile).
+  //   2. Após mais 60s sem clicar em "Continuar", logout automático.
   _setupInactivityWatch(role) {
     this._clearInactivityWatch();
     if (role === 'admin') return;
 
-    const TIMEOUT_MS = 5 * 60 * 1000;
+    const WARNING_AT_MS = 4 * 60 * 1000;
     const events = [
       'mousemove',
       'mousedown',
@@ -95,8 +105,14 @@ class LoginPage {
     ];
 
     const reset = () => {
-      if (this._inactivityTimer) clearTimeout(this._inactivityTimer);
-      this._inactivityTimer = setTimeout(() => this._onInactivity(), TIMEOUT_MS);
+      // Se o modal de warning está aberto, atividade não reseta nada —
+      // usuário tem que clicar explicitamente.
+      if (this._inactivityWarningOpen) return;
+      if (this._inactivityWarningTimer) clearTimeout(this._inactivityWarningTimer);
+      this._inactivityWarningTimer = setTimeout(
+        () => this._showInactivityWarning(),
+        WARNING_AT_MS
+      );
     };
 
     this._inactivityHandler = reset;
@@ -109,12 +125,66 @@ class LoginPage {
       clearTimeout(this._inactivityTimer);
       this._inactivityTimer = null;
     }
+    if (this._inactivityWarningTimer) {
+      clearTimeout(this._inactivityWarningTimer);
+      this._inactivityWarningTimer = null;
+    }
+    if (this._inactivityCountdownTimer) {
+      clearInterval(this._inactivityCountdownTimer);
+      this._inactivityCountdownTimer = null;
+    }
     if (this._inactivityHandler) {
       ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'touchmove', 'click'].forEach(
         (ev) => document.removeEventListener(ev, this._inactivityHandler)
       );
       this._inactivityHandler = null;
     }
+    this._inactivityWarningOpen = false;
+  }
+
+  // Mostra modal de aviso com countdown de 60s. Persiste o draft de
+  // qualquer formulário aberto antes (caso o usuário não clique).
+  _showInactivityWarning() {
+    this._inactivityWarningOpen = true;
+    let secondsLeft = 60;
+    const updateCount = () => {
+      const el = document.getElementById('sessionWarningCountdown');
+      if (el) el.textContent = String(secondsLeft);
+    };
+    updateCount();
+    this.modal.open('sessionWarningModal');
+
+    this._inactivityCountdownTimer = setInterval(() => {
+      secondsLeft--;
+      updateCount();
+      if (secondsLeft <= 0) {
+        clearInterval(this._inactivityCountdownTimer);
+        this._inactivityCountdownTimer = null;
+        this._onInactivity();
+      }
+    }, 1000);
+  }
+
+  // Botão "Continuar logado": fecha o warning e re-arma os timers.
+  continuarLogado() {
+    if (this._inactivityCountdownTimer) {
+      clearInterval(this._inactivityCountdownTimer);
+      this._inactivityCountdownTimer = null;
+    }
+    this.modal.close('sessionWarningModal');
+    this._inactivityWarningOpen = false;
+    // Re-arma a contagem regressiva chamando o handler de "atividade"
+    if (this._inactivityHandler) this._inactivityHandler();
+  }
+
+  // Botão "Sair agora": logout imediato.
+  logoutAgora() {
+    if (this._inactivityCountdownTimer) {
+      clearInterval(this._inactivityCountdownTimer);
+      this._inactivityCountdownTimer = null;
+    }
+    this.modal.close('sessionWarningModal');
+    this._onInactivity();
   }
 
   async _onInactivity() {
@@ -133,8 +203,11 @@ class LoginPage {
       this._heartbeatInterval = null;
     }
 
+    // Auto-logout PRESERVA os drafts em sessionStorage (chave
+    // ieteb_draft_*) — assim o usuário relogado encontra o que estava
+    // digitando antes do timeout. Limpa só keys de auth/PII.
     try {
-      sessionStorage.clear();
+      ['ieteb_auth', 'ieteb_user'].forEach((k) => sessionStorage.removeItem(k));
       [
         'ieteb_lancamentos',
         'ieteb_saidas',

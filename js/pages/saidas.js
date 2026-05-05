@@ -25,9 +25,24 @@ class SaidaPage {
     document.getElementById('btnLimparSaida').style.display = isManual ? '' : 'none';
   }
 
+  // IDs dos campos cobertos pelo autosave de rascunho
+  static get DRAFT_FIELDS() {
+    return [
+      'saidaCategoria',
+      'saidaFornecedor',
+      'saidaValor',
+      'saidaData',
+      'saidaHora',
+      'saidaObservacao',
+    ];
+  }
+
   resetPage() {
     this.switchTab('manual');
     this.limparSaida();
+    if (window.formPersist) {
+      window.formPersist.attach('saida', SaidaPage.DRAFT_FIELDS);
+    }
   }
 
   initValidationListeners() {
@@ -290,6 +305,7 @@ class SaidaPage {
       this.firebase.save('Saídas', registro);
 
       this._showSnackbar();
+      if (window.formPersist) window.formPersist.clear('saida');
       this.limparSaida();
       try {
         document.dispatchEvent(new CustomEvent('ietebDataChanged'));

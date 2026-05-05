@@ -10,9 +10,30 @@ class EntradaPage {
     this.currentFileDataUrl = null;
   }
 
+  // Lista de IDs cobertos pelo autosave de rascunho — só campos
+  // de texto/select/data. Alunos (multi-row) não entram aqui pra
+  // não complicar; se o user perdeu, perdeu (rara perda).
+  static get DRAFT_FIELDS() {
+    return [
+      'nomeDepositante',
+      'nomeRecebedor',
+      'bancoDepositante',
+      'bancoRecebedor',
+      'valorEntrada',
+      'dataDeposito',
+      'horaDeposito',
+      'observacao',
+      'parcela',
+    ];
+  }
+
   resetPage() {
     this.switchTab('manual');
     this.limparFormulario();
+    // Conecta autosave + restaura rascunho da sessão (se houver)
+    if (window.formPersist) {
+      window.formPersist.attach('entrada', EntradaPage.DRAFT_FIELDS);
+    }
   }
 
   // ── Abas ─────────────────────────────────────────────────────────────────────
@@ -351,6 +372,8 @@ class EntradaPage {
         ? `${alunos.length} lançamentos salvos com sucesso!`
         : 'Lançamento salvo com sucesso!';
     this._showSnackbar(msg);
+    // Salvamento bem-sucedido: limpa o draft pra próximo cadastro começar zerado
+    if (window.formPersist) window.formPersist.clear('entrada');
     this.limparFormulario();
     try {
       document.dispatchEvent(new CustomEvent('ietebDataChanged'));

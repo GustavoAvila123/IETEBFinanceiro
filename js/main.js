@@ -52,6 +52,8 @@ window.toggleLoginPw = () => login.toggleLoginPw();
 window.openLogoutModal = () => login.openLogoutModal(nav);
 window.closeLogoutModal = () => login.closeLogoutModal();
 window.confirmarLogout = () => login.confirmarLogout();
+window.continuarLogado = () => login.continuarLogado();
+window.logoutAgora = () => login.logoutAgora();
 
 // Modal genérico / Notificação
 window.openModal = (id) => modal.open(id);

@@ -2806,6 +2806,34 @@
       </div>
     </div>
 
+    <!-- MODAL AVISO DE EXPIRAÇÃO DE SESSÃO -->
+    <div class="modal-overlay" id="sessionWarningModal" style="display: none">
+      <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
+        <div class="modal-header modal-header--warning">
+          <h2 class="modal-title">Sua sessão vai expirar</h2>
+        </div>
+        <div style="padding: 20px 26px 4px; line-height: 1.55; color: var(--text)">
+          <p style="margin-bottom: 8px">
+            Por inatividade, você será deslogado em
+            <strong id="sessionWarningCountdown" style="color: var(--gold); font-size: 1.15rem"
+              >60</strong
+            >
+            segundos.
+          </p>
+          <p style="font-size: 0.82rem; color: var(--text-light); margin-bottom: 4px">
+            Clique <strong>Continuar logado</strong> para manter sua sessão ativa. Seus dados
+            digitados ficam salvos.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="logoutAgora()">Sair agora</button>
+          <button class="btn-primary" onclick="continuarLogado()">
+            Continuar logado
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL ATALHOS DE TECLADO (aberto via "?") -->
     <div class="modal-overlay" id="shortcutsModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
@@ -2915,6 +2943,7 @@
     <script src="js/utils/shortcuts.js?v=20260505d"></script>
     <script src="js/utils/theme.js?v=20260505d"></script>
     <script src="js/utils/onboarding.js?v=20260505d"></script>
+    <script src="js/utils/form-persist.js?v=20260505d"></script>
 
     <!-- Domínio -->
     <script src="js/domain/financeiro.js?v=20260505d"></script>

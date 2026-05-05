@@ -214,7 +214,7 @@ class DashboardPage {
     // Quando o filtro de datas está ativo, esmaece a navegação de mês
     const monthControls = document.querySelector('.dash-month-controls');
     if (monthControls)
-      monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);
+      {monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);}
 
     // Botão "Limpar filtro" sempre visível — mesmo padrão da Tesouraria.
     // Click sem nada filtrado é no-op (limparFiltro reseta pro estado base).

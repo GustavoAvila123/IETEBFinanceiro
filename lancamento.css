@@ -5975,6 +5975,179 @@ textarea:focus-visible {
   padding: 2px 6px;
 }
 
+/* ─── AUDITORIA (#7 — admin only) ──────────────────────────────────── */
+.auditoria-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.auditoria-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px 14px;
+  align-items: end;
+  background: linear-gradient(135deg, #050d27 0%, #091640 100%);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  border: 1px solid rgba(212, 175, 55, 0.13);
+}
+.auditoria-filters .form-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+.auditoria-filters .form-input,
+.auditoria-filters .form-select {
+  background-color: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--text-on-dark);
+}
+.auditoria-filters .form-input::placeholder {
+  color: rgba(255, 255, 255, 0.52);
+}
+.auditoria-filters .btn-ghost {
+  align-self: end;
+  height: 42px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.auditoria-filters .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.auditoria-count {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.auditoria-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.auditoria-empty {
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--gray-500);
+  font-style: italic;
+}
+
+.audit-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--gray-200);
+  box-shadow: 0 1px 6px rgba(6, 15, 46, 0.06);
+}
+.audit-card--create {
+  border-left-color: var(--success);
+}
+.audit-card--update {
+  border-left-color: #2b6cb0;
+}
+.audit-card--delete {
+  border-left-color: var(--danger);
+}
+
+.audit-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.audit-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 14px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.audit-badge--create {
+  background: rgba(47, 133, 90, 0.13);
+  color: var(--success);
+}
+.audit-badge--update {
+  background: rgba(43, 108, 176, 0.13);
+  color: #2b6cb0;
+}
+.audit-badge--delete {
+  background: rgba(229, 62, 62, 0.13);
+  color: var(--danger);
+}
+.audit-recurso {
+  font-size: 0.84rem;
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.audit-when {
+  margin-left: auto;
+  font-size: 0.74rem;
+  color: var(--text-light);
+  font-variant-numeric: tabular-nums;
+}
+.audit-user {
+  font-size: 0.82rem;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.audit-user-id {
+  font-size: 0.74rem;
+  color: var(--text-light);
+  margin-left: 8px;
+}
+
+.audit-diff {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--gray-100);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.audit-diff-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 24px 1fr;
+  gap: 6px;
+  align-items: baseline;
+}
+.audit-diff-key {
+  font-weight: 700;
+  color: var(--text-light);
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+}
+.audit-diff-before {
+  color: var(--text-light);
+  text-decoration: line-through;
+  word-break: break-word;
+}
+.audit-diff-arrow {
+  text-align: center;
+  color: var(--gold);
+  font-weight: 700;
+}
+.audit-diff-after {
+  color: var(--text-strong);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .audit-diff-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .audit-diff-arrow {
+    display: none;
+  }
+}
+
 /* ─── ONBOARDING TOUR (#12) ───────────────────────────────────────────
    Tour guiado de primeiro uso. Overlay escurece tudo, recorta o
    alvo via clip-path; tooltip flutua próximo. Estilo casa com a

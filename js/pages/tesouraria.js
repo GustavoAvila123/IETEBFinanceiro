@@ -109,7 +109,7 @@ class TesourariaPage {
 
     const monthControls = document.querySelector('.caixa-month-controls');
     if (monthControls)
-      monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);
+      {monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);}
 
     const todasEntradas = getEntradasData();
     const todasSaidas = getSaidasData();

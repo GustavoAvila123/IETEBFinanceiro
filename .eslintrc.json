@@ -63,6 +63,7 @@
     "DashboardPage": "readonly",
     "MonitorPage": "readonly",
     "LoginPage": "readonly",
+    "AuditoriaPage": "readonly",
     "IgrejaDropdown": "readonly",
     "AlunosManager": "readonly",
     "t": "readonly",

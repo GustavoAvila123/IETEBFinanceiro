@@ -82,7 +82,7 @@ class AlunosManager {
     const parcela = document.getElementById(`alunoParcela_${id}`);
     if (nome) nome.addEventListener('input', () => clearFieldError(`alunoNomeError_${id}`));
     if (parcela)
-      parcela.addEventListener('input', () => clearFieldError(`alunoParcelaError_${id}`));
+      {parcela.addEventListener('input', () => clearFieldError(`alunoParcelaError_${id}`));}
   }
 
   _buildRowHTML(id, isFirst) {

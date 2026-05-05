@@ -372,7 +372,7 @@ class RelatorioPage {
 
   _exportarPdfDesktop() {
     if (window.showProcess)
-      window.showProcess('Preparando PDF...', 'Organizando os dados do relatório.');
+      {window.showProcess('Preparando PDF...', 'Organizando os dados do relatório.');}
     const btns = document.querySelectorAll('.btn-export');
     btns.forEach((b) => {
       b.disabled = true;
@@ -457,7 +457,7 @@ class RelatorioPage {
 
   async _exportarPdfMobile() {
     if (window.showProcess)
-      window.showProcess('Preparando PDF...', 'Gerando arquivo para download.');
+      {window.showProcess('Preparando PDF...', 'Gerando arquivo para download.');}
     const btns = document.querySelectorAll('.btn-export');
     btns.forEach((b) => {
       b.disabled = true;
@@ -605,7 +605,7 @@ class RelatorioPage {
 
     try {
       if (window.showProcess)
-        window.showProcess('Preparando Excel...', 'Carregando biblioteca e gerando arquivo.');
+        {window.showProcess('Preparando Excel...', 'Carregando biblioteca e gerando arquivo.');}
       if (typeof XLSX === 'undefined') {
         await loadScript('https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js');
       }

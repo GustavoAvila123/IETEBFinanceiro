@@ -632,11 +632,11 @@ class OCRSaidas {
         lower
       )
     )
-      return 'boleto';
+      {return 'boleto';}
     if (
       /comprovante\s+de\s+pix|pix\s+(?:enviado|pago|recebido|transferido)|chave\s+pix/.test(lower)
     )
-      return 'pix';
+      {return 'pix';}
     if (/\brecibo\b|recebi\s+de|import[âa]ncia\s+de/.test(lower)) return 'recibo';
     if (/\bfatura\b|nota\s+promiss/.test(lower)) return 'fatura';
     return 'generico';

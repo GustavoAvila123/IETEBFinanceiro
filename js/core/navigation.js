@@ -6,6 +6,7 @@ class NavigationManager {
     tesourariaPage,
     dashboardPage,
     monitorPage,
+    auditoriaPage,
   }) {
     this.entradaPage = entradaPage;
     this.saidaPage = saidaPage;
@@ -13,24 +14,36 @@ class NavigationManager {
     this.tesourariaPage = tesourariaPage;
     this.dashboardPage = dashboardPage;
     this.monitorPage = monitorPage;
+    this.auditoriaPage = auditoriaPage;
   }
 
   initAdminUI() {
     const isAdmin = getCurrentUser().role === 'admin';
-    ['sidebarAdminSection', 'navMonitor'].forEach((id) => {
+    ['sidebarAdminSection', 'navMonitor', 'navAuditoria'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.style.display = isAdmin ? '' : 'none';
     });
   }
 
   showPage(page) {
-    // Monitor é restrito a admin — defesa em profundidade caso alguém
-    // tente abrir via console (a UI já esconde o link no menu).
-    if (page === 'monitor' && getCurrentUser().role !== 'admin') {
+    // Monitor e Auditoria são restritos a admin — defesa em profundidade
+    // caso alguém tente abrir via console (a UI já esconde os links).
+    if (
+      (page === 'monitor' || page === 'auditoria') &&
+      getCurrentUser().role !== 'admin'
+    ) {
       page = 'home';
     }
-    ['home', 'lancamentos', 'saidas', 'relatorios', 'caixa', 'dashboard', 'monitor'].forEach(
-      (p) => {
+    [
+      'home',
+      'lancamentos',
+      'saidas',
+      'relatorios',
+      'caixa',
+      'dashboard',
+      'monitor',
+      'auditoria',
+    ].forEach((p) => {
         document
           .getElementById('page' + p.charAt(0).toUpperCase() + p.slice(1))
           .classList.toggle('page-content--hidden', p !== page);
@@ -48,6 +61,7 @@ class NavigationManager {
       caixa: 'Tesouraria',
       dashboard: 'Dashboard',
       monitor: 'Monitor de Testers',
+      auditoria: 'Auditoria',
     };
     document.getElementById('topbarTitle').textContent = titles[page] || 'IETEB';
     window.scrollTo(0, 0);
@@ -65,6 +79,7 @@ class NavigationManager {
       if (page === 'caixa') this.tesourariaPage.resetPage();
       if (page === 'dashboard') this.dashboardPage.resetPage();
       if (page === 'monitor') this.monitorPage && this.monitorPage.resetPage();
+      if (page === 'auditoria') this.auditoriaPage && this.auditoriaPage.resetPage();
     } catch (e) {
       console.error('[navigation] resetPage falhou:', e);
     }

@@ -348,6 +348,26 @@
           </svg>
           <span>Monitor</span>
         </button>
+        <button
+          class="nav-item"
+          id="navAuditoria"
+          onclick="showPage('auditoria')"
+          style="display: none"
+        >
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="9" y1="13" x2="15" y2="13" />
+            <line x1="9" y1="17" x2="13" y2="17" />
+          </svg>
+          <span>Auditoria</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -2484,6 +2504,85 @@
         <div class="monitor-grid" id="monitorGrid"></div>
       </main>
       <!-- /pageMonitor -->
+
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: AUDITORIA (admin only)
+    ════════════════════════════════════════════════════════════════════════ -->
+      <main class="page-content page-content--hidden" id="pageAuditoria">
+        <div class="content-header">
+          <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 12L12 3l9 9" />
+              <path d="M5 10v10h14V10" />
+              <path d="M9 21V13h6v8" />
+            </svg>
+            <span>Início</span>
+          </button>
+          <h1 class="page-title">Auditoria</h1>
+          <p class="page-subtitle">
+            Histórico completo de criações, alterações e exclusões — apenas admin.
+          </p>
+        </div>
+
+        <div class="auditoria-toolbar">
+          <div class="auditoria-filters">
+            <div class="filter-group">
+              <label class="form-label" for="auditoriaFiltroAcao">Ação</label>
+              <select class="form-select filter-input" id="auditoriaFiltroAcao"
+                      onchange="aplicarAuditoriaFiltros()">
+                <option value="">Todas</option>
+                <option value="create">Criação</option>
+                <option value="update">Alteração</option>
+                <option value="delete">Exclusão</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="form-label" for="auditoriaFiltroRecurso">Recurso</label>
+              <select class="form-select filter-input" id="auditoriaFiltroRecurso"
+                      onchange="aplicarAuditoriaFiltros()">
+                <option value="">Todos</option>
+                <option value="Entradas">Entradas</option>
+                <option value="Saídas">Saídas</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="form-label" for="auditoriaFiltroUser">Usuário</label>
+              <input
+                type="text"
+                class="form-input filter-input"
+                id="auditoriaFiltroUser"
+                placeholder="Nome ou ID"
+                oninput="aplicarAuditoriaFiltros()"
+                autocomplete="off"
+              />
+            </div>
+            <button class="btn-ghost" onclick="recarregarAuditoria()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <polyline points="1 20 1 14 7 14" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
+              Atualizar
+            </button>
+          </div>
+          <span class="auditoria-count" id="auditoriaCount"></span>
+        </div>
+
+        <div class="auditoria-list" id="auditoriaList">
+          <p class="auditoria-empty">Carregando logs...</p>
+        </div>
+      </main>
+      <!-- /pageAuditoria -->
     </div>
     <!-- /page-wrapper -->
 
@@ -2968,6 +3067,7 @@
     <script src="js/pages/tesouraria.js?v=20260505d"></script>
     <script src="js/pages/dashboard.js?v=20260505d"></script>
     <script src="js/pages/monitor.js?v=20260505d"></script>
+    <script src="js/pages/auditoria.js?v=20260505d"></script>
 
     <!-- Navegação (depende das pages) -->
     <script src="js/core/navigation.js?v=20260505d"></script>

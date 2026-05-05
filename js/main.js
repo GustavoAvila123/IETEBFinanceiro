@@ -19,6 +19,7 @@ relatorios.bindAlunoOutsideClose();
 const tesouraria = new TesourariaPage(modal);
 const dashboard = new DashboardPage(modal);
 const monitor = new MonitorPage(firebase);
+const auditoria = new AuditoriaPage(firebase);
 const login = new LoginPage(modal);
 
 // Referências cruzadas (OCRs precisam da page para selectPayment, switchTab, removeFile)
@@ -35,6 +36,7 @@ const nav = new NavigationManager({
   tesourariaPage: tesouraria,
   dashboardPage: dashboard,
   monitorPage: monitor,
+  auditoriaPage: auditoria,
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -220,6 +222,10 @@ window.fecharDashDataModal = () => {
 
 // Monitor (admin only)
 window.reloadMonitor = () => monitor.render();
+
+// Auditoria (admin only)
+window.recarregarAuditoria = () => auditoria.carregar();
+window.aplicarAuditoriaFiltros = () => auditoria.aplicarFiltros();
 
 // Atualização manual — exibe overlay fosco até os dados chegarem
 window.forceRefresh = () => {

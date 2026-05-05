@@ -66,5 +66,19 @@ service cloud.firestore {
       allow read:  if isAdmin() || ownsLegacyId(legacyId);
       allow write: if isAuthed() && (isAdmin() || ownsLegacyId(legacyId));
     }
+
+    // ── /Auditoria/{logId} ────────────────────────────────────────────
+    // Append-only de logs de auditoria.
+    //  - Admin lê todos.
+    //  - Qualquer user autenticado pode CRIAR um log (próprio).
+    //  - Atualizações e exclusões bloqueadas até pra admin (preserva
+    //    integridade do log; apenas via console em emergências).
+    match /Auditoria/{logId} {
+      allow read:   if isAdmin();
+      allow create: if isAuthed()
+                    && request.resource.data.userId == userProfile().legacyId;
+      allow update: if false;
+      allow delete: if false;
+    }
   }
 }

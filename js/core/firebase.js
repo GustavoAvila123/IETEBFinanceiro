@@ -192,7 +192,7 @@ class FirebaseManager {
   async testConnection() {
     if (!this._db) {
       if (window.showToast)
-        window.showToast('❌ Firebase DB é null — SDK não inicializou', 'error');
+        {window.showToast('❌ Firebase DB é null — SDK não inicializou', 'error');}
       return;
     }
     try {
@@ -233,13 +233,28 @@ class FirebaseManager {
     if (!this._db) {
       console.error('save() chamado mas this._db é null');
       if (window.showToast)
-        window.showToast('Banco não conectado — dado salvo apenas localmente', 'error');
+        {window.showToast('Banco não conectado — dado salvo apenas localmente', 'error');}
       return;
     }
     try {
       // Imagens não são salvas no banco — apenas metadados
       const { comprovante, comprovanteUrl, comprovanteType, ...doc } = data;
-      await this._db.collection(colName).doc(String(doc.id)).set(doc);
+      // Verifica se é create (doc não existe) ou update (já existe)
+      const ref = this._db.collection(colName).doc(String(doc.id));
+      let prevSnap = null;
+      try {
+        prevSnap = await ref.get();
+      } catch (_) {}
+      const isUpdate = prevSnap && prevSnap.exists;
+      await ref.set(doc);
+      // Log de auditoria não-bloqueante (best-effort)
+      this._logAudit({
+        acao: isUpdate ? 'update' : 'create',
+        recurso: colName,
+        recursoId: String(doc.id),
+        dadosAntes: isUpdate && prevSnap ? prevSnap.data() : null,
+        dadosDepois: doc,
+      });
     } catch (e) {
       console.error('Firestore save error:', e);
       if (window.showToast) window.showToast('❌ Erro ao gravar: ' + (e.message || e), 'error');
@@ -251,6 +266,7 @@ class FirebaseManager {
     // Remove imediatamente do localStorage e registra como excluído
     const localKey = colName === 'Entradas' ? 'ieteb_lancamentos' : 'ieteb_saidas';
     const items = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const removido = items.find((r) => String(r.id) === String(id));
     localStorage.setItem(
       localKey,
       JSON.stringify(items.filter((r) => String(r.id) !== String(id)))
@@ -263,6 +279,65 @@ class FirebaseManager {
       .doc(String(id))
       .delete()
       .catch((e) => console.warn('Firestore delete error:', e));
+    // Audit log da exclusão — usa snapshot do localStorage como dadosAntes
+    this._logAudit({
+      acao: 'delete',
+      recurso: colName,
+      recursoId: String(id),
+      dadosAntes: removido || null,
+      dadosDepois: null,
+    });
+  }
+
+  // Grava um log de auditoria em /Auditoria. Best-effort: nunca bloqueia
+  // a operação principal nem mostra erro ao usuário se falhar.
+  // Schema: { id, userId, userName, acao, recurso, recursoId,
+  //           dadosAntes, dadosDepois, timestamp }
+  async _logAudit(entry) {
+    try {
+      if (!this._db) return;
+      const cu = this._currentUser || { legacyId: 'desconhecido', name: '?' };
+      const id = String(Date.now()) + '-' + Math.random().toString(36).slice(2, 8);
+      const doc = {
+        id,
+        userId: cu.legacyId,
+        userName: cu.name,
+        acao: entry.acao,
+        recurso: entry.recurso,
+        recursoId: entry.recursoId,
+        // Strip campos pesados (comprovante data URLs) antes de armazenar.
+        // Mantém apenas dados de identificação/valor pra auditoria.
+        dadosAntes: entry.dadosAntes ? this._stripHeavy(entry.dadosAntes) : null,
+        dadosDepois: entry.dadosDepois ? this._stripHeavy(entry.dadosDepois) : null,
+        timestamp: new Date().toISOString(),
+      };
+      await this._db.collection('Auditoria').doc(id).set(doc);
+    } catch (_) {
+      // Falha silenciosa — auditoria não pode quebrar a operação real
+    }
+  }
+
+  // Remove campos pesados (data URLs de comprovantes) antes de logar.
+  _stripHeavy(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    const { comprovante, comprovanteUrl, comprovanteType, ...rest } = obj;
+    return rest;
+  }
+
+  // Lista de logs de auditoria, mais recentes primeiro. Limit configurável.
+  async listAudit(limit = 200) {
+    if (!this._db) return [];
+    try {
+      const snap = await this._db
+        .collection('Auditoria')
+        .orderBy('timestamp', 'desc')
+        .limit(limit)
+        .get();
+      return snap.docs.map((d) => d.data());
+    } catch (e) {
+      console.warn('listAudit falhou:', e);
+      return [];
+    }
   }
 
   // Firestore é autoritativo. Registros salvos nos últimos 2 min ainda não
@@ -316,7 +391,7 @@ class FirebaseManager {
       } catch (e) {
         console.error('uploadMissing error:', colName, item.id, e);
         if (window.showToast)
-          window.showToast('❌ Erro ao sincronizar: ' + (e.message || e), 'error');
+          {window.showToast('❌ Erro ao sincronizar: ' + (e.message || e), 'error');}
       }
     }
   }

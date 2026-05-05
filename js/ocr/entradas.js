@@ -439,7 +439,7 @@ class OCREntradas {
     if (lower.includes('pix')) result.formaPagamento = 'Pix';
     else if (lower.includes('débito') || lower.includes('debito')) result.formaPagamento = 'Débito';
     else if (lower.includes('crédito') || lower.includes('credito'))
-      result.formaPagamento = 'Crédito';
+      {result.formaPagamento = 'Crédito';}
     else if (lower.includes('dinheiro')) result.formaPagamento = 'Dinheiro';
 
     const MAQUININHA_BRANDS = [

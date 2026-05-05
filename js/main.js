@@ -20,6 +20,7 @@ const tesouraria = new TesourariaPage(modal);
 const dashboard = new DashboardPage(modal);
 const monitor = new MonitorPage(firebase);
 const auditoria = new AuditoriaPage(firebase);
+const backup = new BackupPage(modal, firebase);
 const login = new LoginPage(modal);
 
 // Referências cruzadas (OCRs precisam da page para selectPayment, switchTab, removeFile)
@@ -37,6 +38,7 @@ const nav = new NavigationManager({
   dashboardPage: dashboard,
   monitorPage: monitor,
   auditoriaPage: auditoria,
+  backupPage: backup,
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -226,6 +228,13 @@ window.reloadMonitor = () => monitor.render();
 // Auditoria (admin only)
 window.recarregarAuditoria = () => auditoria.carregar();
 window.aplicarAuditoriaFiltros = () => auditoria.aplicarFiltros();
+
+// Backup / Restauração (admin only)
+window.exportarBackup = () => backup.exportar();
+window.onBackupFileSelected = (input) => backup.onFileSelected(input);
+window.confirmarRestore = () => backup.pedirConfirmacaoRestore();
+window.aplicarRestore = () => backup.aplicarRestore();
+window.cancelarRestore = () => backup.cancelarRestore();
 
 // Atualização manual — exibe overlay fosco até os dados chegarem
 window.forceRefresh = () => {

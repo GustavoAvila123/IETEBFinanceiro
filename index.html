@@ -368,6 +368,25 @@
           </svg>
           <span>Auditoria</span>
         </button>
+        <button
+          class="nav-item"
+          id="navBackup"
+          onclick="showPage('backup')"
+          style="display: none"
+        >
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span>Backup</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -2583,6 +2602,86 @@
         </div>
       </main>
       <!-- /pageAuditoria -->
+
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: BACKUP (admin only)
+    ════════════════════════════════════════════════════════════════════════ -->
+      <main class="page-content page-content--hidden" id="pageBackup">
+        <div class="content-header">
+          <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12L12 3l9 9" />
+              <path d="M5 10v10h14V10" />
+              <path d="M9 21V13h6v8" />
+            </svg>
+            <span>Início</span>
+          </button>
+          <h1 class="page-title">Backup &amp; Restauração</h1>
+          <p class="page-subtitle">
+            Exporte um JSON completo do banco ou restaure um backup anterior — apenas admin.
+          </p>
+        </div>
+
+        <div class="backup-grid">
+          <div class="backup-card">
+            <div class="backup-card-header">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <h2>Backup completo</h2>
+            </div>
+            <p class="backup-desc">
+              Lê todas as coleções (Entradas, Saídas, Users, Sessões, Auditoria) e
+              gera um arquivo JSON pra você guardar localmente. Inclui metadados
+              (quem exportou, quando, totais por coleção).
+            </p>
+            <button class="btn-primary" id="btnBackupExport" onclick="exportarBackup()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Baixar backup (.json)
+            </button>
+          </div>
+
+          <div class="backup-card">
+            <div class="backup-card-header">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              <h2>Restaurar backup</h2>
+            </div>
+            <p class="backup-desc">
+              <strong>Ação destrutiva.</strong> Sobrescreve os documentos atuais
+              com os do arquivo selecionado. Documentos novos (não presentes no
+              backup) são preservados.
+            </p>
+            <input type="file" id="backupFileInput" accept=".json" style="display:none"
+                   onchange="onBackupFileSelected(this)" />
+            <div class="backup-restore-row">
+              <button class="btn-secondary" onclick="document.getElementById('backupFileInput').click()">
+                Escolher arquivo
+              </button>
+              <span class="backup-file-label" id="restoreFileLabel">Nenhum arquivo selecionado</span>
+            </div>
+            <button class="btn-danger" id="btnRestoreConfirm" disabled
+                    onclick="confirmarRestore()">
+              Restaurar
+            </button>
+          </div>
+        </div>
+
+        <p class="backup-status" id="backupStatus"></p>
+      </main>
+      <!-- /pageBackup -->
     </div>
     <!-- /page-wrapper -->
 
@@ -2905,6 +3004,29 @@
       </div>
     </div>
 
+    <!-- MODAL CONFIRMAÇÃO DE RESTORE (ação destrutiva) -->
+    <div class="modal-overlay" id="restoreConfirmModal" style="display: none">
+      <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
+        <div class="modal-header modal-header--danger">
+          <h2 class="modal-title">⚠️ Confirmar restauração</h2>
+        </div>
+        <div style="padding: 22px 26px 4px; line-height: 1.55; color: var(--text)">
+          <p style="margin-bottom: 10px">
+            Esta ação <strong>sobrescreve</strong> registros existentes no Firestore com
+            os dados do arquivo selecionado.
+          </p>
+          <p style="font-size: 0.82rem; color: var(--text-light); margin-bottom: 4px">
+            Documentos atuais que NÃO estiverem no backup serão preservados.
+            Para garantir a restauração total, faça um backup completo agora antes de prosseguir.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="cancelarRestore()">Cancelar</button>
+          <button class="btn-danger" onclick="aplicarRestore()">Sim, restaurar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL AVISO DE EXPIRAÇÃO DE SESSÃO -->
     <div class="modal-overlay" id="sessionWarningModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
@@ -3068,6 +3190,7 @@
     <script src="js/pages/dashboard.js?v=20260505d"></script>
     <script src="js/pages/monitor.js?v=20260505d"></script>
     <script src="js/pages/auditoria.js?v=20260505d"></script>
+    <script src="js/pages/backup.js?v=20260505d"></script>
 
     <!-- Navegação (depende das pages) -->
     <script src="js/core/navigation.js?v=20260505d"></script>

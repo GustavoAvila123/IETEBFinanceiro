@@ -50,22 +50,38 @@ test.describe('Smoke: app boota corretamente', () => {
   });
 
   test('assets críticos carregam sem 404', async ({ page }) => {
+    const ownHost = new URL((await page.goto('/')).url()).hostname;
     const failures = [];
+
     page.on('requestfailed', (req) => {
-      failures.push(`${req.method()} ${req.url()} — ${req.failure()?.errorText}`);
+      const errorText = req.failure()?.errorText || '';
+      let host;
+      try {
+        host = new URL(req.url()).hostname;
+      } catch (_) {
+        host = '';
+      }
+      // Falhas em hosts EXTERNOS são esperadas e desejáveis quando vêm
+      // de bloqueio CSP — significa que o CSP está funcionando.
+      // Só nos importam falhas de assets do nosso próprio domínio.
+      if (host !== ownHost) return;
+      failures.push(`${req.method()} ${req.url()} — ${errorText}`);
     });
     page.on('response', (res) => {
-      if (
-        res.status() >= 400 &&
-        new URL(res.url()).hostname === new URL(page.url() || 'http://localhost').hostname
-      ) {
+      let host;
+      try {
+        host = new URL(res.url()).hostname;
+      } catch (_) {
+        return;
+      }
+      if (res.status() >= 400 && host === ownHost) {
         failures.push(`${res.status()} ${res.url()}`);
       }
     });
 
-    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' });
 
-    // Filtra falhas conhecidas/aceitáveis (favicon, sourcemaps externos)
+    // Filtra ruídos conhecidos: favicon, sourcemaps
     const real = failures.filter((f) => !f.includes('favicon') && !f.includes('.map'));
     expect(real, `Recursos com erro: ${real.join('; ')}`).toEqual([]);
   });

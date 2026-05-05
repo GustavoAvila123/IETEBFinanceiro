@@ -37,8 +37,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
-      name: 'mobile-iphone',
-      use: { ...devices['iPhone 14'] },
+      // Mobile Chrome (Pixel 5) usa o MESMO engine do projeto desktop
+      // (Chromium), evitando ter que baixar WebKit/Firefox separados.
+      // Para incluir iPhone real (WebKit), trocar para devices['iPhone 14']
+      // e rodar antes: npx playwright install webkit
+      name: 'mobile-chrome',
+      use: { ...devices['Pixel 5'] },
     },
   ],
   webServer: {

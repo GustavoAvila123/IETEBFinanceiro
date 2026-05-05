@@ -37,6 +37,11 @@ html {
      Em light mode = navy (azul-marinho premium). Em dark mode é
      redefinido para um tom claro/gold pra manter legibilidade. */
   --text-strong: #0b1f5c;
+  /* Texto que SEMPRE fica em fundo escuro fixo (hero da home, login,
+     topbar, sidebar, modal-header). Permanece branco em ambos os
+     temas porque o fundo nunca muda. NÃO confundir com --white,
+     que é o "fundo neutro de cards" e troca pra escuro em dark mode. */
+  --text-on-dark: #ffffff;
   --danger: #e53e3e;
   --success: #2f855a;
   --sidebar-w: 240px;
@@ -4309,7 +4314,7 @@ body.modal-open {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.95rem;
   font-weight: 700;
-  color: var(--white);
+  color: var(--text-on-dark);
   letter-spacing: -0.01em;
   line-height: 1.15;
   margin-bottom: 6px;
@@ -4364,7 +4369,7 @@ body.modal-open {
   background: rgba(6, 15, 46, 0.65);
   border: 1.5px solid rgba(212, 175, 55, 0.18);
   border-radius: 10px;
-  color: var(--white);
+  color: var(--text-on-dark);
   font-size: 0.95rem;
   font-family: inherit;
   transition:
@@ -5094,7 +5099,7 @@ body.modal-open {
   background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
   border: 1.5px solid rgba(212, 175, 55, 0.35);
   border-radius: var(--radius);
-  color: var(--white);
+  color: var(--text-on-dark);
   font-size: 0.92rem;
   font-weight: 600;
   font-family: inherit;
@@ -5227,7 +5232,7 @@ body.modal-open {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.8rem;
   font-weight: 700;
-  color: var(--white);
+  color: var(--text-on-dark);
   line-height: 1.15;
 }
 

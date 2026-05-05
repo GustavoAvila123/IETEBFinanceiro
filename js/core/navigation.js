@@ -38,14 +38,22 @@ class NavigationManager {
     document.getElementById('topbarTitle').textContent = titles[page] || 'IETEB';
     window.scrollTo(0, 0);
 
-    if (page === 'home')        this.initHome();
-    if (page === 'lancamentos') this.entradaPage.resetPage();
-    if (page === 'saidas')      this.saidaPage.resetPage();
-    if (page === 'relatorios')  this.relatorioPage.resetPage();
-    if (page === 'caixa')       this.tesourariaPage.resetPage();
-    if (page === 'dashboard')   this.dashboardPage.resetPage();
-    if (page === 'monitor')     this.monitorPage && this.monitorPage.resetPage();
+    // Fecha o menu ANTES dos resets de página — assim, mesmo se algum
+    // resetPage lançar (DOM stale entre versões cacheadas, etc.), o
+    // sidebar do PWA não fica preso aberto sobre a tela nova.
     this.closeSidebar();
+
+    try {
+      if (page === 'home')        this.initHome();
+      if (page === 'lancamentos') this.entradaPage.resetPage();
+      if (page === 'saidas')      this.saidaPage.resetPage();
+      if (page === 'relatorios')  this.relatorioPage.resetPage();
+      if (page === 'caixa')       this.tesourariaPage.resetPage();
+      if (page === 'dashboard')   this.dashboardPage.resetPage();
+      if (page === 'monitor')     this.monitorPage && this.monitorPage.resetPage();
+    } catch (e) {
+      console.error('[navigation] resetPage falhou:', e);
+    }
   }
 
   initHome() {

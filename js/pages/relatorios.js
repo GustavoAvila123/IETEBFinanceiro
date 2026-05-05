@@ -23,13 +23,17 @@ class RelatorioPage {
 
   resetPage() {
     this.tipo = '';
-    document.getElementById('tipoBtnEntradas').classList.remove('tipo-btn--active');
-    document.getElementById('tipoBtnSaidas').classList.remove('tipo-btn--active');
-    document.getElementById('filtroDataDe').value    = '';
-    document.getElementById('filtroDataAte').value   = '';
-    document.getElementById('filtroAluno').value     = '';
-    document.getElementById('filtroCurso').value     = '';
-    document.getElementById('filtroPagamento').value = '';
+    // Helpers null-safe — proteção contra HTML cacheado defasado em
+    // relação ao JS (acontece quando o SW serve index.html antigo).
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    const rmCls  = (id, c) => { const el = document.getElementById(id); if (el) el.classList.remove(c); };
+    rmCls('tipoBtnEntradas', 'tipo-btn--active');
+    rmCls('tipoBtnSaidas',   'tipo-btn--active');
+    setVal('filtroDataDe',    '');
+    setVal('filtroDataAte',   '');
+    setVal('filtroAluno',     '');
+    setVal('filtroCurso',     '');
+    setVal('filtroPagamento', '');
     this._toggleClearAluno();
     this.closeAlunoDropdown();
     this.carregar();
@@ -37,26 +41,30 @@ class RelatorioPage {
 
   onTipoChange(tipo) {
     this.tipo = tipo;
-    document.getElementById('tipoBtnEntradas').classList.toggle('tipo-btn--active', tipo === 'entradas');
-    document.getElementById('tipoBtnSaidas').classList.toggle('tipo-btn--active',   tipo === 'saidas');
+    const tg  = (id, c, on) => { const el = document.getElementById(id); if (el) el.classList.toggle(c, on); };
+    const dsp = (id, v)     => { const el = document.getElementById(id); if (el) el.style.display = v; };
+    const setVal = (id, v)  => { const el = document.getElementById(id); if (el) el.value = v; };
+
+    tg('tipoBtnEntradas', 'tipo-btn--active', tipo === 'entradas');
+    tg('tipoBtnSaidas',   'tipo-btn--active', tipo === 'saidas');
 
     // Aluno e Curso só fazem sentido em Entradas
-    document.getElementById('filtroAlunoGrupo').style.display = tipo === 'saidas' ? 'none' : '';
-    document.getElementById('filtroCursoGrupo').style.display = tipo === 'saidas' ? 'none' : '';
+    dsp('filtroAlunoGrupo', tipo === 'saidas' ? 'none' : '');
+    dsp('filtroCursoGrupo', tipo === 'saidas' ? 'none' : '');
     if (tipo === 'saidas') {
-      document.getElementById('filtroAluno').value = '';
-      document.getElementById('filtroCurso').value = '';
+      setVal('filtroAluno', '');
+      setVal('filtroCurso', '');
     }
 
     const { de, ate } = this._monthRange();
-    document.getElementById('filtroDataDe').value  = isoToDateInput(de);
-    document.getElementById('filtroDataAte').value = isoToDateInput(ate);
+    setVal('filtroDataDe',  isoToDateInput(de));
+    setVal('filtroDataAte', isoToDateInput(ate));
 
-    document.getElementById('reportTipoPrompt').style.display = 'none';
-    document.getElementById('reportFilters').style.display    = '';
-    document.getElementById('reportActions').style.display    = '';
-    document.getElementById('tableWrap').style.display        = '';
-    document.getElementById('pagination').style.display       = '';
+    dsp('reportTipoPrompt', 'none');
+    dsp('reportFilters',    '');
+    dsp('reportActions',    '');
+    dsp('tableWrap',        '');
+    dsp('pagination',       '');
 
     this.carregar();
   }
@@ -179,11 +187,15 @@ class RelatorioPage {
   }
 
   aplicarFiltros() {
-    const de        = dateInputToISO(document.getElementById('filtroDataDe').value);
-    const ate       = dateInputToISO(document.getElementById('filtroDataAte').value);
-    const aluno     = (document.getElementById('filtroAluno').value || '').trim().toLowerCase();
-    const curso     = document.getElementById('filtroCurso').value;
-    const pagamento = document.getElementById('filtroPagamento').value;
+    const v = id => {
+      const el = document.getElementById(id);
+      return el ? el.value : '';
+    };
+    const de        = dateInputToISO(v('filtroDataDe'));
+    const ate       = dateInputToISO(v('filtroDataAte'));
+    const aluno     = v('filtroAluno').trim().toLowerCase();
+    const curso     = v('filtroCurso');
+    const pagamento = v('filtroPagamento');
     const isSaidas  = this.tipo === 'saidas';
 
     this.filteredData = this.reportData.filter(item => {
@@ -205,11 +217,12 @@ class RelatorioPage {
 
   limparFiltros() {
     const { de, ate } = this._monthRange();
-    document.getElementById('filtroDataDe').value    = isoToDateInput(de);
-    document.getElementById('filtroDataAte').value   = isoToDateInput(ate);
-    document.getElementById('filtroAluno').value     = '';
-    document.getElementById('filtroCurso').value     = '';
-    document.getElementById('filtroPagamento').value = '';
+    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    setVal('filtroDataDe',    isoToDateInput(de));
+    setVal('filtroDataAte',   isoToDateInput(ate));
+    setVal('filtroAluno',     '');
+    setVal('filtroCurso',     '');
+    setVal('filtroPagamento', '');
     this._toggleClearAluno();
     this.closeAlunoDropdown();
     this.aplicarFiltros();

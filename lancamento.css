@@ -5626,6 +5626,75 @@ textarea:focus-visible {
   }
 }
 
+/* ─── ACESSIBILIDADE: focus-visible global ─────────────────────────────
+   Anel dourado de alto contraste em QUALQUER elemento focável via
+   teclado (Tab/Shift+Tab/setas). Não dispara em mouse click — só
+   em navegação por teclado, graças ao :focus-visible. */
+:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 5px rgba(212, 175, 55, 0.18);
+}
+
+/* No tema escuro de filtros, contraste reforçado */
+.report-filters :focus-visible {
+  outline-color: #ffd95a;
+  box-shadow: 0 0 0 5px rgba(255, 217, 90, 0.25);
+}
+
+/* Dentro do sidebar (também escuro) */
+.sidebar :focus-visible {
+  outline-color: #ffd95a;
+  box-shadow: 0 0 0 4px rgba(255, 217, 90, 0.2);
+}
+
+/* Inputs com :focus-visible mantêm a borda navy/gold própria + anel */
+.form-input:focus-visible,
+.form-select:focus-visible {
+  outline-offset: 1px;
+}
+
+/* Contraste do placeholder nos filtros escuros: era .30 (abaixo de
+   WCAG AA), agora .52 — atinge contraste 3:1 mínimo para texto auxiliar. */
+.report-filters .form-input::placeholder {
+  color: rgba(255, 255, 255, 0.52);
+}
+
+/* Respeita preferência de movimento reduzido do sistema */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Skip link para usuários de teclado/leitor de tela: pular direto pro
+   conteúdo principal sem tabular pelo menu inteiro. Visível apenas
+   quando recebe foco via Tab. */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: var(--navy);
+  color: var(--gold);
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  z-index: 10000;
+  border-radius: 0 0 8px 0;
+  transition: top 0.18s ease-out;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--gold);
+}
+
 /* ─── TOOLTIP CUSTOM ───────────────────────────────────────────────────
    Substitui o tooltip nativo (cor amarela, sem estilo) por um balão
    estilizado em cima do elemento. Ativado por [data-tooltip] (helper

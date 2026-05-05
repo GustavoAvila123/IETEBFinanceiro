@@ -50,6 +50,10 @@
     <link rel="stylesheet" href="lancamento.css?v=20260505a" />
   </head>
   <body>
+    <!-- Skip link: pressionando Tab logo após o login, vai pro conteúdo
+         direto, sem precisar tabular pelo menu inteiro. Visível só com foco. -->
+    <a class="skip-link" href="#pageHome">Pular para o conteúdo</a>
+
     <!-- ══════════════════════════════════════════════════════════════════
        SPLASH DE BOOT — esconde a tela de login enquanto a sessão
        persistida do Firebase Auth está sendo restaurada.
@@ -421,7 +425,7 @@
       <!-- ═══════════════════════════════════════════════════════════════════════
          PÁGINA: HOME
     ════════════════════════════════════════════════════════════════════════ -->
-      <main class="page-content" id="pageHome">
+      <main class="page-content" id="pageHome" tabindex="-1">
         <!-- Hero -->
         <div class="home-hero">
           <div class="home-hero-orb"></div>
@@ -2824,6 +2828,7 @@
     <script src="js/utils/helpers.js?v=20260505a"></script>
     <script src="js/utils/format.js?v=20260505a"></script>
     <script src="js/utils/tooltip.js?v=20260505a"></script>
+    <script src="js/utils/a11y.js?v=20260505a"></script>
 
     <!-- Domínio -->
     <script src="js/domain/financeiro.js?v=20260505a"></script>

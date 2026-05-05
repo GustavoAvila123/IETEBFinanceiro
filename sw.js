@@ -6,15 +6,23 @@
 //    versões novas.
 //  - Cache-first para assets estáticos (imagens, fontes externas).
 //  - Network-only para Firestore/Auth (não cacheia dados de banco).
+//  - Cache-first PERMANENTE para o motor + modelos do Tesseract
+//    (~5-15MB, não mudam entre versões do app, vivem em CACHE_OCR
+//    que NÃO é limpo na ativação). Permite OCR offline depois da
+//    primeira vez que o usuário leu um comprovante online.
 //
 // Para invalidar cache antigo, basta bumpar CACHE_VERSION abaixo.
 //
 // Atenção: por design, NÃO cacheamos requisições POST/PUT/DELETE.
 // Apenas GETs entram em cache.
 
-const CACHE_VERSION = 'ieteb-v2-20260504';
-const CACHE_STATIC  = `${CACHE_VERSION}-static`;
+const CACHE_VERSION = 'ieteb-v3-20260505';
+const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_RUNTIME = `${CACHE_VERSION}-runtime`;
+// Cache PERSISTENTE (não rotaciona com versão) — Tesseract weights
+// são pesados e não mudam frequentemente. Ficam aqui pra sobreviver
+// entre deploys do app, garantindo OCR offline.
+const CACHE_OCR = 'ieteb-ocr-v1';
 
 // App shell — pré-carregado no install para o app abrir offline
 const APP_SHELL = [
@@ -24,25 +32,47 @@ const APP_SHELL = [
   './assets/images/logo-ieteb-moderno.jpg',
 ];
 
+// Hosts e padrões do motor + modelos OCR (Tesseract.js + tessdata)
+const OCR_HOSTS = ['tessdata.projectnaptha.com', 'cdn.jsdelivr.net', 'cdnjs.cloudflare.com'];
+const OCR_PATH_PATTERNS = [
+  /tesseract/i, // tesseract.min.js, tesseract-core, worker, etc.
+  /\.traineddata(\.gz)?$/i, // modelo de idioma do tessdata
+  /pdf\.(min\.)?js/i, // pdf.js / pdf.worker (também pesado, useful pra PDF offline)
+];
+
+function isOcrAsset(url) {
+  if (!OCR_HOSTS.includes(url.hostname)) return false;
+  return OCR_PATH_PATTERNS.some((re) => re.test(url.pathname) || re.test(url.search || ''));
+}
+
 // ── Install: pré-cache do app shell ───────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_STATIC).then((cache) =>
-      cache.addAll(APP_SHELL).catch(() => {/* falhas individuais não impedem install */})
-    ).then(() => self.skipWaiting())
+    caches
+      .open(CACHE_STATIC)
+      .then((cache) =>
+        cache.addAll(APP_SHELL).catch(() => {
+          /* falhas individuais não impedem install */
+        })
+      )
+      .then(() => self.skipWaiting())
   );
 });
 
 // ── Activate: limpa caches antigos ────────────────────────────────────
+// IMPORTANTE: CACHE_OCR é preservado pra não invalidar weights pesados.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((k) => !k.startsWith(CACHE_VERSION))
-          .map((k) => caches.delete(k))
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((k) => !k.startsWith(CACHE_VERSION) && k !== CACHE_OCR)
+            .map((k) => caches.delete(k))
+        )
       )
-    ).then(() => self.clients.claim())
+      .then(() => self.clients.claim())
   );
 });
 
@@ -53,6 +83,12 @@ self.addEventListener('fetch', (event) => {
 
   // Só GET é cacheável
   if (req.method !== 'GET') return;
+
+  // OCR engine + weights → cache permanente (cache-first agressivo)
+  if (isOcrAsset(url)) {
+    event.respondWith(cacheFirstPersistent(req));
+    return;
+  }
 
   // Network-only para Firestore, Auth e Storage do Firebase
   if (
@@ -74,7 +110,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cross-origin (CDN — fonts, jspdf, tesseract, chart, xlsx, pdfjs):
+  // Cross-origin (CDN — fonts, jspdf, chart, xlsx, ...):
   // cache-first com revalidação em background
   event.respondWith(staleWhileRevalidate(req));
 });
@@ -112,13 +148,37 @@ async function cacheFirst(req) {
   return fresh;
 }
 
+// Cache-first agressivo PERSISTENTE — só consulta a rede no primeiro
+// request. Usado pra Tesseract weights (não mudam, e a rede deles é
+// lenta/limitada). Sobrevive a bumps do CACHE_VERSION.
+async function cacheFirstPersistent(req) {
+  const cache = await caches.open(CACHE_OCR);
+  const cached = await cache.match(req);
+  if (cached) return cached;
+  try {
+    const fresh = await fetch(req);
+    // Só cacheia respostas válidas (200 ou opaque). Opaque (204/0)
+    // ainda funciona em runtime.
+    if (fresh && (fresh.ok || fresh.type === 'opaque')) {
+      cache.put(req, fresh.clone()).catch(() => {});
+    }
+    return fresh;
+  } catch (e) {
+    // Sem rede E sem cache — falha mesmo. App lida graciosamente
+    // (toast "Não foi possível ler o comprovante").
+    throw e;
+  }
+}
+
 async function staleWhileRevalidate(req) {
   const cache = await caches.open(CACHE_RUNTIME);
   const cached = await cache.match(req);
-  const networkPromise = fetch(req).then((res) => {
-    if (res && res.ok) cache.put(req, res.clone()).catch(() => {});
-    return res;
-  }).catch(() => null);
+  const networkPromise = fetch(req)
+    .then((res) => {
+      if (res && res.ok) cache.put(req, res.clone()).catch(() => {});
+      return res;
+    })
+    .catch(() => null);
   return cached || networkPromise || fetch(req);
 }
 

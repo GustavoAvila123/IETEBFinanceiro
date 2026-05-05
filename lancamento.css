@@ -2606,7 +2606,19 @@ body.modal-open {
   gap: 0;
 }
 
-.caixa-anterior-item { flex: 1; text-align: center; padding: 4px 10px; }
+.caixa-anterior-item {
+  flex: 1;
+  text-align: center;
+  padding: 4px 10px;
+  min-width: 0; /* permite shrink dentro do flex sem overflow */
+}
+
+/* Valor monetário no card de saldo anterior nunca pode quebrar
+   ("R$\n6.637,10" era o bug em mobile estreito). Em telas onde o
+   layout é coluna (≤768px) há espaço sobrando, então fica natural. */
+.caixa-anterior-body .caixa-saldo-item-value {
+  white-space: nowrap;
+}
 
 .caixa-anterior-sep {
   width: 1px;
@@ -2762,7 +2774,14 @@ body.modal-open {
 
 @media (max-width: 768px) {
   .caixa-cards { grid-template-columns: 1fr; }
-  .caixa-saldo-anterior-body { flex-direction: column; }
+
+  /* Empilha Dinheiro Físico / C/C / Saldo verticalmente em mobile.
+     Antes estava como ".caixa-saldo-anterior-body" (seletor errado
+     que nunca casava) — por isso os 3 cards ficavam apertados em
+     linha e os valores quebravam o "R$" da quantia. */
+  .caixa-anterior-body { flex-direction: column; gap: 14px; padding: 16px 18px; }
+  .caixa-anterior-sep  { width: 100%; height: 1px; margin: 0; }
+
   .caixa-day-filter { width: 100%; }
   .caixa-day-filter .filter-group { flex: 1 1 calc(50% - 6px); }
   .caixa-day-filter .filter-input { width: 100%; min-width: 0; }

@@ -194,13 +194,10 @@ class DashboardPage {
     const monthControls = document.querySelector('.dash-month-controls');
     if (monthControls) monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);
 
-    // Botão "Limpar filtro" aparece se: filtro de datas ativo OU mês != atual
+    // Botão "Limpar filtro" sempre visível — mesmo padrão da Tesouraria.
+    // Click sem nada filtrado é no-op (limparFiltro reseta pro estado base).
     const clearBtn = document.getElementById('dashClearFilter');
-    if (clearBtn) {
-      const algumFiltro = this.filtroAplicado || (this.dashMes !== this._mesAtualISO());
-      if (algumFiltro) clearBtn.removeAttribute('hidden');
-      else clearBtn.setAttribute('hidden', '');
-    }
+    if (clearBtn) clearBtn.removeAttribute('hidden');
 
     const entradas = filtrarEntradasPorPeriodo(getEntradasData(), periodoDe, periodoAte);
     const saidas   = filtrarSaidasPorPeriodo  (getSaidasData(),   periodoDe, periodoAte);

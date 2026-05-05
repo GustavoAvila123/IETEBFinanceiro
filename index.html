@@ -48,6 +48,26 @@
       referrerpolicy="no-referrer"
     />
     <link rel="stylesheet" href="lancamento.css?v=20260505b" />
+    <!-- Anti-FOUC: aplica o tema ANTES do CSS render. Sem isso, o user
+         em dark mode veria flash branco enquanto o JS tradicional
+         carrega. Roda sincronamente, lê localStorage e seta data-theme. -->
+    <script>
+      (function () {
+        try {
+          var v = localStorage.getItem('ieteb_theme');
+          if (v !== 'light' && v !== 'dark') {
+            v =
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', v);
+        } catch (_) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
   </head>
   <body>
     <!-- Skip link: pressionando Tab logo após o login, vai pro conteúdo
@@ -397,29 +417,50 @@
           <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="topbar-logo" />
           <span class="topbar-title" id="topbarTitle">Lançamentos</span>
         </div>
-        <button
-          class="topbar-refresh-btn"
-          id="topbarRefreshBtn"
-          onclick="forceRefresh()"
-          aria-label="Atualizar dados"
-          title="Atualizar dados"
-        >
-          <svg
-            id="topbarRefreshIcon"
-            width="19"
-            height="19"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+        <div class="topbar-actions">
+          <button
+            class="topbar-action-btn"
+            id="themeToggleBtn"
+            onclick="window.theme && window.theme.toggle()"
+            aria-label="Mudar tema"
+            title="Mudar tema"
           >
-            <polyline points="23 4 23 10 17 10" />
-            <polyline points="1 20 1 14 7 14" />
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-          </svg>
-        </button>
+            <!-- Ícone Sol (visível em dark mode → click vai pra light) -->
+            <svg class="theme-icon-sun" width="19" height="19" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
+            <!-- Ícone Lua (visível em light mode → click vai pra dark) -->
+            <svg class="theme-icon-moon" width="19" height="19" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </button>
+          <button
+            class="topbar-refresh-btn"
+            id="topbarRefreshBtn"
+            onclick="forceRefresh()"
+            aria-label="Atualizar dados"
+            title="Atualizar dados"
+          >
+            <svg
+              id="topbarRefreshIcon"
+              width="19"
+              height="19"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       <!-- ═══════════════════════════════════════════════════════════════════════
@@ -2872,6 +2913,7 @@
     <script src="js/utils/tooltip.js?v=20260505b"></script>
     <script src="js/utils/a11y.js?v=20260505b"></script>
     <script src="js/utils/shortcuts.js?v=20260505b"></script>
+    <script src="js/utils/theme.js?v=20260505b"></script>
 
     <!-- Domínio -->
     <script src="js/domain/financeiro.js?v=20260505b"></script>

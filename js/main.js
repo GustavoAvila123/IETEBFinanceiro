@@ -1,26 +1,25 @@
-
 // ── Instâncias ────────────────────────────────────────────────────────────────
-const firebase   = new FirebaseManager();
+const firebase = new FirebaseManager();
 window._firebase = firebase; // expõe para login.js usar saveSession/clearSession
-const modal      = new ModalManager();
+const modal = new ModalManager();
 
 // Componentes reutilizáveis
-const igrejaDD     = new IgrejaDropdown();
-const alunosMgr    = new AlunosManager();
+const igrejaDD = new IgrejaDropdown();
+const alunosMgr = new AlunosManager();
 
 // OCRs (extração de comprovante / nota fiscal)
-const ocrEntradas  = new OCREntradas(modal);
-const ocrSaidas    = new OCRSaidas(modal);
+const ocrEntradas = new OCREntradas(modal);
+const ocrSaidas = new OCRSaidas(modal);
 
 // Pages
-const entradas   = new EntradaPage(modal, firebase, ocrEntradas, igrejaDD, alunosMgr);
-const saidas     = new SaidaPage(modal, firebase, ocrSaidas);
+const entradas = new EntradaPage(modal, firebase, ocrEntradas, igrejaDD, alunosMgr);
+const saidas = new SaidaPage(modal, firebase, ocrSaidas);
 const relatorios = new RelatorioPage(modal, firebase);
 relatorios.bindAlunoOutsideClose();
 const tesouraria = new TesourariaPage(modal);
-const dashboard  = new DashboardPage(modal);
-const monitor    = new MonitorPage(firebase);
-const login      = new LoginPage(modal);
+const dashboard = new DashboardPage(modal);
+const monitor = new MonitorPage(firebase);
+const login = new LoginPage(modal);
 
 // Referências cruzadas (OCRs precisam da page para selectPayment, switchTab, removeFile)
 ocrEntradas.setEntradaPage(entradas);
@@ -30,12 +29,12 @@ ocrSaidas.setSaidaPage(saidas);
 const ocr = ocrEntradas;
 
 const nav = new NavigationManager({
-  entradaPage:    entradas,
-  saidaPage:      saidas,
-  relatorioPage:  relatorios,
+  entradaPage: entradas,
+  saidaPage: saidas,
+  relatorioPage: relatorios,
   tesourariaPage: tesouraria,
-  dashboardPage:  dashboard,
-  monitorPage:    monitor,
+  dashboardPage: dashboard,
+  monitorPage: monitor,
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -43,22 +42,22 @@ const nav = new NavigationManager({
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Navegação
-window.showPage      = p => nav.showPage(p);
-window.openSidebar   = () => nav.openSidebar();
-window.closeSidebar  = () => nav.closeSidebar();
+window.showPage = (p) => nav.showPage(p);
+window.openSidebar = () => nav.openSidebar();
+window.closeSidebar = () => nav.closeSidebar();
 
 // Login / Logout
-window.handleLogin      = e  => login.handleLogin(e);
-window.toggleLoginPw    = () => login.toggleLoginPw();
-window.openLogoutModal  = () => login.openLogoutModal(nav);
+window.handleLogin = (e) => login.handleLogin(e);
+window.toggleLoginPw = () => login.toggleLoginPw();
+window.openLogoutModal = () => login.openLogoutModal(nav);
 window.closeLogoutModal = () => login.closeLogoutModal();
-window.confirmarLogout  = () => login.confirmarLogout();
+window.confirmarLogout = () => login.confirmarLogout();
 
 // Modal genérico / Notificação
-window.openModal       = id => modal.open(id);
-window.closeModal      = id => modal.close(id);
+window.openModal = (id) => modal.open(id);
+window.closeModal = (id) => modal.close(id);
 window.closeNotifModal = () => modal.closeNotif();
-window.showToast       = (msg, type) => modal.showToast(msg, type);
+window.showToast = (msg, type) => modal.showToast(msg, type);
 
 // Modal "Processando/Sucesso" (export PDF/Excel)
 window.showProcess = (titulo, descricao) => {
@@ -85,7 +84,10 @@ window.showProcessSuccess = (titulo, descricao, autoCloseMs = 1500) => {
 };
 
 window.closeProcess = () => {
-  if (window._processCloseTimer) { clearTimeout(window._processCloseTimer); window._processCloseTimer = null; }
+  if (window._processCloseTimer) {
+    clearTimeout(window._processCloseTimer);
+    window._processCloseTimer = null;
+  }
   modal.close('processModal');
 };
 
@@ -103,9 +105,14 @@ window.revisarFormulario = () => {
     );
     if (!errEl) return;
     const grupo = errEl.closest('.form-group') || errEl.parentElement;
-    const input = grupo && grupo.querySelector('input, select, textarea, .select-search-wrap input');
+    const input =
+      grupo && grupo.querySelector('input, select, textarea, .select-search-wrap input');
     if (input) {
-      try { input.focus({ preventScroll: true }); } catch (_) { input.focus(); }
+      try {
+        input.focus({ preventScroll: true });
+      } catch (_) {
+        input.focus();
+      }
       input.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (errEl.scrollIntoView) {
       errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -114,77 +121,77 @@ window.revisarFormulario = () => {
 };
 
 // Entradas — abas, payment, upload
-window.switchTab           = tab => entradas.switchTab(tab);
-window.openChurchDropdown  = () => entradas.openChurchDropdown();
-window.filterChurches      = v  => entradas.filterChurches(v);
-window.selectChurch        = v  => entradas.selectChurch(v);
-window.lockPayment         = () => entradas.lockPayment();
-window.unlockPayment       = () => entradas.unlockPayment();
-window.selectPayment       = btn => entradas.selectPayment(btn);
-window.ajustarFormPorPagamento = t => entradas.ajustarFormPorPagamento(t);
-window.onDragOver          = e  => entradas.onDragOver(e);
-window.onDragLeave         = () => entradas.onDragLeave();
-window.onDrop              = e  => entradas.onDrop(e);
-window.onFileSelected      = i  => entradas.onFileSelected(i);
-window.removeFile          = () => entradas.removeFile();
-window.lerComprovante      = () => entradas.lerComprovante();
+window.switchTab = (tab) => entradas.switchTab(tab);
+window.openChurchDropdown = () => entradas.openChurchDropdown();
+window.filterChurches = (v) => entradas.filterChurches(v);
+window.selectChurch = (v) => entradas.selectChurch(v);
+window.lockPayment = () => entradas.lockPayment();
+window.unlockPayment = () => entradas.unlockPayment();
+window.selectPayment = (btn) => entradas.selectPayment(btn);
+window.ajustarFormPorPagamento = (t) => entradas.ajustarFormPorPagamento(t);
+window.onDragOver = (e) => entradas.onDragOver(e);
+window.onDragLeave = () => entradas.onDragLeave();
+window.onDrop = (e) => entradas.onDrop(e);
+window.onFileSelected = (i) => entradas.onFileSelected(i);
+window.removeFile = () => entradas.removeFile();
+window.lerComprovante = () => entradas.lerComprovante();
 
 // Entradas — alunos
-window.addAlunoRow    = ()  => entradas.addAlunoRow();
-window.removeAlunoRow = id  => entradas.removeAlunoRow(id);
+window.addAlunoRow = () => entradas.addAlunoRow();
+window.removeAlunoRow = (id) => entradas.removeAlunoRow(id);
 
 // Entradas — salvar / limpar
-window.salvarLancamento  = () => entradas.salvarLancamento();
-window.limparFormulario  = () => entradas.limparFormulario();
+window.salvarLancamento = () => entradas.salvarLancamento();
+window.limparFormulario = () => entradas.limparFormulario();
 
 // OCR Entradas
 window.confirmarOcr = () => ocr.confirmar();
-window.closeOcrModal= () => ocr.closeModal();
+window.closeOcrModal = () => ocr.closeModal();
 
 // Saídas
-window.switchTabSaida       = tab => saidas.switchTab(tab);
-window.lockPaymentSaida     = () => saidas.lockPayment();
-window.unlockPaymentSaida   = () => saidas.unlockPayment();
-window.selectPaymentSaida   = btn => saidas.selectPayment(btn);
-window.onDragOverSaida      = e  => saidas.onDragOver(e);
-window.onDragLeaveSaida     = () => saidas.onDragLeave();
-window.onDropSaida          = e  => saidas.onDrop(e);
-window.onFileSelectedSaida  = i  => saidas.onFileSelected(i);
-window.removeFileSaida      = () => saidas.removeFile();
-window.lerNF                = () => saidas.lerNF();
-window.confirmarOcrSaida    = () => saidas.confirmarOcr();
-window.closeOcrModalSaida   = () => saidas.closeOcrModal();
-window.closeOcrDadosModal   = () => saidas.closeOcrDadosModal();
-window.salvarSaida          = () => saidas.salvarSaida();
-window.limparSaida          = () => saidas.limparSaida();
+window.switchTabSaida = (tab) => saidas.switchTab(tab);
+window.lockPaymentSaida = () => saidas.lockPayment();
+window.unlockPaymentSaida = () => saidas.unlockPayment();
+window.selectPaymentSaida = (btn) => saidas.selectPayment(btn);
+window.onDragOverSaida = (e) => saidas.onDragOver(e);
+window.onDragLeaveSaida = () => saidas.onDragLeave();
+window.onDropSaida = (e) => saidas.onDrop(e);
+window.onFileSelectedSaida = (i) => saidas.onFileSelected(i);
+window.removeFileSaida = () => saidas.removeFile();
+window.lerNF = () => saidas.lerNF();
+window.confirmarOcrSaida = () => saidas.confirmarOcr();
+window.closeOcrModalSaida = () => saidas.closeOcrModal();
+window.closeOcrDadosModal = () => saidas.closeOcrDadosModal();
+window.salvarSaida = () => saidas.salvarSaida();
+window.limparSaida = () => saidas.limparSaida();
 
 // Relatórios
-window.onTipoRelatorioChange  = t  => relatorios.onTipoChange(t);
-window.carregarRelatorio      = () => relatorios.carregar();
-window.onFiltroDeChange       = () => relatorios.onFiltroDeChange();
-window.onFiltroAteChange      = () => relatorios.onFiltroAteChange();
-window.fecharFiltroDataModal  = () => relatorios.fecharFiltroDataModal();
-window.aplicarFiltros         = () => relatorios.aplicarFiltros();
-window.limparFiltros          = () => relatorios.limparFiltros();
-window.onFiltroAlunoFocus     = () => relatorios.onFiltroAlunoFocus();
-window.onFiltroAlunoInput     = () => relatorios.onFiltroAlunoInput();
-window.onFiltroAlunoClear     = () => relatorios.onFiltroAlunoClear();
-window.selectAluno            = el => relatorios.selectAluno(el);
-window.goPage                 = p  => relatorios.goPage(p);
-window.exportarPDF            = () => relatorios.exportarPDF();
-window.exportarExcel          = () => relatorios.exportarExcel();
-window.pedirExclusao          = idx => relatorios.pedirExclusao(idx);
-window.confirmarExclusao      = () => relatorios.confirmarExclusao();
-window.closeDeleteModal       = () => relatorios.closeDeleteModal();
-window.verComprovante         = idx => relatorios.verComprovante(idx);
-window.closeImgModal          = () => relatorios.closeImgModal();
+window.onTipoRelatorioChange = (t) => relatorios.onTipoChange(t);
+window.carregarRelatorio = () => relatorios.carregar();
+window.onFiltroDeChange = () => relatorios.onFiltroDeChange();
+window.onFiltroAteChange = () => relatorios.onFiltroAteChange();
+window.fecharFiltroDataModal = () => relatorios.fecharFiltroDataModal();
+window.aplicarFiltros = () => relatorios.aplicarFiltros();
+window.limparFiltros = () => relatorios.limparFiltros();
+window.onFiltroAlunoFocus = () => relatorios.onFiltroAlunoFocus();
+window.onFiltroAlunoInput = () => relatorios.onFiltroAlunoInput();
+window.onFiltroAlunoClear = () => relatorios.onFiltroAlunoClear();
+window.selectAluno = (el) => relatorios.selectAluno(el);
+window.goPage = (p) => relatorios.goPage(p);
+window.exportarPDF = () => relatorios.exportarPDF();
+window.exportarExcel = () => relatorios.exportarExcel();
+window.pedirExclusao = (idx) => relatorios.pedirExclusao(idx);
+window.confirmarExclusao = () => relatorios.confirmarExclusao();
+window.closeDeleteModal = () => relatorios.closeDeleteModal();
+window.verComprovante = (idx) => relatorios.verComprovante(idx);
+window.closeImgModal = () => relatorios.closeImgModal();
 
 // Tesouraria
-window.initCaixa          = () => tesouraria.init();
-window.caixaMesNavegar    = d  => tesouraria.navegar(d);
-window.clearCaixaDia      = () => tesouraria.clearDia();
+window.initCaixa = () => tesouraria.init();
+window.caixaMesNavegar = (d) => tesouraria.navegar(d);
+window.clearCaixaDia = () => tesouraria.clearDia();
 window.aplicarCaixaFiltro = () => tesouraria.aplicarFiltro();
-window.onCaixaFiltroDeBlur  = () => tesouraria.onFiltroDeBlur();
+window.onCaixaFiltroDeBlur = () => tesouraria.onFiltroDeBlur();
 window.onCaixaFiltroAteBlur = () => tesouraria.onFiltroAteBlur();
 window.fecharCaixaDataModal = () => {
   modal.close('caixaDataModal');
@@ -193,23 +200,23 @@ window.fecharCaixaDataModal = () => {
 };
 
 // Dashboard
-window.initDashboard         = () => dashboard.init();
-window.dashMesNavegar        = d  => dashboard.navegar(d);
-window.toggleDashMonthPicker = e  => dashboard.togglePicker(e);
-window.selectDashAno         = a  => dashboard.selectAno(a);
-window.selectDashMes         = m  => dashboard.selectMes(m);
-window.limparDashFiltro      = () => dashboard.limparFiltro();
+window.initDashboard = () => dashboard.init();
+window.dashMesNavegar = (d) => dashboard.navegar(d);
+window.toggleDashMonthPicker = (e) => dashboard.togglePicker(e);
+window.selectDashAno = (a) => dashboard.selectAno(a);
+window.selectDashMes = (m) => dashboard.selectMes(m);
+window.limparDashFiltro = () => dashboard.limparFiltro();
 window.aplicarDashFiltroDatas = () => dashboard.aplicarFiltroDatas();
-window.onDashFiltroDeBlur     = () => dashboard.onFiltroDeBlur();
-window.onDashFiltroAteBlur    = () => dashboard.onFiltroAteBlur();
-window.fecharDashDataModal    = () => {
+window.onDashFiltroDeBlur = () => dashboard.onFiltroDeBlur();
+window.onDashFiltroAteBlur = () => dashboard.onFiltroAteBlur();
+window.fecharDashDataModal = () => {
   modal.close('dashDataModal');
   const ate = document.getElementById('dashDiaFiltroATE');
   if (ate) ate.focus();
 };
 
 // Monitor (admin only)
-window.reloadMonitor   = () => monitor.render();
+window.reloadMonitor = () => monitor.render();
 
 // Atualização manual — exibe overlay fosco até os dados chegarem
 window.forceRefresh = () => {
@@ -219,10 +226,10 @@ window.forceRefresh = () => {
     document.getElementById('sidebarRefreshBtn'),
   ].filter(Boolean);
   if (overlay) overlay.classList.remove('refresh-overlay--hidden');
-  btns.forEach(b => b.classList.add('refreshing'));
+  btns.forEach((b) => b.classList.add('refreshing'));
   firebase.forceRefresh(() => {
     if (overlay) overlay.classList.add('refresh-overlay--hidden');
-    btns.forEach(b => b.classList.remove('refreshing'));
+    btns.forEach((b) => b.classList.remove('refreshing'));
   });
 };
 
@@ -235,19 +242,27 @@ window.forceRefresh = () => {
 // ── Bloqueia zoom no mobile (iOS ignora user-scalable=no, então
 // também precisamos preventDefault nos eventos de gesto e no double-tap).
 (function preventMobileZoom() {
-  ['gesturestart', 'gesturechange', 'gestureend'].forEach(evt => {
-    document.addEventListener(evt, e => e.preventDefault(), { passive: false });
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach((evt) => {
+    document.addEventListener(evt, (e) => e.preventDefault(), { passive: false });
   });
   let lastTouchEnd = 0;
-  document.addEventListener('touchend', e => {
-    const now = Date.now();
-    if (now - lastTouchEnd <= 300) e.preventDefault();
-    lastTouchEnd = now;
-  }, { passive: false });
+  document.addEventListener(
+    'touchend',
+    (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) e.preventDefault();
+      lastTouchEnd = now;
+    },
+    { passive: false }
+  );
   // Pinch via wheel + ctrl (trackpad) também
-  document.addEventListener('wheel', e => {
-    if (e.ctrlKey) e.preventDefault();
-  }, { passive: false });
+  document.addEventListener(
+    'wheel',
+    (e) => {
+      if (e.ctrlKey) e.preventDefault();
+    },
+    { passive: false }
+  );
 })();
 
 // ── PWA: registra Service Worker e captura prompt de instalação ──────
@@ -260,9 +275,14 @@ window.forceRefresh = () => {
 // estiver autenticado.
 window._pwaInstallPrompt = null;
 
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+if (
+  'serviceWorker' in navigator &&
+  (location.protocol === 'https:' || location.hostname === 'localhost')
+) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {/* falha silenciosa */});
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      /* falha silenciosa */
+    });
   });
 }
 
@@ -275,7 +295,9 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 window.addEventListener('appinstalled', () => {
   window._pwaInstallPrompt = null;
-  try { localStorage.setItem('ieteb_pwa_installed', '1'); } catch (_) {}
+  try {
+    localStorage.setItem('ieteb_pwa_installed', '1');
+  } catch (_) {}
   const banner = document.getElementById('pwaInstallBanner');
   if (banner) banner.remove();
 });
@@ -284,14 +306,15 @@ window.addEventListener('appinstalled', () => {
 // (b) usuário não dispensou nem instalou, (c) já está autenticado.
 window._tryShowInstallBanner = function () {
   // Já instalado (rodando em standalone) ou usuário dispensou?
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true;
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   if (isStandalone) return;
 
   let dispensado = false;
   try {
-    dispensado = localStorage.getItem('ieteb_pwa_dispensed') === '1'
-              || localStorage.getItem('ieteb_pwa_installed') === '1';
+    dispensado =
+      localStorage.getItem('ieteb_pwa_dispensed') === '1' ||
+      localStorage.getItem('ieteb_pwa_installed') === '1';
   } catch (_) {}
   if (dispensado) return;
 
@@ -320,9 +343,11 @@ window._tryShowInstallBanner = function () {
     </div>
     <div class="pwa-install-text">
       <strong>Instalar IETEB Financeiro</strong>
-      <span>${isIOS
-        ? 'Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.'
-        : 'Tenha o app na sua tela inicial — abre como um aplicativo nativo.'}</span>
+      <span>${
+        isIOS
+          ? 'Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.'
+          : 'Tenha o app na sua tela inicial — abre como um aplicativo nativo.'
+      }</span>
     </div>
     <div class="pwa-install-actions">
       ${isIOS ? '' : '<button class="pwa-install-btn pwa-install-btn--apply" id="pwaInstallApply">Instalar</button>'}
@@ -335,7 +360,9 @@ window._tryShowInstallBanner = function () {
   document.body.appendChild(banner);
 
   document.getElementById('pwaInstallDismiss').addEventListener('click', () => {
-    try { localStorage.setItem('ieteb_pwa_dispensed', '1'); } catch (_) {}
+    try {
+      localStorage.setItem('ieteb_pwa_dispensed', '1');
+    } catch (_) {}
     banner.remove();
   });
 
@@ -350,10 +377,14 @@ window._tryShowInstallBanner = function () {
         if (outcome === 'accepted') {
           banner.remove();
         } else {
-          try { localStorage.setItem('ieteb_pwa_dispensed', '1'); } catch (_) {}
+          try {
+            localStorage.setItem('ieteb_pwa_dispensed', '1');
+          } catch (_) {}
           banner.remove();
         }
-      } catch (_) {/* user fechou modal */}
+      } catch (_) {
+        /* user fechou modal */
+      }
       window._pwaInstallPrompt = null;
     });
   }
@@ -392,13 +423,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   firebase.setDataUpdateCallback(() => {
     const pagesMap = {
       pageRelatorios: () => relatorios.carregar(),
-      pageCaixa:      () => tesouraria.render(),
-      pageDashboard:  () => dashboard.render(),
-      pageHome:       () => nav.initHome(),
+      pageCaixa: () => tesouraria.render(),
+      pageDashboard: () => dashboard.render(),
+      pageHome: () => nav.initHome(),
     };
     for (const [pageId, fn] of Object.entries(pagesMap)) {
       const el = document.getElementById(pageId);
-      if (el && !el.classList.contains('page-content--hidden')) { fn(); break; }
+      if (el && !el.classList.contains('page-content--hidden')) {
+        fn();
+        break;
+      }
     }
   });
 
@@ -408,13 +442,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('ietebDataChanged', () => {
     const pagesMap = {
       pageRelatorios: () => relatorios.carregar(),
-      pageCaixa:      () => tesouraria.render(),
-      pageDashboard:  () => dashboard.render(),
-      pageHome:       () => nav.initHome(),
+      pageCaixa: () => tesouraria.render(),
+      pageDashboard: () => dashboard.render(),
+      pageHome: () => nav.initHome(),
     };
     for (const [pageId, fn] of Object.entries(pagesMap)) {
       const el = document.getElementById(pageId);
-      if (el && !el.classList.contains('page-content--hidden')) { fn(); break; }
+      if (el && !el.classList.contains('page-content--hidden')) {
+        fn();
+        break;
+      }
     }
   });
 
@@ -426,37 +463,55 @@ document.addEventListener('DOMContentLoaded', async () => {
       topbarEl.classList.toggle('topbar--scrolled', window.scrollY > 8);
       ticking = false;
     };
-    window.addEventListener('scroll', () => {
-      if (!ticking) { requestAnimationFrame(updateTopbarShadow); ticking = true; }
-    }, { passive: true });
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          requestAnimationFrame(updateTopbarShadow);
+          ticking = true;
+        }
+      },
+      { passive: true }
+    );
     updateTopbarShadow();
   }
 
   // Sidebar: swipe-to-close (drag para a esquerda)
   const sidebarEl = document.getElementById('sidebar');
   if (sidebarEl) {
-    let startX = 0, startY = 0, dragging = false, deltaX = 0;
-
-    sidebarEl.addEventListener('touchstart', (e) => {
-      if (!sidebarEl.classList.contains('sidebar--open')) return;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      dragging = true;
+    let startX = 0,
+      startY = 0,
+      dragging = false,
       deltaX = 0;
-      sidebarEl.style.transition = 'none';
-    }, { passive: true });
 
-    sidebarEl.addEventListener('touchmove', (e) => {
-      if (!dragging) return;
-      const dx = e.touches[0].clientX - startX;
-      const dy = e.touches[0].clientY - startY;
-      // Só ativa se for gesto predominantemente horizontal pra esquerda
-      if (Math.abs(dx) < Math.abs(dy)) return;
-      if (dx < 0) {
-        deltaX = dx;
-        sidebarEl.style.transform = `translateX(${dx}px)`;
-      }
-    }, { passive: true });
+    sidebarEl.addEventListener(
+      'touchstart',
+      (e) => {
+        if (!sidebarEl.classList.contains('sidebar--open')) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        dragging = true;
+        deltaX = 0;
+        sidebarEl.style.transition = 'none';
+      },
+      { passive: true }
+    );
+
+    sidebarEl.addEventListener(
+      'touchmove',
+      (e) => {
+        if (!dragging) return;
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        // Só ativa se for gesto predominantemente horizontal pra esquerda
+        if (Math.abs(dx) < Math.abs(dy)) return;
+        if (dx < 0) {
+          deltaX = dx;
+          sidebarEl.style.transform = `translateX(${dx}px)`;
+        }
+      },
+      { passive: true }
+    );
 
     sidebarEl.addEventListener('touchend', () => {
       if (!dragging) return;
@@ -472,11 +527,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') firebase.silentRefresh();
   });
-  window.addEventListener('pageshow', e => {
+  window.addEventListener('pageshow', (e) => {
     if (e.persisted) firebase.silentRefresh();
   });
 
-  document.addEventListener('keydown', e => {
+  document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.getElementById('churchDropdown').classList.remove('church-dropdown--open');
       modal.close('ocrModal');

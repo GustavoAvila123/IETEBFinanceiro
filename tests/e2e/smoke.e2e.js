@@ -55,7 +55,10 @@ test.describe('Smoke: app boota corretamente', () => {
       failures.push(`${req.method()} ${req.url()} — ${req.failure()?.errorText}`);
     });
     page.on('response', (res) => {
-      if (res.status() >= 400 && new URL(res.url()).hostname === new URL(page.url() || 'http://localhost').hostname) {
+      if (
+        res.status() >= 400 &&
+        new URL(res.url()).hostname === new URL(page.url() || 'http://localhost').hostname
+      ) {
         failures.push(`${res.status()} ${res.url()}`);
       }
     });
@@ -63,9 +66,7 @@ test.describe('Smoke: app boota corretamente', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
 
     // Filtra falhas conhecidas/aceitáveis (favicon, sourcemaps externos)
-    const real = failures.filter(
-      (f) => !f.includes('favicon') && !f.includes('.map')
-    );
+    const real = failures.filter((f) => !f.includes('favicon') && !f.includes('.map'));
     expect(real, `Recursos com erro: ${real.join('; ')}`).toEqual([]);
   });
 });
@@ -86,9 +87,7 @@ test.describe('Acessibilidade básica', () => {
       const placeholder = await input.getAttribute('placeholder');
 
       const hasLabel =
-        ariaLabel ||
-        placeholder ||
-        (id && (await page.locator(`label[for="${id}"]`).count()) > 0);
+        ariaLabel || placeholder || (id && (await page.locator(`label[for="${id}"]`).count()) > 0);
 
       expect(hasLabel, `Input #${i} (id=${id}) sem label/aria-label/placeholder`).toBeTruthy();
     }

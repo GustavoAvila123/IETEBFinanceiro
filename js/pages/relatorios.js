@@ -1,23 +1,22 @@
-
 const PAGE_SIZE = 10;
 
 class RelatorioPage {
   constructor(modal, firebase) {
-    this.modal    = modal;
+    this.modal = modal;
     this.firebase = firebase;
 
-    this.reportData   = [];
+    this.reportData = [];
     this.filteredData = [];
-    this.currentPage  = 1;
-    this.tipo         = '';
+    this.currentPage = 1;
+    this.tipo = '';
     this.deleteTarget = null;
   }
 
   _monthRange() {
-    const now   = new Date();
-    const year  = now.getFullYear();
+    const now = new Date();
+    const year = now.getFullYear();
     const month = now.getMonth();
-    const toISO = d => d.toISOString().slice(0, 10);
+    const toISO = (d) => d.toISOString().slice(0, 10);
     return { de: toISO(new Date(year, month, 1)), ate: toISO(new Date(year, month + 1, 0)) };
   }
 
@@ -25,14 +24,20 @@ class RelatorioPage {
     this.tipo = '';
     // Helpers null-safe — proteção contra HTML cacheado defasado em
     // relação ao JS (acontece quando o SW serve index.html antigo).
-    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-    const rmCls  = (id, c) => { const el = document.getElementById(id); if (el) el.classList.remove(c); };
+    const setVal = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.value = v;
+    };
+    const rmCls = (id, c) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove(c);
+    };
     rmCls('tipoBtnEntradas', 'tipo-btn--active');
-    rmCls('tipoBtnSaidas',   'tipo-btn--active');
-    setVal('filtroDataDe',    '');
-    setVal('filtroDataAte',   '');
-    setVal('filtroAluno',     '');
-    setVal('filtroCurso',     '');
+    rmCls('tipoBtnSaidas', 'tipo-btn--active');
+    setVal('filtroDataDe', '');
+    setVal('filtroDataAte', '');
+    setVal('filtroAluno', '');
+    setVal('filtroCurso', '');
     setVal('filtroPagamento', '');
     this._toggleClearAluno();
     this.closeAlunoDropdown();
@@ -41,12 +46,21 @@ class RelatorioPage {
 
   onTipoChange(tipo) {
     this.tipo = tipo;
-    const tg  = (id, c, on) => { const el = document.getElementById(id); if (el) el.classList.toggle(c, on); };
-    const dsp = (id, v)     => { const el = document.getElementById(id); if (el) el.style.display = v; };
-    const setVal = (id, v)  => { const el = document.getElementById(id); if (el) el.value = v; };
+    const tg = (id, c, on) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle(c, on);
+    };
+    const dsp = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = v;
+    };
+    const setVal = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.value = v;
+    };
 
     tg('tipoBtnEntradas', 'tipo-btn--active', tipo === 'entradas');
-    tg('tipoBtnSaidas',   'tipo-btn--active', tipo === 'saidas');
+    tg('tipoBtnSaidas', 'tipo-btn--active', tipo === 'saidas');
 
     // Aluno e Curso só fazem sentido em Entradas
     dsp('filtroAlunoGrupo', tipo === 'saidas' ? 'none' : '');
@@ -57,14 +71,14 @@ class RelatorioPage {
     }
 
     const { de, ate } = this._monthRange();
-    setVal('filtroDataDe',  isoToDateInput(de));
+    setVal('filtroDataDe', isoToDateInput(de));
     setVal('filtroDataAte', isoToDateInput(ate));
 
     dsp('reportTipoPrompt', 'none');
-    dsp('reportFilters',    '');
-    dsp('reportActions',    '');
-    dsp('tableWrap',        '');
-    dsp('pagination',       '');
+    dsp('reportFilters', '');
+    dsp('reportActions', '');
+    dsp('tableWrap', '');
+    dsp('pagination', '');
 
     this.carregar();
   }
@@ -72,10 +86,10 @@ class RelatorioPage {
   carregar() {
     if (!this.tipo) {
       document.getElementById('reportTipoPrompt').style.display = '';
-      document.getElementById('reportFilters').style.display    = 'none';
-      document.getElementById('reportActions').style.display    = 'none';
-      document.getElementById('tableWrap').style.display        = 'none';
-      document.getElementById('pagination').style.display       = 'none';
+      document.getElementById('reportFilters').style.display = 'none';
+      document.getElementById('reportActions').style.display = 'none';
+      document.getElementById('tableWrap').style.display = 'none';
+      document.getElementById('pagination').style.display = 'none';
       return;
     }
     this.reportData = this.tipo === 'saidas' ? getSaidasData() : getEntradasData();
@@ -84,11 +98,14 @@ class RelatorioPage {
   }
 
   _popularDatalistAlunos() {
-    if (this.tipo !== 'entradas') { this._alunosUnicos = []; return; }
+    if (this.tipo !== 'entradas') {
+      this._alunosUnicos = [];
+      return;
+    }
     // Lista única, ordenada, ignorando vazios — base do combobox custom
-    this._alunosUnicos = Array.from(new Set(
-      this.reportData.map(it => (it.nomeAluno || '').trim()).filter(Boolean)
-    )).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    this._alunosUnicos = Array.from(
+      new Set(this.reportData.map((it) => (it.nomeAluno || '').trim()).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
   }
 
   // ── Combobox de Aluno ──────────────────────────────────────────────────
@@ -98,20 +115,24 @@ class RelatorioPage {
     const dd = document.getElementById('filtroAlunoDropdown');
     if (!dd) return;
     const list = this._alunosUnicos || [];
-    const t    = (termo || '').trim().toLowerCase();
-    const filt = t ? list.filter(n => n.toLowerCase().includes(t)) : list;
+    const t = (termo || '').trim().toLowerCase();
+    const filt = t ? list.filter((n) => n.toLowerCase().includes(t)) : list;
     if (!filt.length) {
       dd.innerHTML = `<div class="combobox-empty">Nenhum aluno encontrado</div>`;
     } else {
-      dd.innerHTML = filt.slice(0, 50).map(n =>
-        `<div class="combobox-option" onmousedown="selectAluno(this)" data-value="${escHtml(n)}">${escHtml(n)}</div>`
-      ).join('');
+      dd.innerHTML = filt
+        .slice(0, 50)
+        .map(
+          (n) =>
+            `<div class="combobox-option" onmousedown="selectAluno(this)" data-value="${escHtml(n)}">${escHtml(n)}</div>`
+        )
+        .join('');
     }
     dd.classList.add('combobox-dropdown--open');
   }
 
   _toggleClearAluno() {
-    const inp   = document.getElementById('filtroAluno');
+    const inp = document.getElementById('filtroAluno');
     const clear = document.getElementById('filtroAlunoClear');
     if (inp && clear) clear.hidden = !(inp.value || '').trim();
   }
@@ -158,7 +179,7 @@ class RelatorioPage {
   }
 
   onFiltroDeChange() {
-    const de  = dateInputToISO(document.getElementById('filtroDataDe').value);
+    const de = dateInputToISO(document.getElementById('filtroDataDe').value);
     const ate = dateInputToISO(document.getElementById('filtroDataAte').value);
     if (de && ate && ate < de) {
       document.getElementById('filtroDataAte').value = '';
@@ -169,7 +190,7 @@ class RelatorioPage {
   }
 
   onFiltroAteChange() {
-    const de  = dateInputToISO(document.getElementById('filtroDataDe').value);
+    const de = dateInputToISO(document.getElementById('filtroDataDe').value);
     const ate = dateInputToISO(document.getElementById('filtroDataAte').value);
     if (de && ate && ate < de) {
       document.getElementById('filtroDataAte').value = '';
@@ -187,20 +208,20 @@ class RelatorioPage {
   }
 
   aplicarFiltros() {
-    const v = id => {
+    const v = (id) => {
       const el = document.getElementById(id);
       return el ? el.value : '';
     };
-    const de        = dateInputToISO(v('filtroDataDe'));
-    const ate       = dateInputToISO(v('filtroDataAte'));
-    const aluno     = v('filtroAluno').trim().toLowerCase();
-    const curso     = v('filtroCurso');
+    const de = dateInputToISO(v('filtroDataDe'));
+    const ate = dateInputToISO(v('filtroDataAte'));
+    const aluno = v('filtroAluno').trim().toLowerCase();
+    const curso = v('filtroCurso');
     const pagamento = v('filtroPagamento');
-    const isSaidas  = this.tipo === 'saidas';
+    const isSaidas = this.tipo === 'saidas';
 
-    this.filteredData = this.reportData.filter(item => {
+    this.filteredData = this.reportData.filter((item) => {
       const itemDate = isSaidas ? item.data : item.dataDeposito;
-      if (de  && itemDate < de)  return false;
+      if (de && itemDate < de) return false;
       if (ate && itemDate > ate) return false;
       if (!isSaidas && aluno && !(item.nomeAluno || '').toLowerCase().includes(aluno)) return false;
       if (!isSaidas && curso && item.curso !== curso) return false;
@@ -217,11 +238,14 @@ class RelatorioPage {
 
   limparFiltros() {
     const { de, ate } = this._monthRange();
-    const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-    setVal('filtroDataDe',    isoToDateInput(de));
-    setVal('filtroDataAte',   isoToDateInput(ate));
-    setVal('filtroAluno',     '');
-    setVal('filtroCurso',     '');
+    const setVal = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.value = v;
+    };
+    setVal('filtroDataDe', isoToDateInput(de));
+    setVal('filtroDataAte', isoToDateInput(ate));
+    setVal('filtroAluno', '');
+    setVal('filtroCurso', '');
     setVal('filtroPagamento', '');
     this._toggleClearAluno();
     this.closeAlunoDropdown();
@@ -232,7 +256,7 @@ class RelatorioPage {
     const tbody = document.getElementById('reportTableBody');
     const empty = document.getElementById('tableEmpty');
     const start = (this.currentPage - 1) * PAGE_SIZE;
-    const page  = this.filteredData.slice(start, start + PAGE_SIZE);
+    const page = this.filteredData.slice(start, start + PAGE_SIZE);
     const thead = document.getElementById('reportThead');
 
     if (this.tipo === 'saidas') {
@@ -262,55 +286,61 @@ class RelatorioPage {
     </svg>`;
 
     empty.style.display = 'none';
-    tbody.innerHTML = page.map((item, idx) => {
-      const badge     = badgePagamento(item.formaPagamento);
-      const globalIdx = (this.currentPage - 1) * PAGE_SIZE + idx;
-      const delBtn = `<button class="btn-delete-row" onclick="pedirExclusao(${globalIdx})" title="Excluir">${deleteIcon}</button>`;
+    tbody.innerHTML = page
+      .map((item, idx) => {
+        const badge = badgePagamento(item.formaPagamento);
+        const globalIdx = (this.currentPage - 1) * PAGE_SIZE + idx;
+        const delBtn = `<button class="btn-delete-row" onclick="pedirExclusao(${globalIdx})" title="Excluir">${deleteIcon}</button>`;
 
-      if (this.tipo === 'saidas') {
-        const data = item.data ? item.data.split('-').reverse().join('/') : '—';
-        return `<tr>
+        if (this.tipo === 'saidas') {
+          const data = item.data ? item.data.split('-').reverse().join('/') : '—';
+          return `<tr>
           <td data-label="Data">${data}</td>
           <td data-label="Hora">${item.hora || '—'}</td>
-          <td data-label="Categoria"  title="${escHtml(item.categoria  || '')}">${escHtml(item.categoria  || '—')}</td>
+          <td data-label="Categoria"  title="${escHtml(item.categoria || '')}">${escHtml(item.categoria || '—')}</td>
           <td data-label="Fornecedor" title="${escHtml(item.fornecedor || '')}">${escHtml(item.fornecedor || '—')}</td>
           <td data-label="Pagamento">${badge}</td>
           <td class="col-valor" data-label="Valor">R$ ${escHtml(item.valor || '0,00')}</td>
           <td data-label="Obs." title="${escHtml(item.observacao || '')}">${escHtml(truncate(item.observacao, 20))}</td>
           <td>${delBtn}</td>
         </tr>`;
-      }
+        }
 
-      const data = item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '—';
-      return `<tr>
+        const data = item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '—';
+        return `<tr>
         <td data-label="Data">${data}</td>
         <td data-label="Hora">${item.horaDeposito || '—'}</td>
-        <td data-label="Aluno"    title="${escHtml(item.nomeAluno    || '')}">${escHtml(item.nomeAluno    || '—')}</td>
-        <td data-label="Curso"    title="${escHtml(item.curso        || '')}">${escHtml(item.curso        || '—')}</td>
-        <td data-label="Igreja"   title="${escHtml(item.igreja       || '')}">${escHtml(item.igreja       || '—')}</td>
+        <td data-label="Aluno"    title="${escHtml(item.nomeAluno || '')}">${escHtml(item.nomeAluno || '—')}</td>
+        <td data-label="Curso"    title="${escHtml(item.curso || '')}">${escHtml(item.curso || '—')}</td>
+        <td data-label="Igreja"   title="${escHtml(item.igreja || '')}">${escHtml(item.igreja || '—')}</td>
         <td data-label="Pagamento">${badge}</td>
         <td data-label="Parcela">${escHtml(item.parcela || '—')}</td>
         <td data-label="Depositante" title="${escHtml(item.nomeDepositante || '')}">${escHtml(item.nomeDepositante || '—')}</td>
-        <td data-label="Recebedor"   title="${escHtml(item.nomeRecebedor   || '')}">${escHtml(item.nomeRecebedor   || '—')}</td>
+        <td data-label="Recebedor"   title="${escHtml(item.nomeRecebedor || '')}">${escHtml(item.nomeRecebedor || '—')}</td>
         <td data-label="Banco Dep.">${escHtml(item.bancoDepositante || '—')}</td>
         <td data-label="Banco Rec.">${escHtml(item.bancoRecebedor || '—')}</td>
         <td class="col-valor" data-label="Valor">R$ ${escHtml(item.valor || '0,00')}</td>
         <td data-label="Obs." title="${escHtml(item.observacao || '')}">${escHtml(truncate(item.observacao, 20))}</td>
         <td>${delBtn}</td>
       </tr>`;
-    }).join('');
+      })
+      .join('');
   }
 
   renderPaginacao() {
     const total = Math.ceil(this.filteredData.length / PAGE_SIZE);
-    const el    = document.getElementById('pagination');
-    if (total <= 1) { el.innerHTML = ''; return; }
+    const el = document.getElementById('pagination');
+    if (total <= 1) {
+      el.innerHTML = '';
+      return;
+    }
 
     let html = `<button class="page-btn" onclick="goPage(${this.currentPage - 1})" ${this.currentPage === 1 ? 'disabled' : ''}>‹</button>`;
     for (let i = 1; i <= total; i++) {
       if (total > 7 && Math.abs(i - this.currentPage) > 2 && i !== 1 && i !== total) {
-        if (i === this.currentPage - 3 || i === this.currentPage + 3)
+        if (i === this.currentPage - 3 || i === this.currentPage + 3) {
           html += `<span style="padding:0 4px;color:#8090b0">…</span>`;
+        }
         continue;
       }
       html += `<button class="page-btn${i === this.currentPage ? ' page-btn--active' : ''}" onclick="goPage(${i})">${i}</button>`;
@@ -341,34 +371,42 @@ class RelatorioPage {
   }
 
   _exportarPdfDesktop() {
-    if (window.showProcess) window.showProcess('Preparando PDF...', 'Organizando os dados do relatório.');
+    if (window.showProcess)
+      window.showProcess('Preparando PDF...', 'Organizando os dados do relatório.');
     const btns = document.querySelectorAll('.btn-export');
-    btns.forEach(b => { b.disabled = true; b.classList.add('btn-export--loading'); });
+    btns.forEach((b) => {
+      b.disabled = true;
+      b.classList.add('btn-export--loading');
+    });
 
-    const agora    = new Date().toLocaleString('pt-BR');
+    const agora = new Date().toLocaleString('pt-BR');
     const isSaidas = this.tipo === 'saidas';
-    const titulo   = isSaidas ? 'Relatório de Saídas' : 'Relatório de Lançamentos';
+    const titulo = isSaidas ? 'Relatório de Saídas' : 'Relatório de Lançamentos';
     let cabecalho, linhas;
 
     if (isSaidas) {
       cabecalho = `<th>Data</th><th>Hora</th><th>Categoria</th><th>Fornecedor</th><th>Pagamento</th><th>Valor</th>`;
-      linhas = this.filteredData.map(item => {
-        const data = item.data ? item.data.split('-').reverse().join('/') : '—';
-        return `<tr><td>${data}</td><td>${item.hora || '—'}</td>
+      linhas = this.filteredData
+        .map((item) => {
+          const data = item.data ? item.data.split('-').reverse().join('/') : '—';
+          return `<tr><td>${data}</td><td>${item.hora || '—'}</td>
           <td>${escHtml(item.categoria || '—')}</td><td>${escHtml(item.fornecedor || '—')}</td>
           <td>${escHtml(item.formaPagamento || '—')}</td><td>R$ ${escHtml(item.valor || '0,00')}</td></tr>`;
-      }).join('');
+        })
+        .join('');
     } else {
       cabecalho = `<th>Data</th><th>Hora</th><th>Aluno</th><th>Curso</th><th>Igreja</th>
         <th>Pagamento</th><th>Depositante</th><th>Banco Dep.</th><th>Banco Rec.</th><th>Valor</th>`;
-      linhas = this.filteredData.map(item => {
-        const data = item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '—';
-        return `<tr><td>${data}</td><td>${item.horaDeposito || '—'}</td>
+      linhas = this.filteredData
+        .map((item) => {
+          const data = item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '—';
+          return `<tr><td>${data}</td><td>${item.horaDeposito || '—'}</td>
           <td>${escHtml(item.nomeAluno || '—')}</td><td>${escHtml(item.curso || '—')}</td>
           <td>${escHtml(item.igreja || '—')}</td><td>${escHtml(item.formaPagamento || '—')}</td>
           <td>${escHtml(item.nomeDepositante || '—')}</td><td>${escHtml(item.bancoDepositante || '—')}</td>
           <td>${escHtml(item.bancoRecebedor || '—')}</td><td>R$ ${escHtml(item.valor || '0,00')}</td></tr>`;
-      }).join('');
+        })
+        .join('');
     }
 
     document.getElementById('printArea').innerHTML = `
@@ -383,7 +421,10 @@ class RelatorioPage {
       <div class="print-footer">IETEB — Centro Educacional Teológico</div>`;
 
     const reabilitar = () => {
-      btns.forEach(b => { b.disabled = false; b.classList.remove('btn-export--loading'); });
+      btns.forEach((b) => {
+        b.disabled = false;
+        b.classList.remove('btn-export--loading');
+      });
     };
 
     setTimeout(() => {
@@ -407,17 +448,26 @@ class RelatorioPage {
         window.addEventListener('afterprint', onAfterPrint);
         window.print();
         setTimeout(() => finalizar(true), 1200);
-      } catch (_) { finalizar(false); }
+      } catch (_) {
+        finalizar(false);
+      }
       setTimeout(() => finalizar(true), 8000);
     }, 60);
   }
 
   async _exportarPdfMobile() {
-    if (window.showProcess) window.showProcess('Preparando PDF...', 'Gerando arquivo para download.');
+    if (window.showProcess)
+      window.showProcess('Preparando PDF...', 'Gerando arquivo para download.');
     const btns = document.querySelectorAll('.btn-export');
-    btns.forEach(b => { b.disabled = true; b.classList.add('btn-export--loading'); });
+    btns.forEach((b) => {
+      b.disabled = true;
+      b.classList.add('btn-export--loading');
+    });
     const reabilitar = () => {
-      btns.forEach(b => { b.disabled = false; b.classList.remove('btn-export--loading'); });
+      btns.forEach((b) => {
+        b.disabled = false;
+        b.classList.remove('btn-export--loading');
+      });
     };
 
     try {
@@ -428,18 +478,20 @@ class RelatorioPage {
       const jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
       if (!jsPDFCtor) throw new Error('jspdf-load');
       if (typeof jsPDFCtor.API.autoTable !== 'function') {
-        await loadScript('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js');
+        await loadScript(
+          'https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js'
+        );
       }
 
       const isSaidas = this.tipo === 'saidas';
-      const titulo   = isSaidas ? 'Relatório de Saídas' : 'Relatório de Lançamentos';
-      const agora    = new Date().toLocaleString('pt-BR');
-      const dataIso  = new Date().toISOString().slice(0, 10);
+      const titulo = isSaidas ? 'Relatório de Saídas' : 'Relatório de Lançamentos';
+      const agora = new Date().toLocaleString('pt-BR');
+      const dataIso = new Date().toISOString().slice(0, 10);
 
       let head, body;
       if (isSaidas) {
-        head = [['Data','Hora','Categoria','Fornecedor','Pagamento','Valor','Obs.']];
-        body = this.filteredData.map(item => [
+        head = [['Data', 'Hora', 'Categoria', 'Fornecedor', 'Pagamento', 'Valor', 'Obs.']];
+        body = this.filteredData.map((item) => [
           item.data ? item.data.split('-').reverse().join('/') : '—',
           item.hora || '—',
           item.categoria || '—',
@@ -449,8 +501,21 @@ class RelatorioPage {
           item.observacao || '',
         ]);
       } else {
-        head = [['Data','Hora','Aluno','Curso','Igreja','Pagto','Depositante','Banco Dep.','Banco Rec.','Valor']];
-        body = this.filteredData.map(item => [
+        head = [
+          [
+            'Data',
+            'Hora',
+            'Aluno',
+            'Curso',
+            'Igreja',
+            'Pagto',
+            'Depositante',
+            'Banco Dep.',
+            'Banco Rec.',
+            'Valor',
+          ],
+        ];
+        body = this.filteredData.map((item) => [
           item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '—',
           item.horaDeposito || '—',
           item.nomeAluno || '—',
@@ -478,11 +543,17 @@ class RelatorioPage {
 
       // Tabela
       doc.autoTable({
-        head, body,
+        head,
+        body,
         startY: 64,
         theme: 'grid',
         styles: { fontSize: 7, cellPadding: 3, overflow: 'linebreak' },
-        headStyles: { fillColor: [11, 31, 92], textColor: [212, 175, 55], fontSize: 7, fontStyle: 'bold' },
+        headStyles: {
+          fillColor: [11, 31, 92],
+          textColor: [212, 175, 55],
+          fontSize: 7,
+          fontStyle: 'bold',
+        },
         alternateRowStyles: { fillColor: [248, 250, 252] },
         margin: { top: 64, left: 24, right: 24, bottom: 30 },
         didDrawPage: (data) => {
@@ -491,8 +562,11 @@ class RelatorioPage {
           const total = doc.internal.getNumberOfPages();
           doc.setFontSize(7);
           doc.setTextColor(150);
-          doc.text(`IETEB — Centro Educacional Teológico  ·  Página ${page} de ${total}`,
-            data.settings.margin.left, doc.internal.pageSize.getHeight() - 14);
+          doc.text(
+            `IETEB — Centro Educacional Teológico  ·  Página ${page} de ${total}`,
+            data.settings.margin.left,
+            doc.internal.pageSize.getHeight() - 14
+          );
         },
       });
 
@@ -518,47 +592,86 @@ class RelatorioPage {
     }
 
     const btns = document.querySelectorAll('.btn-export');
-    btns.forEach(b => { b.disabled = true; b.classList.add('btn-export--loading'); });
+    btns.forEach((b) => {
+      b.disabled = true;
+      b.classList.add('btn-export--loading');
+    });
     const reabilitar = () => {
-      btns.forEach(b => { b.disabled = false; b.classList.remove('btn-export--loading'); });
+      btns.forEach((b) => {
+        b.disabled = false;
+        b.classList.remove('btn-export--loading');
+      });
     };
 
     try {
-      if (window.showProcess) window.showProcess('Preparando Excel...', 'Carregando biblioteca e gerando arquivo.');
+      if (window.showProcess)
+        window.showProcess('Preparando Excel...', 'Carregando biblioteca e gerando arquivo.');
       if (typeof XLSX === 'undefined') {
         await loadScript('https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js');
       }
 
       const isSaidas = this.tipo === 'saidas';
-      const agora    = new Date().toISOString().slice(0, 10);
+      const agora = new Date().toISOString().slice(0, 10);
       let headers, rows, sheetName, fileName, colWidths;
 
       if (isSaidas) {
-        headers   = ['Data','Hora','Categoria','Fornecedor','Forma de Pagamento','Valor','Observação'];
-        rows      = this.filteredData.map(item => [
+        headers = [
+          'Data',
+          'Hora',
+          'Categoria',
+          'Fornecedor',
+          'Forma de Pagamento',
+          'Valor',
+          'Observação',
+        ];
+        rows = this.filteredData.map((item) => [
           item.data ? item.data.split('-').reverse().join('/') : '',
-          item.hora || '', item.categoria || '', item.fornecedor || '',
-          item.formaPagamento || '', `R$ ${item.valor || '0,00'}`, item.observacao || '',
+          item.hora || '',
+          item.categoria || '',
+          item.fornecedor || '',
+          item.formaPagamento || '',
+          `R$ ${item.valor || '0,00'}`,
+          item.observacao || '',
         ]);
-        sheetName = 'Saídas';   fileName = `IETEB_Saidas_${agora}.xlsx`;
-        colWidths = [8,6,24,28,12,10,24];
+        sheetName = 'Saídas';
+        fileName = `IETEB_Saidas_${agora}.xlsx`;
+        colWidths = [8, 6, 24, 28, 12, 10, 24];
       } else {
-        headers   = ['Data','Hora','Nome do Aluno','Curso','Igreja','Forma de Pagamento','Depositante','Banco Depositante','Banco Recebedor','Valor','Observação'];
-        rows      = this.filteredData.map(item => [
+        headers = [
+          'Data',
+          'Hora',
+          'Nome do Aluno',
+          'Curso',
+          'Igreja',
+          'Forma de Pagamento',
+          'Depositante',
+          'Banco Depositante',
+          'Banco Recebedor',
+          'Valor',
+          'Observação',
+        ];
+        rows = this.filteredData.map((item) => [
           item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '',
-          item.horaDeposito || '', item.nomeAluno || '', item.curso || '',
-          item.igreja || '', item.formaPagamento || '', item.nomeDepositante || '',
-          item.bancoDepositante || '', item.bancoRecebedor || '',
-          `R$ ${item.valor || '0,00'}`, item.observacao || '',
+          item.horaDeposito || '',
+          item.nomeAluno || '',
+          item.curso || '',
+          item.igreja || '',
+          item.formaPagamento || '',
+          item.nomeDepositante || '',
+          item.bancoDepositante || '',
+          item.bancoRecebedor || '',
+          `R$ ${item.valor || '0,00'}`,
+          item.observacao || '',
         ]);
-        sheetName = 'Lançamentos'; fileName = `IETEB_Lancamentos_${agora}.xlsx`;
-        colWidths = [8,6,22,20,28,12,20,16,16,10,20];
+        sheetName = 'Lançamentos';
+        fileName = `IETEB_Lancamentos_${agora}.xlsx`;
+        colWidths = [8, 6, 22, 20, 28, 12, 20, 16, 16, 10, 20];
       }
 
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
-      ws['!cols'] = colWidths.map(w => ({ wch: w }));
+      ws['!cols'] = colWidths.map((w) => ({ wch: w }));
       XLSX.writeFile(wb, fileName);
       if (window.showProcessSuccess) {
         window.showProcessSuccess('Excel exportado!', 'O download foi iniciado.');
@@ -581,10 +694,10 @@ class RelatorioPage {
 
   confirmarExclusao() {
     if (this.deleteTarget === null) return;
-    const colName    = this.tipo === 'saidas' ? 'Saídas' : 'Entradas';
+    const colName = this.tipo === 'saidas' ? 'Saídas' : 'Entradas';
     const storageKey = this.tipo === 'saidas' ? 'ieteb_saidas' : 'ieteb_lancamentos';
     const todos = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    const novos = todos.filter(l => l.id !== this.deleteTarget);
+    const novos = todos.filter((l) => l.id !== this.deleteTarget);
     localStorage.setItem(storageKey, JSON.stringify(novos));
     this.firebase.delete(colName, this.deleteTarget);
     this.deleteTarget = null;
@@ -593,30 +706,34 @@ class RelatorioPage {
     this.modal.showToast('Registro excluído.', 'success');
   }
 
-  closeDeleteModal() { this.modal.close('deleteModal'); this.deleteTarget = null; }
+  closeDeleteModal() {
+    this.modal.close('deleteModal');
+    this.deleteTarget = null;
+  }
 
   // ── Comprovante ───────────────────────────────────────────────────────────────
   verComprovante(idx) {
     const item = this.filteredData[idx];
-    const src  = item && (item.comprovante || item.comprovanteUrl);
+    const src = item && (item.comprovante || item.comprovanteUrl);
     if (!src) return;
 
-    const imgEl   = document.getElementById('imgModalImg');
-    const pdfEl   = document.getElementById('imgModalPdf');
+    const imgEl = document.getElementById('imgModalImg');
+    const pdfEl = document.getElementById('imgModalPdf');
     const emptyEl = document.getElementById('imgModalEmpty');
 
-    imgEl.style.display   = 'none';
-    pdfEl.style.display   = 'none';
+    imgEl.style.display = 'none';
+    pdfEl.style.display = 'none';
     emptyEl.style.display = 'none';
 
     const isPdf = src.startsWith('data:application/pdf') || item.comprovanteType === 'pdf';
-    const isImg = src.startsWith('data:image') || item.comprovanteType === 'image' || src.startsWith('http');
+    const isImg =
+      src.startsWith('data:image') || item.comprovanteType === 'image' || src.startsWith('http');
 
     if (isPdf) {
-      pdfEl.src           = src;
+      pdfEl.src = src;
       pdfEl.style.display = 'block';
     } else if (isImg) {
-      imgEl.src           = src;
+      imgEl.src = src;
       imgEl.style.display = 'block';
     } else {
       emptyEl.style.display = 'flex';

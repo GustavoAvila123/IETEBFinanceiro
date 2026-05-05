@@ -21,7 +21,8 @@ const I18N_STRINGS = {
     'login.user': 'USUÁRIO',
     'login.password': 'SENHA',
     'login.submit': 'Entrar',
-    'login.error': 'Ops! Não conseguimos entrar com esses dados. Confirme seu usuário e senha e tente novamente.',
+    'login.error':
+      'Ops! Não conseguimos entrar com esses dados. Confirme seu usuário e senha e tente novamente.',
     'login.copyright': 'IETEB © 2026 · Todos os direitos reservados',
 
     // Navegação (sidebar)
@@ -51,7 +52,8 @@ const I18N_STRINGS = {
 
     // Modais
     'modal.confirmDelete.title': 'Confirmar exclusão',
-    'modal.confirmDelete.message': 'Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.',
+    'modal.confirmDelete.message':
+      'Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.',
     'modal.success.title': 'Concluído',
     'modal.warning.title': 'Atenção',
     'modal.error.title': 'Atenção',
@@ -62,7 +64,7 @@ const I18N_STRINGS = {
     'lang.en': 'English',
   },
 
-  'en': {
+  en: {
     'app.title': 'IETEB Financial',
     'app.tagline': 'Financial Management System',
 
@@ -71,7 +73,8 @@ const I18N_STRINGS = {
     'login.user': 'USER',
     'login.password': 'PASSWORD',
     'login.submit': 'Sign in',
-    'login.error': "Oops! We couldn't sign you in with those credentials. Please check your username and password and try again.",
+    'login.error':
+      "Oops! We couldn't sign you in with those credentials. Please check your username and password and try again.",
     'login.copyright': 'IETEB © 2026 · All rights reserved',
 
     'nav.section.main': 'Main',
@@ -98,7 +101,8 @@ const I18N_STRINGS = {
     'btn.logout': 'Sign out',
 
     'modal.confirmDelete.title': 'Confirm deletion',
-    'modal.confirmDelete.message': 'Are you sure you want to delete this record? This action cannot be undone.',
+    'modal.confirmDelete.message':
+      'Are you sure you want to delete this record? This action cannot be undone.',
     'modal.success.title': 'Done',
     'modal.warning.title': 'Notice',
     'modal.error.title': 'Notice',

@@ -1,13 +1,12 @@
-
 class EntradaPage {
   constructor(modal, firebase, ocr, igrejaDropdown, alunosManager) {
-    this.modal    = modal;
+    this.modal = modal;
     this.firebase = firebase;
-    this.ocr      = ocr;
-    this.igreja   = igrejaDropdown;
-    this.alunos   = alunosManager;
+    this.ocr = ocr;
+    this.igreja = igrejaDropdown;
+    this.alunos = alunosManager;
 
-    this.currentFile        = null;
+    this.currentFile = null;
     this.currentFileDataUrl = null;
   }
 
@@ -29,9 +28,15 @@ class EntradaPage {
   }
 
   // ── Igreja dropdown (delegado para IgrejaDropdown component) ─────────────────
-  openChurchDropdown()    { this.igreja.open(); }
-  filterChurches(val)     { this.igreja.filter(val); }
-  selectChurch(value)     { this.igreja.select(value); }
+  openChurchDropdown() {
+    this.igreja.open();
+  }
+  filterChurches(val) {
+    this.igreja.filter(val);
+  }
+  selectChurch(value) {
+    this.igreja.select(value);
+  }
 
   // ── Pagamento ─────────────────────────────────────────────────────────────────
   lockPayment() {
@@ -43,7 +48,9 @@ class EntradaPage {
   }
 
   selectPayment(btn) {
-    document.querySelectorAll('#paymentTypes .payment-btn').forEach(b => b.classList.remove('payment-btn--active'));
+    document
+      .querySelectorAll('#paymentTypes .payment-btn')
+      .forEach((b) => b.classList.remove('payment-btn--active'));
     btn.classList.add('payment-btn--active');
     document.getElementById('formaPagamento').value = btn.dataset.value;
     document.getElementById('pagamentoError').textContent = '';
@@ -53,21 +60,21 @@ class EntradaPage {
   _setLabelText(id, texto) {
     const el = document.getElementById(id);
     if (!el) return;
-    const tn = Array.from(el.childNodes).find(n => n.nodeType === 3);
+    const tn = Array.from(el.childNodes).find((n) => n.nodeType === 3);
     if (tn) tn.nodeValue = texto;
-    else    el.insertBefore(document.createTextNode(texto), el.firstChild);
+    else el.insertBefore(document.createTextNode(texto), el.firstChild);
   }
 
   ajustarFormPorPagamento(tipo) {
-    const isDinheiro    = tipo === 'Dinheiro';
-    const isCredito     = tipo === 'Crédito';
-    const isDebito      = tipo === 'Débito';
-    const bancoRecEl    = document.getElementById('bancoRecebedor');
+    const isDinheiro = tipo === 'Dinheiro';
+    const isCredito = tipo === 'Crédito';
+    const isDebito = tipo === 'Débito';
+    const bancoRecEl = document.getElementById('bancoRecebedor');
     const grupoBancoRec = document.getElementById('grupoBancoRecebedor');
-    const rowDeposRec   = document.getElementById('rowDepositanteRecebedor');
-    const rowBancos     = document.getElementById('rowBancos');
+    const rowDeposRec = document.getElementById('rowDepositanteRecebedor');
+    const rowBancos = document.getElementById('rowBancos');
 
-    document.getElementById('grupoNomeDepositante').style.display  = isDinheiro ? 'none' : '';
+    document.getElementById('grupoNomeDepositante').style.display = isDinheiro ? 'none' : '';
     document.getElementById('grupoBancoDepositante').style.display = isDinheiro ? 'none' : '';
 
     if (isDinheiro) {
@@ -82,27 +89,30 @@ class EntradaPage {
     }
 
     const inputNomeDepo = document.getElementById('nomeDepositante');
-    const inputNomeRec  = document.getElementById('nomeRecebedor');
-    const labelHora     = document.getElementById('labelHoraDeposito');
+    const inputNomeRec = document.getElementById('nomeRecebedor');
+    const labelHora = document.getElementById('labelHoraDeposito');
 
     if (isCredito || isDebito) {
       this._setLabelText('labelNomeDepositante', 'Nome da Loja ');
-      this._setLabelText('labelNomeRecebedor',   'Maquininha ');
-      this._setLabelText('labelDataDeposito',    'Data da Transação ');
+      this._setLabelText('labelNomeRecebedor', 'Maquininha ');
+      this._setLabelText('labelDataDeposito', 'Data da Transação ');
       if (labelHora) labelHora.textContent = 'Hora da Transação';
       if (inputNomeDepo) inputNomeDepo.placeholder = 'Nome do estabelecimento';
-      if (inputNomeRec)  inputNomeRec.placeholder  = 'Ex: Laranjinha, Stone, Cielo...';
+      if (inputNomeRec) inputNomeRec.placeholder = 'Ex: Laranjinha, Stone, Cielo...';
     } else {
       this._setLabelText('labelNomeDepositante', 'Nome do Depositante ');
-      this._setLabelText('labelNomeRecebedor',   'Nome de Quem Recebeu ');
-      this._setLabelText('labelDataDeposito',    isDinheiro ? 'Data do Pagamento ' : 'Data do Depósito ');
+      this._setLabelText('labelNomeRecebedor', 'Nome de Quem Recebeu ');
+      this._setLabelText(
+        'labelDataDeposito',
+        isDinheiro ? 'Data do Pagamento ' : 'Data do Depósito '
+      );
       if (labelHora) labelHora.textContent = 'Hora do Depósito';
       if (inputNomeDepo) inputNomeDepo.placeholder = 'Quem realizou o pagamento';
-      if (inputNomeRec)  inputNomeRec.placeholder  = 'Quem recebeu o valor';
+      if (inputNomeRec) inputNomeRec.placeholder = 'Quem recebeu o valor';
     }
 
     if (isDinheiro) {
-      bancoRecEl.value    = 'Caixa';
+      bancoRecEl.value = 'Caixa';
       bancoRecEl.readOnly = true;
       bancoRecEl.classList.add('form-input--readonly');
     } else {
@@ -135,7 +145,14 @@ class EntradaPage {
   }
 
   handleFile(file) {
-    const allowed = ['image/png','image/jpeg','image/jpg','image/gif','image/webp','application/pdf'];
+    const allowed = [
+      'image/png',
+      'image/jpeg',
+      'image/jpg',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+    ];
     if (!allowed.includes(file.type)) {
       this.modal.showToast('Formato não suportado. Use imagem ou PDF.', 'error');
       return;
@@ -147,7 +164,7 @@ class EntradaPage {
     const img = document.getElementById('previewImg');
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
-      reader.onload = e => {
+      reader.onload = (e) => {
         this.currentFileDataUrl = e.target.result;
         img.src = e.target.result;
         img.style.display = 'block';
@@ -162,15 +179,15 @@ class EntradaPage {
   }
 
   removeFile() {
-    this.currentFile        = null;
+    this.currentFile = null;
     this.currentFileDataUrl = null;
-    document.getElementById('uploadPreview').style.display         = 'none';
-    document.getElementById('previewImg').style.display            = 'none';
-    document.getElementById('previewImg').src                      = '';
-    document.getElementById('previewFileName').textContent         = '';
-    document.getElementById('btnLerComprovante').style.display     = 'none';
-    document.getElementById('ocrStatus').style.display             = 'none';
-    document.getElementById('fileInput').value                     = '';
+    document.getElementById('uploadPreview').style.display = 'none';
+    document.getElementById('previewImg').style.display = 'none';
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewFileName').textContent = '';
+    document.getElementById('btnLerComprovante').style.display = 'none';
+    document.getElementById('ocrStatus').style.display = 'none';
+    document.getElementById('fileInput').value = '';
     this.unlockPayment();
   }
 
@@ -179,52 +196,105 @@ class EntradaPage {
   }
 
   // ── Alunos (delegado para AlunosManager component) ─────────────────────
-  initAlunosContainer() { this.alunos.init(); }
-  addAlunoRow()         { this.alunos.addRow(); }
-  removeAlunoRow(id)    { this.alunos.removeRow(id); }
-  getAlunosData()       { return this.alunos.getData(); }
-  validateAlunos()      { return this.alunos.validate(); }
+  initAlunosContainer() {
+    this.alunos.init();
+  }
+  addAlunoRow() {
+    this.alunos.addRow();
+  }
+  removeAlunoRow(id) {
+    this.alunos.removeRow(id);
+  }
+  getAlunosData() {
+    return this.alunos.getData();
+  }
+  validateAlunos() {
+    return this.alunos.validate();
+  }
 
   initValidationListeners() {
     [
-      ['curso',            'change', 'cursoError'],
-      ['nomeDepositante',  'input',  'nomeDepositanteError'],
-      ['nomeRecebedor',    'input',  'nomeRecebedorError'],
-      ['bancoDepositante', 'input',  'bancoDepositanteError'],
-      ['bancoRecebedor',   'input',  'bancoRecebedorError'],
-      ['valorEntrada',     'input',  'valorError'],
-      ['dataDeposito',     'input',  'dataError'],
+      ['curso', 'change', 'cursoError'],
+      ['nomeDepositante', 'input', 'nomeDepositanteError'],
+      ['nomeRecebedor', 'input', 'nomeRecebedorError'],
+      ['bancoDepositante', 'input', 'bancoDepositanteError'],
+      ['bancoRecebedor', 'input', 'bancoRecebedorError'],
+      ['valorEntrada', 'input', 'valorError'],
+      ['dataDeposito', 'input', 'dataError'],
     ].forEach(([inputId, evt, errId]) => {
       const el = document.getElementById(inputId);
       if (el) el.addEventListener(evt, () => clearFieldError(errId));
     });
   }
 
-
   // ── Validação ─────────────────────────────────────────────────────────────────
   validate() {
     let ok = true;
-    const fp         = document.getElementById('formaPagamento').value;
+    const fp = document.getElementById('formaPagamento').value;
     const isDinheiro = fp === 'Dinheiro';
-    const isCredito  = fp === 'Crédito';
-    const isDebito   = fp === 'Débito';
+    const isCredito = fp === 'Crédito';
+    const isDebito = fp === 'Débito';
 
     const checks = [
-      { errId: 'cursoError',            msg: 'Selecione o curso.',              val: () => document.getElementById('curso').value },
-      { errId: 'igrejaError',           msg: 'Selecione a igreja.',             val: () => document.getElementById('igreja').value },
-      { errId: 'pagamentoError',        msg: 'Selecione a forma de pagamento.', val: () => document.getElementById('formaPagamento').value },
-      { errId: 'nomeDepositanteError',  msg: 'Informe o nome do depositante.',  val: () => isDinheiro ? 'ok' : document.getElementById('nomeDepositante').value.trim() },
-      { errId: 'nomeRecebedorError',    msg: 'Informe o nome de quem recebeu.', val: () => document.getElementById('nomeRecebedor').value.trim() },
-      { errId: 'bancoDepositanteError', msg: 'Informe o banco depositante.',    val: () => (isDinheiro || isCredito || isDebito) ? 'ok' : document.getElementById('bancoDepositante').value.trim() },
-      { errId: 'bancoRecebedorError',   msg: 'Informe o banco recebedor.',      val: () => (isDinheiro || isCredito || isDebito) ? 'ok' : document.getElementById('bancoRecebedor').value.trim() },
-      { errId: 'valorError',            msg: 'Informe o valor.',                val: () => document.getElementById('valorEntrada').value.trim() },
-      { errId: 'dataError',             msg: 'Informe a data.',                 val: () => document.getElementById('dataDeposito').value },
+      {
+        errId: 'cursoError',
+        msg: 'Selecione o curso.',
+        val: () => document.getElementById('curso').value,
+      },
+      {
+        errId: 'igrejaError',
+        msg: 'Selecione a igreja.',
+        val: () => document.getElementById('igreja').value,
+      },
+      {
+        errId: 'pagamentoError',
+        msg: 'Selecione a forma de pagamento.',
+        val: () => document.getElementById('formaPagamento').value,
+      },
+      {
+        errId: 'nomeDepositanteError',
+        msg: 'Informe o nome do depositante.',
+        val: () => (isDinheiro ? 'ok' : document.getElementById('nomeDepositante').value.trim()),
+      },
+      {
+        errId: 'nomeRecebedorError',
+        msg: 'Informe o nome de quem recebeu.',
+        val: () => document.getElementById('nomeRecebedor').value.trim(),
+      },
+      {
+        errId: 'bancoDepositanteError',
+        msg: 'Informe o banco depositante.',
+        val: () =>
+          isDinheiro || isCredito || isDebito
+            ? 'ok'
+            : document.getElementById('bancoDepositante').value.trim(),
+      },
+      {
+        errId: 'bancoRecebedorError',
+        msg: 'Informe o banco recebedor.',
+        val: () =>
+          isDinheiro || isCredito || isDebito
+            ? 'ok'
+            : document.getElementById('bancoRecebedor').value.trim(),
+      },
+      {
+        errId: 'valorError',
+        msg: 'Informe o valor.',
+        val: () => document.getElementById('valorEntrada').value.trim(),
+      },
+      {
+        errId: 'dataError',
+        msg: 'Informe a data.',
+        val: () => document.getElementById('dataDeposito').value,
+      },
     ];
 
-    checks.forEach(c => {
+    checks.forEach((c) => {
       const el = document.getElementById(c.errId);
-      if (!c.val()) { el.textContent = c.msg; ok = false; }
-      else            el.textContent = '';
+      if (!c.val()) {
+        el.textContent = c.msg;
+        ok = false;
+      } else el.textContent = '';
     });
 
     if (!this.validateAlunos()) ok = false;
@@ -242,49 +312,55 @@ class EntradaPage {
     const alunos = this.getAlunosData();
     const _cu = getCurrentUser();
     const baseData = {
-      curso:           document.getElementById('curso').value,
-      igreja:          document.getElementById('igreja').value,
-      formaPagamento:  document.getElementById('formaPagamento').value,
+      curso: document.getElementById('curso').value,
+      igreja: document.getElementById('igreja').value,
+      formaPagamento: document.getElementById('formaPagamento').value,
       nomeDepositante: document.getElementById('nomeDepositante').value.trim(),
-      nomeRecebedor:   document.getElementById('nomeRecebedor').value.trim(),
-      bancoDepositante:document.getElementById('bancoDepositante').value.trim(),
-      bancoRecebedor:  document.getElementById('bancoRecebedor').value.trim(),
-      valor:           document.getElementById('valorEntrada').value.trim(),
-      dataDeposito:    dateInputToISO(document.getElementById('dataDeposito').value),
-      horaDeposito:    document.getElementById('horaDeposito').value,
-      observacao:      document.getElementById('observacao').value.trim(),
-      comprovante:     this.currentFileDataUrl || null,
-      criadoEm:        new Date().toISOString(),
-      userId:          _cu.id,
-      userName:        _cu.name,
+      nomeRecebedor: document.getElementById('nomeRecebedor').value.trim(),
+      bancoDepositante: document.getElementById('bancoDepositante').value.trim(),
+      bancoRecebedor: document.getElementById('bancoRecebedor').value.trim(),
+      valor: document.getElementById('valorEntrada').value.trim(),
+      dataDeposito: dateInputToISO(document.getElementById('dataDeposito').value),
+      horaDeposito: document.getElementById('horaDeposito').value,
+      observacao: document.getElementById('observacao').value.trim(),
+      comprovante: this.currentFileDataUrl || null,
+      criadoEm: new Date().toISOString(),
+      userId: _cu.id,
+      userName: _cu.name,
     };
 
     const existing = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
-    const baseTime  = Date.now();
+    const baseTime = Date.now();
 
-    const novosRegistros = alunos.slice().reverse().map((aluno, i) => ({
-      ...baseData,
-      id:        baseTime + (alunos.length - 1 - i),
-      nomeAluno: aluno.nome,
-      parcela:   aluno.parcela,
-    }));
+    const novosRegistros = alunos
+      .slice()
+      .reverse()
+      .map((aluno, i) => ({
+        ...baseData,
+        id: baseTime + (alunos.length - 1 - i),
+        nomeAluno: aluno.nome,
+        parcela: aluno.parcela,
+      }));
 
-    novosRegistros.forEach(r => existing.unshift(r));
+    novosRegistros.forEach((r) => existing.unshift(r));
     localStorage.setItem('ieteb_lancamentos', JSON.stringify(existing));
-    novosRegistros.forEach(r => this.firebase.save('Entradas', r));
+    novosRegistros.forEach((r) => this.firebase.save('Entradas', r));
 
-    const msg = alunos.length > 1
-      ? `${alunos.length} lançamentos salvos com sucesso!`
-      : 'Lançamento salvo com sucesso!';
+    const msg =
+      alunos.length > 1
+        ? `${alunos.length} lançamentos salvos com sucesso!`
+        : 'Lançamento salvo com sucesso!';
     this._showSnackbar(msg);
     this.limparFormulario();
-    try { document.dispatchEvent(new CustomEvent('ietebDataChanged')); } catch (_) {}
+    try {
+      document.dispatchEvent(new CustomEvent('ietebDataChanged'));
+    } catch (_) {}
   }
 
   _showSnackbar(msg) {
-    const el      = document.getElementById('saidaSavedSnackbar');
+    const el = document.getElementById('saidaSavedSnackbar');
     const overlay = document.getElementById('saidaSnackbarOverlay');
-    const msgEl   = document.getElementById('savedSnackbarMsg');
+    const msgEl = document.getElementById('savedSnackbarMsg');
     if (!el) return;
     if (msgEl) msgEl.textContent = msg;
     el.classList.add('snackbar--visible');
@@ -297,23 +373,45 @@ class EntradaPage {
   }
 
   limparFormulario() {
-    ['curso','nomeDepositante','nomeRecebedor','bancoDepositante',
-     'bancoRecebedor','valorEntrada','dataDeposito','horaDeposito',
-     'observacao','formaPagamento'].forEach(id => {
+    [
+      'curso',
+      'nomeDepositante',
+      'nomeRecebedor',
+      'bancoDepositante',
+      'bancoRecebedor',
+      'valorEntrada',
+      'dataDeposito',
+      'horaDeposito',
+      'observacao',
+      'formaPagamento',
+    ].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
 
-    document.getElementById('igreja').value       = '';
+    document.getElementById('igreja').value = '';
     document.getElementById('igrejaSearch').value = '';
-    document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('payment-btn--active'));
+    document
+      .querySelectorAll('.payment-btn')
+      .forEach((b) => b.classList.remove('payment-btn--active'));
     this.unlockPayment();
     this.ajustarFormPorPagamento('');
 
-    ['cursoError','igrejaError','pagamentoError','nomeDepositanteError',
-     'nomeRecebedorError','bancoDepositanteError','bancoRecebedorError',
-     'valorError','dataError','alunosError']
-      .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
+    [
+      'cursoError',
+      'igrejaError',
+      'pagamentoError',
+      'nomeDepositanteError',
+      'nomeRecebedorError',
+      'bancoDepositanteError',
+      'bancoRecebedorError',
+      'valorError',
+      'dataError',
+      'alunosError',
+    ].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '';
+    });
 
     this.initAlunosContainer();
     this.removeFile();

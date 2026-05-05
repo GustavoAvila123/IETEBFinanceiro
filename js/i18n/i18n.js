@@ -34,7 +34,9 @@
 
   function setLang(lang) {
     if (!SUPPORTED.includes(lang)) return;
-    try { localStorage.setItem(STORAGE_KEY, lang); } catch (_) {}
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch (_) {}
     document.documentElement.setAttribute('lang', lang);
     applyTranslations();
   }

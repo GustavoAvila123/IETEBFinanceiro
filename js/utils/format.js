@@ -9,13 +9,16 @@ function formatBRL(num) {
 
 function maskCurrency(input) {
   let raw = input.value.replace(/\D/g, '');
-  if (!raw) { input.value = ''; return; }
+  if (!raw) {
+    input.value = '';
+    return;
+  }
   raw = String(parseInt(raw, 10));
   if (raw.length === 1) raw = '0' + raw;
-  const cents     = raw.slice(-2);
-  const reais     = raw.slice(0, -2) || '0';
+  const cents = raw.slice(-2);
+  const reais = raw.slice(0, -2) || '0';
   const formatted = parseInt(reais, 10).toLocaleString('pt-BR');
-  input.value     = formatted + ',' + cents;
+  input.value = formatted + ',' + cents;
 }
 
 function dateInputToISO(val) {
@@ -32,7 +35,7 @@ function isoToDateInput(iso) {
 }
 
 function onDateInput(el) {
-  let digits = el.value.replace(/\D/g, '').slice(0, 8);
+  const digits = el.value.replace(/\D/g, '').slice(0, 8);
   if (digits.length > 4) {
     el.value = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
   } else if (digits.length > 2) {
@@ -47,12 +50,17 @@ function onDateBlur(el, callback, allowFuture) {
   if (digits) {
     if (digits.length === 7) digits = '0' + digits;
     if (digits.length === 8) {
-      const dd   = digits.slice(0, 2), mm = digits.slice(2, 4), yyyy = digits.slice(4, 8);
-      const date  = new Date(+yyyy, +mm - 1, +dd);
-      const today = new Date(); today.setHours(23, 59, 59, 999);
-      const valid = !isNaN(date.getTime())
-                    && (allowFuture || date <= today)
-                    && date.getDate() === +dd && date.getMonth() + 1 === +mm;
+      const dd = digits.slice(0, 2),
+        mm = digits.slice(2, 4),
+        yyyy = digits.slice(4, 8);
+      const date = new Date(+yyyy, +mm - 1, +dd);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      const valid =
+        !isNaN(date.getTime()) &&
+        (allowFuture || date <= today) &&
+        date.getDate() === +dd &&
+        date.getMonth() + 1 === +mm;
       el.value = valid ? `${dd}/${mm}/${yyyy}` : '';
     } else {
       el.value = '';

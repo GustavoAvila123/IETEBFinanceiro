@@ -6,16 +6,12 @@ import { loadProjectGlobals, modalMock } from '../setup.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(__dirname, '..', 'fixtures', 'ocr-saidas');
-const fix = name => readFileSync(join(fixturesDir, name), 'utf-8');
+const fix = (name) => readFileSync(join(fixturesDir, name), 'utf-8');
 
 let extract, detectarTipo;
 
 beforeAll(() => {
-  loadProjectGlobals([
-    'js/utils/format.js',
-    'js/utils/helpers.js',
-    'js/ocr/saidas.js',
-  ]);
+  loadProjectGlobals(['js/utils/format.js', 'js/utils/helpers.js', 'js/ocr/saidas.js']);
   // eslint-disable-next-line no-undef
   const inst = new OCRSaidas(modalMock);
   extract = (text) => inst.extractFields(text);
@@ -89,7 +85,9 @@ describe('OCR Saídas — _detectarTipoDoc', () => {
 
 describe('OCR Saídas — heurísticas isoladas', () => {
   it('forma de pagamento "crédito" sozinho NÃO é mais Crédito (era falso positivo)', () => {
-    const r = extract('texto com palavra crédito ao consumidor R$ 100,00 em 01/01/2026 fornecedor LTDA');
+    const r = extract(
+      'texto com palavra crédito ao consumidor R$ 100,00 em 01/01/2026 fornecedor LTDA'
+    );
     expect(r.formaPagamento).not.toBe('Crédito');
   });
 

@@ -1,10 +1,13 @@
 function escHtml(str) {
   return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function toTitleCase(str) {
-  return str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  return str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
 
 function truncate(str, max) {
@@ -19,9 +22,9 @@ function setInput(id, val) {
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
-    const s  = document.createElement('script');
-    s.src    = src;
-    s.onload  = resolve;
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
     s.onerror = reject;
     document.head.appendChild(s);
   });
@@ -50,15 +53,15 @@ function getCurrentUser() {
 
 /* ── Dados filtrados por usuário ── */
 function getEntradasData() {
-  const all  = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
+  const all = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
   const user = getCurrentUser();
-  return user.role !== 'admin' ? all.filter(r => r.userId === user.id) : all;
+  return user.role !== 'admin' ? all.filter((r) => r.userId === user.id) : all;
 }
 
 function getSaidasData() {
-  const all  = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
+  const all = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
   const user = getCurrentUser();
-  return user.role !== 'admin' ? all.filter(r => r.userId === user.id) : all;
+  return user.role !== 'admin' ? all.filter((r) => r.userId === user.id) : all;
 }
 
 function badgePagamento(tipo) {

@@ -22,8 +22,9 @@ class ModalManager {
     if (el) el.style.display = 'none';
 
     // Só destrava quando NENHUM outro modal está visível.
-    const aindaTemAberto = Array.from(document.querySelectorAll('.modal-overlay'))
-      .some(m => m.style.display === 'flex');
+    const aindaTemAberto = Array.from(document.querySelectorAll('.modal-overlay')).some(
+      (m) => m.style.display === 'flex'
+    );
     if (!aindaTemAberto) {
       document.body.classList.remove('modal-open');
       document.body.style.top = '';
@@ -35,15 +36,19 @@ class ModalManager {
 
   showNotif(msg, type) {
     const header = document.getElementById('notifModalHeader');
-    const title  = document.getElementById('notifModalTitle');
+    const title = document.getElementById('notifModalTitle');
     header.className = 'modal-header' + (type === 'error' ? ' modal-header--danger' : '');
     title.textContent = type === 'error' ? 'Atenção' : type === 'success' ? 'Concluído' : 'Aviso';
     document.getElementById('notifModalMsg').textContent = msg;
     this.open('notifModal');
   }
 
-  closeNotif() { this.close('notifModal'); }
+  closeNotif() {
+    this.close('notifModal');
+  }
 
   // Alias para retrocompatibilidade com código interno
-  showToast(msg, type = '') { this.showNotif(msg, type); }
+  showToast(msg, type = '') {
+    this.showNotif(msg, type);
+  }
 }

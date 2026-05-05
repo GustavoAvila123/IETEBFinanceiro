@@ -11,7 +11,9 @@ describe('manifest.json', () => {
 
   it('é JSON válido', () => {
     const raw = readFileSync(join(root, 'manifest.json'), 'utf-8');
-    expect(() => { manifest = JSON.parse(raw); }).not.toThrow();
+    expect(() => {
+      manifest = JSON.parse(raw);
+    }).not.toThrow();
   });
 
   it('tem campos obrigatórios para PWA instalável', () => {
@@ -24,7 +26,7 @@ describe('manifest.json', () => {
   });
 
   it('tem ícone 192x192 e 512x512 (recomendados pelo Android)', () => {
-    const sizes = manifest.icons.map(i => i.sizes);
+    const sizes = manifest.icons.map((i) => i.sizes);
     expect(sizes).toContain('192x192');
     expect(sizes).toContain('512x512');
   });

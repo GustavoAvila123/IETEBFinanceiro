@@ -6,16 +6,12 @@ import { loadProjectGlobals, modalMock } from '../setup.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(__dirname, '..', 'fixtures', 'ocr-entradas');
-const fix = name => readFileSync(join(fixturesDir, name), 'utf-8');
+const fix = (name) => readFileSync(join(fixturesDir, name), 'utf-8');
 
 let extract;
 
 beforeAll(() => {
-  loadProjectGlobals([
-    'js/utils/format.js',
-    'js/utils/helpers.js',
-    'js/ocr/entradas.js',
-  ]);
+  loadProjectGlobals(['js/utils/format.js', 'js/utils/helpers.js', 'js/ocr/entradas.js']);
   // OCREntradas é uma classe global após o eval
   // eslint-disable-next-line no-undef
   const inst = new OCREntradas(modalMock);
@@ -79,9 +75,9 @@ describe('OCR Entradas — fixtures de bancos', () => {
 
   it('Mercado Pago (R$ sem centavos, data 3/maio/2026, Banco C6 S.A.)', () => {
     const r = extract(fix('mercadopago-pix.txt'));
-    expect(r.valor).toBe('R$ 200,00');               // R$ 200 → completar com ,00
-    expect(r.data).toBe('2026-05-03');               // "3/maio/2026"
-    expect(r.hora).toBe('17:20');                     // "17h20"
+    expect(r.valor).toBe('R$ 200,00'); // R$ 200 → completar com ,00
+    expect(r.data).toBe('2026-05-03'); // "3/maio/2026"
+    expect(r.hora).toBe('17:20'); // "17h20"
     expect(r.formaPagamento).toBe('Pix');
     expect(r.nomeDepositante).toMatch(/Diogo Soares/i);
     expect(r.nomeRecebedor).toMatch(/Gustavo Soares/i);
@@ -95,7 +91,7 @@ describe('OCR Entradas — fixtures de bancos', () => {
     const r = extract(fix('bradesco-pix.txt'));
     expect(r.valor).toBe('R$ 10,00');
     expect(r.data).toBe('2026-05-03');
-    expect(r.hora).toBe('19:46');                     // separador "-" entre data/hora era a falha
+    expect(r.hora).toBe('19:46'); // separador "-" entre data/hora era a falha
     expect(r.formaPagamento).toBe('Pix');
     expect(r.nomeDepositante).toMatch(/Edson Soares/i);
     expect(r.nomeRecebedor).toMatch(/Igreja/i);
@@ -103,7 +99,7 @@ describe('OCR Entradas — fixtures de bancos', () => {
 
   it('BB Pagador/Recebedor com quebra de linha (sem :)', () => {
     const r = extract(fix('bb-pagador-recebedor.txt'));
-    expect(r.valor).toBe('R$ 33,00');                 // não pode pegar 73,06 do CNPJ
+    expect(r.valor).toBe('R$ 33,00'); // não pode pegar 73,06 do CNPJ
     expect(r.data).toBe('2026-05-03');
     expect(r.formaPagamento).toBe('Pix');
     // Recebedor = Adbras Osasco (não pode aparecer em Depositante)
@@ -117,8 +113,8 @@ describe('OCR Entradas — heurísticas isoladas', () => {
   it('rejeita documento sem nenhum campo chave', () => {
     const r = extract('texto totalmente aleatório sem dados financeiros');
     // Pode pegar nada ou só "data" se tiver número que pareça data
-    const camposChave = ['valor','data','formaPagamento','nomeDepositante','nomeRecebedor'];
-    const algum = camposChave.some(k => r[k]);
+    const camposChave = ['valor', 'data', 'formaPagamento', 'nomeDepositante', 'nomeRecebedor'];
+    const algum = camposChave.some((k) => r[k]);
     expect(algum).toBe(false);
   });
 
@@ -165,15 +161,15 @@ describe('OCR Entradas — heurísticas isoladas', () => {
     // deve resgatá-lo. CPFs/datas/IDs próximos não podem confundir.
     const txt = [
       'Comprovante de Pix',
-      '3/maio/2026',           // tem "/" → ignorado
-      '200',                    // ← este é o valor
+      '3/maio/2026', // tem "/" → ignorado
+      '200', // ← este é o valor
       'De',
       'Diogo Soares de Avila',
-      'CPF: ***.365.708-**',   // máscara CPF → ignorado
+      'CPF: ***.365.708-**', // máscara CPF → ignorado
       'Mercado Pago',
       'Para',
       'Gustavo Soares de Avila',
-      '157548267626',          // ID 12 dígitos sem separador → ignorado
+      '157548267626', // ID 12 dígitos sem separador → ignorado
     ].join('\n');
     const r = extract(txt);
     expect(r.valor).toBe('R$ 200,00');
@@ -182,13 +178,9 @@ describe('OCR Entradas — heurísticas isoladas', () => {
   it('valor: heurística NÃO confunde "C6" / "S2" de nome de banco com valor', () => {
     // Cenário real do Mercado Pago: o "R$ 200" foi destruído pelo OCR
     // mas o "BANCO C6 S.A." sobreviveu. Não pode pegar "6" como valor.
-    const txt = [
-      'Comprovante de Pix',
-      'BANCO C6 S.A.',
-      'Mercado Pago',
-      'Diogo',
-      'Gustavo',
-    ].join('\n');
+    const txt = ['Comprovante de Pix', 'BANCO C6 S.A.', 'Mercado Pago', 'Diogo', 'Gustavo'].join(
+      '\n'
+    );
     const r = extract(txt);
     // Sem nenhum candidato válido → valor fica indefinido (melhor que errado)
     expect(r.valor).toBeUndefined();

@@ -1,7 +1,6 @@
-
 class TesourariaPage {
   constructor(modal) {
-    this.modal   = modal;
+    this.modal = modal;
     this.caixaMes = '';
     this.filtroAplicado = false;
   }
@@ -12,14 +11,14 @@ class TesourariaPage {
 
   init() {
     if (!this.caixaMes) {
-      const now     = new Date();
+      const now = new Date();
       this.caixaMes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
     this.render();
   }
 
   resetPage() {
-    const now     = new Date();
+    const now = new Date();
     this.caixaMes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     this.clearDia();
   }
@@ -28,9 +27,9 @@ class TesourariaPage {
     const [year, month] = this.caixaMes.split('-').map(Number);
     const d = new Date(year, month - 1 + delta, 1);
     this.caixaMes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const deEl  = document.getElementById('caixaDiaFiltroDE');
+    const deEl = document.getElementById('caixaDiaFiltroDE');
     const ateEl = document.getElementById('caixaDiaFiltroATE');
-    if (deEl)  deEl.value  = '';
+    if (deEl) deEl.value = '';
     if (ateEl) ateEl.value = '';
     this.filtroAplicado = false;
     this.render();
@@ -38,18 +37,18 @@ class TesourariaPage {
 
   clearDia() {
     // Limpa datas E volta o mês para o atual (estado inicial completo).
-    const now      = new Date();
-    this.caixaMes  = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const deEl  = document.getElementById('caixaDiaFiltroDE');
+    const now = new Date();
+    this.caixaMes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const deEl = document.getElementById('caixaDiaFiltroDE');
     const ateEl = document.getElementById('caixaDiaFiltroATE');
-    if (deEl)  deEl.value  = '';
+    if (deEl) deEl.value = '';
     if (ateEl) ateEl.value = '';
     this.filtroAplicado = false;
     this.render();
   }
 
   aplicarFiltro() {
-    const deEl  = document.getElementById('caixaDiaFiltroDE');
+    const deEl = document.getElementById('caixaDiaFiltroDE');
     const ateEl = document.getElementById('caixaDiaFiltroATE');
     if (!deEl.value && !ateEl.value) return;
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
@@ -62,7 +61,7 @@ class TesourariaPage {
   }
 
   onFiltroDeBlur() {
-    const deEl  = document.getElementById('caixaDiaFiltroDE');
+    const deEl = document.getElementById('caixaDiaFiltroDE');
     const ateEl = document.getElementById('caixaDiaFiltroATE');
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
       ateEl.value = '';
@@ -71,7 +70,7 @@ class TesourariaPage {
   }
 
   onFiltroAteBlur() {
-    const deEl  = document.getElementById('caixaDiaFiltroDE');
+    const deEl = document.getElementById('caixaDiaFiltroDE');
     const ateEl = document.getElementById('caixaDiaFiltroATE');
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
       ateEl.value = '';
@@ -85,46 +84,52 @@ class TesourariaPage {
 
     const mesInicio = `${this.caixaMes}-01`;
     const ultimoDia = new Date(year, month, 0).getDate();
-    const mesFim    = `${this.caixaMes}-${String(ultimoDia).padStart(2, '0')}`;
+    const mesFim = `${this.caixaMes}-${String(ultimoDia).padStart(2, '0')}`;
 
-    const deEl  = document.getElementById('caixaDiaFiltroDE');
+    const deEl = document.getElementById('caixaDiaFiltroDE');
     const ateEl = document.getElementById('caixaDiaFiltroATE');
 
-    const deISO  = deEl  && deEl.value.length  === 10 ? dateInputToISO(deEl.value)  : '';
+    const deISO = deEl && deEl.value.length === 10 ? dateInputToISO(deEl.value) : '';
     const ateISO = ateEl && ateEl.value.length === 10 ? dateInputToISO(ateEl.value) : '';
 
     let filtroDE, filtroATE, saldoAntCutoff, periodoLabel;
     if (this.filtroAplicado && (deISO || ateISO)) {
-      filtroDE       = deISO  || '0000-01-01';
-      filtroATE      = ateISO || '9999-12-31';
+      filtroDE = deISO || '0000-01-01';
+      filtroATE = ateISO || '9999-12-31';
       saldoAntCutoff = filtroDE;
-      const deLabel  = deEl.value  || '...';
+      const deLabel = deEl.value || '...';
       const ateLabel = ateEl.value || '...';
-      periodoLabel   = `de ${deLabel} até ${ateLabel}`;
+      periodoLabel = `de ${deLabel} até ${ateLabel}`;
     } else {
-      filtroDE       = mesInicio;
-      filtroATE      = mesFim;
+      filtroDE = mesInicio;
+      filtroATE = mesFim;
       saldoAntCutoff = mesInicio;
-      periodoLabel   = 'do Mês';
+      periodoLabel = 'do Mês';
     }
 
     const monthControls = document.querySelector('.caixa-month-controls');
-    if (monthControls) monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);
+    if (monthControls)
+      monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);
 
     const todasEntradas = getEntradasData();
-    const todasSaidas   = getSaidasData();
+    const todasSaidas = getSaidasData();
 
     const entradasAnt = entradasAntes(todasEntradas, saldoAntCutoff);
-    const saidasAnt   = saidasAntes(todasSaidas,     saldoAntCutoff);
+    const saidasAnt = saidasAntes(todasSaidas, saldoAntCutoff);
 
     const entradas = filtrarEntradasPorPeriodo(todasEntradas, filtroDE, filtroATE);
-    const saidas   = filtrarSaidasPorPeriodo  (todasSaidas,   filtroDE, filtroATE);
+    const saidas = filtrarSaidasPorPeriodo(todasSaidas, filtroDE, filtroATE);
 
     const sumBy = somarPorFormaPagamento;
 
-    const ab     = this._getSaldoAbertura();
-    const saldoAnt = calcularSaldoSeparado(entradasAnt, saidasAnt, parseBRL(ab.dinheiro), parseBRL(ab.conta));
-    const antMaos  = saldoAnt.dinheiro;
+    const ab = this._getSaldoAbertura();
+    const saldoAnt = calcularSaldoSeparado(
+      entradasAnt,
+      saidasAnt,
+      parseBRL(ab.dinheiro),
+      parseBRL(ab.conta)
+    );
+    const antMaos = saldoAnt.dinheiro;
     const antConta = saldoAnt.conta;
     const antTotal = saldoAnt.total;
 
@@ -134,19 +139,20 @@ class TesourariaPage {
     const eCre = sumBy(entradas, 'Crédito');
     const eTotal = eDin + ePix + eDeb + eCre;
 
-    const sDin  = sumBy(saidas, 'Dinheiro');
-    const sPix  = sumBy(saidas, 'Pix');
-    const sDeb  = sumBy(saidas, 'Débito');
-    const sCre  = sumBy(saidas, 'Crédito');
+    const sDin = sumBy(saidas, 'Dinheiro');
+    const sPix = sumBy(saidas, 'Pix');
+    const sDeb = sumBy(saidas, 'Débito');
+    const sCre = sumBy(saidas, 'Crédito');
     const sTotal = sDin + sPix + sDeb + sCre;
 
     const saldoAtual = calcularSaldoSeparado(entradas, saidas, antMaos, antConta);
-    const saldoMaos  = saldoAtual.dinheiro;
+    const saldoMaos = saldoAtual.dinheiro;
     const saldoConta = saldoAtual.conta;
     const saldoTotal = saldoAtual.total;
 
-    const cls = v => v >= 0 ? 'caixa-saldo-item-value--positivo' : 'caixa-saldo-item-value--negativo';
-    const dot = tipo => `<span class="caixa-dot caixa-dot--${tipo}"></span>`;
+    const cls = (v) =>
+      v >= 0 ? 'caixa-saldo-item-value--positivo' : 'caixa-saldo-item-value--negativo';
+    const dot = (tipo) => `<span class="caixa-dot caixa-dot--${tipo}"></span>`;
 
     document.getElementById('caixaEntradasHeader').innerHTML = `
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

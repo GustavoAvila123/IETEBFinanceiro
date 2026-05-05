@@ -20,26 +20,29 @@ class IgrejaDropdown {
   }
 
   build(filter) {
-    const dd       = document.getElementById('churchDropdown');
+    const dd = document.getElementById('churchDropdown');
     const selected = document.getElementById('igreja').value;
-    const term     = (filter || '').toLowerCase().trim();
-    const list     = term ? CHURCHES.filter(c => c.toLowerCase().includes(term)) : CHURCHES;
+    const term = (filter || '').toLowerCase().trim();
+    const list = term ? CHURCHES.filter((c) => c.toLowerCase().includes(term)) : CHURCHES;
 
     if (!list.length) {
-      dd.innerHTML = '<div class="church-option" style="color:#8090b0;cursor:default">Nenhuma encontrada</div>';
+      dd.innerHTML =
+        '<div class="church-option" style="color:#8090b0;cursor:default">Nenhuma encontrada</div>';
       return;
     }
 
-    dd.innerHTML = list.map(c => {
-      const sel  = c === selected;
-      const safe = c.replace(/'/g, "\\'");
-      return `<div class="church-option${sel ? ' church-option--selected' : ''}"
+    dd.innerHTML = list
+      .map((c) => {
+        const sel = c === selected;
+        const safe = c.replace(/'/g, "\\'");
+        return `<div class="church-option${sel ? ' church-option--selected' : ''}"
         tabindex="0"
         onclick="selectChurch('${safe}')"
         onkeydown="if(event.key==='Enter'||event.key===' ')selectChurch('${safe}')">
         ${escHtml(c)}
       </div>`;
-    }).join('');
+      })
+      .join('');
   }
 
   open() {
@@ -55,7 +58,7 @@ class IgrejaDropdown {
   }
 
   select(value) {
-    document.getElementById('igreja').value       = value;
+    document.getElementById('igreja').value = value;
     document.getElementById('igrejaSearch').value = value;
     this._close();
     document.getElementById('igrejaError').textContent = '';

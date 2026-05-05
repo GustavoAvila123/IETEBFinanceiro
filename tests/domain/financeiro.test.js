@@ -7,10 +7,16 @@ beforeAll(() => {
 });
 
 const E = (data, valor, formaPagamento, extra = {}) => ({
-  dataDeposito: data, valor, formaPagamento, ...extra,
+  dataDeposito: data,
+  valor,
+  formaPagamento,
+  ...extra,
 });
 const S = (data, valor, formaPagamento, extra = {}) => ({
-  data, valor, formaPagamento, ...extra,
+  data,
+  valor,
+  formaPagamento,
+  ...extra,
 });
 
 describe('filtrarEntradasPorPeriodo / filtrarSaidasPorPeriodo', () => {
@@ -19,10 +25,7 @@ describe('filtrarEntradasPorPeriodo / filtrarSaidasPorPeriodo', () => {
     E('2026-04-15', '200,00', 'Dinheiro'),
     E('2026-05-01', '300,00', 'Pix'),
   ];
-  const saidas = [
-    S('2026-04-10', '50,00', 'Débito'),
-    S('2026-05-05', '80,00', 'Crédito'),
-  ];
+  const saidas = [S('2026-04-10', '50,00', 'Débito'), S('2026-05-05', '80,00', 'Crédito')];
 
   it('filtra entradas dentro do intervalo (inclusivo)', () => {
     const r = filtrarEntradasPorPeriodo(entradas, '2026-04-01', '2026-04-30');
@@ -44,10 +47,7 @@ describe('filtrarEntradasPorPeriodo / filtrarSaidasPorPeriodo', () => {
 });
 
 describe('entradasAntes / saidasAntes', () => {
-  const entradas = [
-    E('2026-03-15', '100,00', 'Pix'),
-    E('2026-04-15', '200,00', 'Pix'),
-  ];
+  const entradas = [E('2026-03-15', '100,00', 'Pix'), E('2026-04-15', '200,00', 'Pix')];
   it('pega só anteriores ao corte (estrito)', () => {
     const r = entradasAntes(entradas, '2026-04-01');
     expect(r).toHaveLength(1);
@@ -59,12 +59,12 @@ describe('somarValores / somarPorFormaPagamento / somarPorBancarios', () => {
   const itens = [
     E('2026-04-01', '100,00', 'Pix'),
     E('2026-04-02', '200,00', 'Dinheiro'),
-    E('2026-04-03', '50,00',  'Débito'),
-    E('2026-04-04', '30,50',  'Crédito'),
+    E('2026-04-03', '50,00', 'Débito'),
+    E('2026-04-04', '30,50', 'Crédito'),
   ];
 
   it('somarValores soma todos os valores', () => {
-    expect(somarValores(itens)).toBeCloseTo(380.50);
+    expect(somarValores(itens)).toBeCloseTo(380.5);
   });
 
   it('somarValores em array vazio retorna 0', () => {
@@ -78,7 +78,7 @@ describe('somarValores / somarPorFormaPagamento / somarPorBancarios', () => {
   });
 
   it('somarPorBancarios soma Pix + Débito + Crédito', () => {
-    expect(somarPorBancarios(itens)).toBeCloseTo(180.50);
+    expect(somarPorBancarios(itens)).toBeCloseTo(180.5);
   });
 });
 
@@ -94,16 +94,13 @@ describe('calcularSaldoSeparado', () => {
   it('separa por dinheiro físico vs conta', () => {
     const ent = [
       E('2026-04-01', '100,00', 'Dinheiro'),
-      E('2026-04-02', '50,00',  'Pix'),
-      E('2026-04-03', '30,00',  'Débito'),
+      E('2026-04-02', '50,00', 'Pix'),
+      E('2026-04-03', '30,00', 'Débito'),
     ];
-    const sai = [
-      S('2026-04-04', '20,00', 'Dinheiro'),
-      S('2026-04-05', '10,00', 'Pix'),
-    ];
+    const sai = [S('2026-04-04', '20,00', 'Dinheiro'), S('2026-04-05', '10,00', 'Pix')];
     const r = calcularSaldoSeparado(ent, sai, 0, 0);
-    expect(r.dinheiro).toBe(80);   // 100 - 20
-    expect(r.conta).toBe(70);      // (50+30) - 10
+    expect(r.dinheiro).toBe(80); // 100 - 20
+    expect(r.conta).toBe(70); // (50+30) - 10
     expect(r.total).toBe(150);
   });
 
@@ -120,7 +117,7 @@ describe('agruparEntradasPorCurso', () => {
     const ent = [
       E('2026-04-01', '100,00', 'Pix', { curso: 'CFAM' }),
       E('2026-04-02', '200,00', 'Pix', { curso: 'CFAM' }),
-      E('2026-04-03', '50,00',  'Pix', { curso: 'Bacharel em Teologia' }),
+      E('2026-04-03', '50,00', 'Pix', { curso: 'Bacharel em Teologia' }),
     ];
     const r = agruparEntradasPorCurso(ent);
     expect(r['CFAM']).toBe(300);
@@ -148,8 +145,8 @@ describe('agruparSaidasPorCategoria', () => {
   it('agrupa por categoria', () => {
     const sai = [
       S('2026-04-01', '500,00', 'Débito', { categoria: 'Pagamento de Professor' }),
-      S('2026-04-02', '50,00',  'Pix',    { categoria: 'Material de Escritório' }),
-      S('2026-04-03', '30,00',  'Pix',    { categoria: 'Material de Escritório' }),
+      S('2026-04-02', '50,00', 'Pix', { categoria: 'Material de Escritório' }),
+      S('2026-04-03', '30,00', 'Pix', { categoria: 'Material de Escritório' }),
     ];
     const r = agruparSaidasPorCategoria(sai);
     expect(r['Pagamento de Professor']).toBe(500);

@@ -1,14 +1,7 @@
 {
   "hosting": {
     "public": ".",
-    "ignore": [
-      "firebase.json",
-      ".firebaserc",
-      ".gitignore",
-      "netlify.toml",
-      "*.mp4",
-      "*.pdf"
-    ],
+    "ignore": ["firebase.json", ".firebaserc", ".gitignore", "netlify.toml", "*.mp4", "*.pdf"],
     "rewrites": [
       {
         "source": "**",

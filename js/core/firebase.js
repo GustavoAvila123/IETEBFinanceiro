@@ -1,22 +1,21 @@
-
 const _fbConfig = {
-  apiKey:            'AIzaSyAH6mxJzzI1vOryKrw7DXNzODLOq2ZtFls',
-  authDomain:        'ieteb-financeiro.firebaseapp.com',
-  projectId:         'ieteb-financeiro',
-  storageBucket:     'ieteb-financeiro.firebasestorage.app',
+  apiKey: 'AIzaSyAH6mxJzzI1vOryKrw7DXNzODLOq2ZtFls',
+  authDomain: 'ieteb-financeiro.firebaseapp.com',
+  projectId: 'ieteb-financeiro',
+  storageBucket: 'ieteb-financeiro.firebasestorage.app',
   messagingSenderId: '514664099454',
-  appId:             '1:514664099454:web:72177a3d36afc85782b22f',
+  appId: '1:514664099454:web:72177a3d36afc85782b22f',
 };
 
 class FirebaseManager {
   constructor() {
-    this._db           = null;
-    this._storage      = null;
-    this._auth         = null;
+    this._db = null;
+    this._storage = null;
+    this._auth = null;
     this._onDataUpdate = null;
-    this._unsubEnt     = null;
-    this._unsubSai     = null;
-    this._currentUser  = null; // perfil legacy {legacyId, name, role}
+    this._unsubEnt = null;
+    this._unsubSai = null;
+    this._currentUser = null; // perfil legacy {legacyId, name, role}
   }
 
   init() {
@@ -28,11 +27,17 @@ class FirebaseManager {
       }
       if (!fbSDK.apps || !fbSDK.apps.length) fbSDK.initializeApp(_fbConfig);
       this._db = fbSDK.firestore();
-      try { this._storage = fbSDK.storage(); } catch (_) { this._storage = null; }
+      try {
+        this._storage = fbSDK.storage();
+      } catch (_) {
+        this._storage = null;
+      }
       try {
         this._auth = fbSDK.auth();
         this._auth.setPersistence(fbSDK.auth.Auth.Persistence.LOCAL);
-      } catch (_) { this._auth = null; }
+      } catch (_) {
+        this._auth = null;
+      }
     } catch (e) {
       console.error('Firebase init falhou');
       if (window.showToast) window.showToast('Falha ao conectar com o servidor.', 'error');
@@ -48,7 +53,10 @@ class FirebaseManager {
 
   // onAuthStateChanged proxy para o login.js orquestrar o estado da UI.
   onAuthStateChanged(cb) {
-    if (!this._auth) { cb(null); return () => {}; }
+    if (!this._auth) {
+      cb(null);
+      return () => {};
+    }
     return this._auth.onAuthStateChanged(cb);
   }
 
@@ -74,11 +82,14 @@ class FirebaseManager {
 
     // Força sessão limpa: se alguém estava logado (mesmo browser, sessão
     // legada, persistência stale), descarta antes do novo login.
-    try { await this._auth.signOut(); } catch (_) {}
+    try {
+      await this._auth.signOut();
+    } catch (_) {}
 
     const email = this._legacyToEmail(legacyId);
-    const seed  = (typeof USERS !== 'undefined' ? USERS : [])
-      .find(u => u.id.toLowerCase() === String(legacyId).toLowerCase());
+    const seed = (typeof USERS !== 'undefined' ? USERS : []).find(
+      (u) => u.id.toLowerCase() === String(legacyId).toLowerCase()
+    );
     if (!seed) throw new Error('user-nao-cadastrado');
 
     let cred;
@@ -104,17 +115,21 @@ class FirebaseManager {
 
         // Caminho 2: conta existe com senha antiga. Tenta as senhas
         // legadas conhecidas e rotaciona pra senha atual.
-        const legacyKey  = String(seed.id).toLowerCase();
-        const legacyList = (FirebaseManager._LEGACY_PASSES[legacyKey] || []);
+        const legacyKey = String(seed.id).toLowerCase();
+        const legacyList = FirebaseManager._LEGACY_PASSES[legacyKey] || [];
         let rotated = false;
         for (const oldPass of legacyList) {
           if (oldPass === password) continue; // pular caso a "antiga" seja igual à nova
           try {
             cred = await this._auth.signInWithEmailAndPassword(email, oldPass);
-            try { await cred.user.updatePassword(password); } catch (_) {}
+            try {
+              await cred.user.updatePassword(password);
+            } catch (_) {}
             rotated = true;
             break;
-          } catch (_) { /* tenta próxima */ }
+          } catch (_) {
+            /* tenta próxima */
+          }
         }
         if (!rotated) throw e;
       }
@@ -127,7 +142,9 @@ class FirebaseManager {
 
   async signOut() {
     if (this._auth) {
-      try { await this._auth.signOut(); } catch (_) {}
+      try {
+        await this._auth.signOut();
+      } catch (_) {}
     }
     this._currentUser = null;
   }
@@ -149,18 +166,23 @@ class FirebaseManager {
   async _upsertUserProfile(uid, seed) {
     if (!this._db) return;
     try {
-      await this._db.collection('Users').doc(uid).set({
-        legacyId:  seed.id,
-        name:      seed.name,
-        role:      seed.role,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
+      await this._db.collection('Users').doc(uid).set(
+        {
+          legacyId: seed.id,
+          name: seed.name,
+          role: seed.role,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
     } catch (e) {
       console.warn('upsert user profile falhou');
     }
   }
 
-  currentUser() { return this._currentUser; }
+  currentUser() {
+    return this._currentUser;
+  }
 
   setDataUpdateCallback(fn) {
     this._onDataUpdate = fn;
@@ -169,7 +191,8 @@ class FirebaseManager {
   // Testa se Firestore está acessível; mostra toast com resultado.
   async testConnection() {
     if (!this._db) {
-      if (window.showToast) window.showToast('❌ Firebase DB é null — SDK não inicializou', 'error');
+      if (window.showToast)
+        window.showToast('❌ Firebase DB é null — SDK não inicializou', 'error');
       return;
     }
     try {
@@ -185,29 +208,32 @@ class FirebaseManager {
   compressImage(dataUrl) {
     const LIMIT = 400000;
     if (!dataUrl) return Promise.resolve(null);
-    if (dataUrl.startsWith('data:application/pdf'))
+    if (dataUrl.startsWith('data:application/pdf')) {
       return Promise.resolve(dataUrl.length < LIMIT ? dataUrl : null);
-    const tryC = (maxW, q) => new Promise(res => {
-      const img = new Image();
-      img.onload = () => {
-        const c = document.createElement('canvas');
-        const s = Math.min(1, maxW / Math.max(img.width, 1));
-        c.width  = Math.round(img.width  * s);
-        c.height = Math.round(img.height * s);
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        const out = c.toDataURL('image/jpeg', q);
-        res(out.length < LIMIT ? out : null);
-      };
-      img.onerror = () => res(null);
-      img.src = dataUrl;
-    });
-    return tryC(800, 0.65).then(r => r || tryC(600, 0.50));
+    }
+    const tryC = (maxW, q) =>
+      new Promise((res) => {
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          const s = Math.min(1, maxW / Math.max(img.width, 1));
+          c.width = Math.round(img.width * s);
+          c.height = Math.round(img.height * s);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const out = c.toDataURL('image/jpeg', q);
+          res(out.length < LIMIT ? out : null);
+        };
+        img.onerror = () => res(null);
+        img.src = dataUrl;
+      });
+    return tryC(800, 0.65).then((r) => r || tryC(600, 0.5));
   }
 
   async save(colName, data) {
     if (!this._db) {
       console.error('save() chamado mas this._db é null');
-      if (window.showToast) window.showToast('Banco não conectado — dado salvo apenas localmente', 'error');
+      if (window.showToast)
+        window.showToast('Banco não conectado — dado salvo apenas localmente', 'error');
       return;
     }
     try {
@@ -225,33 +251,37 @@ class FirebaseManager {
     // Remove imediatamente do localStorage e registra como excluído
     const localKey = colName === 'Entradas' ? 'ieteb_lancamentos' : 'ieteb_saidas';
     const items = JSON.parse(localStorage.getItem(localKey) || '[]');
-    localStorage.setItem(localKey, JSON.stringify(items.filter(r => String(r.id) !== String(id))));
+    localStorage.setItem(
+      localKey,
+      JSON.stringify(items.filter((r) => String(r.id) !== String(id)))
+    );
     const deleted = JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]');
     if (!deleted.includes(String(id))) deleted.push(String(id));
     localStorage.setItem('ieteb_deleted_ids', JSON.stringify(deleted));
-    this._db.collection(colName).doc(String(id)).delete()
-      .catch(e => console.warn('Firestore delete error:', e));
+    this._db
+      .collection(colName)
+      .doc(String(id))
+      .delete()
+      .catch((e) => console.warn('Firestore delete error:', e));
   }
 
   // Firestore é autoritativo. Registros salvos nos últimos 2 min ainda não
   // confirmados pelo Firestore são mantidos temporariamente (em-trânsito).
   _mergeAndStore(localKey, fsDocs) {
     const deleted = new Set(JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]'));
-    const fsIds   = new Set(fsDocs.map(d => String(d.data().id)));
+    const fsIds = new Set(fsDocs.map((d) => String(d.data().id)));
 
     // Registros locais em-trânsito: não estão no Firestore e foram criados há < 2 min
-    const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
-    const now      = Date.now();
-    const inFlight = local.filter(r =>
-      !deleted.has(String(r.id)) &&
-      !fsIds.has(String(r.id))   &&
-      (now - Number(r.id)) < 120000
+    const local = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const now = Date.now();
+    const inFlight = local.filter(
+      (r) => !deleted.has(String(r.id)) && !fsIds.has(String(r.id)) && now - Number(r.id) < 120000
     );
 
     // Dados do Firestore (autoritativos) — strip de imagens por segurança
     const fsData = fsDocs
-      .filter(d => !deleted.has(String(d.data().id)))
-      .map(d => {
+      .filter((d) => !deleted.has(String(d.data().id)))
+      .map((d) => {
         const { comprovante, comprovanteUrl, comprovanteType, ...doc } = d.data();
         return doc;
       });
@@ -260,7 +290,9 @@ class FirebaseManager {
     try {
       localStorage.setItem(localKey, JSON.stringify(result));
     } catch (_) {
-      try { localStorage.setItem(localKey, JSON.stringify(result.slice(0, 100))); } catch (__) {}
+      try {
+        localStorage.setItem(localKey, JSON.stringify(result.slice(0, 100)));
+      } catch (__) {}
     }
   }
 
@@ -269,9 +301,9 @@ class FirebaseManager {
   async _uploadMissing(colName, fsDocs) {
     if (!this._db) return;
     const localKey = colName === 'Entradas' ? 'ieteb_lancamentos' : 'ieteb_saidas';
-    const local    = JSON.parse(localStorage.getItem(localKey) || '[]');
-    const deleted  = new Set(JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]'));
-    const fsIds    = new Set(fsDocs.map(d => d.id));
+    const local = JSON.parse(localStorage.getItem(localKey) || '[]');
+    const deleted = new Set(JSON.parse(localStorage.getItem('ieteb_deleted_ids') || '[]'));
+    const fsIds = new Set(fsDocs.map((d) => d.id));
 
     for (const item of local) {
       if (!item.id) continue;
@@ -283,7 +315,8 @@ class FirebaseManager {
         await this._db.collection(colName).doc(String(doc.id)).set(doc);
       } catch (e) {
         console.error('uploadMissing error:', colName, item.id, e);
-        if (window.showToast) window.showToast('❌ Erro ao sincronizar: ' + (e.message || e), 'error');
+        if (window.showToast)
+          window.showToast('❌ Erro ao sincronizar: ' + (e.message || e), 'error');
       }
     }
   }
@@ -292,8 +325,10 @@ class FirebaseManager {
   _subscribe(colName, localKey, onFirst) {
     let firstFired = false;
     return this._db.collection(colName).onSnapshot(
-      snap => {
-        try { this._mergeAndStore(localKey, snap.docs); } catch (_) {}
+      (snap) => {
+        try {
+          this._mergeAndStore(localKey, snap.docs);
+        } catch (_) {}
         if (!firstFired) {
           firstFired = true;
           if (onFirst) onFirst(true, snap.docs);
@@ -301,7 +336,7 @@ class FirebaseManager {
           if (this._onDataUpdate) this._onDataUpdate();
         }
       },
-      e => {
+      (e) => {
         console.warn(colName + ' snapshot error:', e);
         if (!firstFired) {
           firstFired = true;
@@ -313,11 +348,11 @@ class FirebaseManager {
 
   // Remove data URLs de comprovante do localStorage (chamado uma vez na inicialização).
   _purgeLocalDataUrls() {
-    ['ieteb_lancamentos', 'ieteb_saidas'].forEach(key => {
+    ['ieteb_lancamentos', 'ieteb_saidas'].forEach((key) => {
       try {
         const items = JSON.parse(localStorage.getItem(key) || '[]');
         let changed = false;
-        const cleaned = items.map(r => {
+        const cleaned = items.map((r) => {
           if (r.comprovante && !r.comprovante.startsWith('http')) {
             const { comprovante, ...rest } = r;
             rest.temComprovante = true;
@@ -327,8 +362,12 @@ class FirebaseManager {
           return r;
         });
         if (changed) {
-          try { localStorage.setItem(key, JSON.stringify(cleaned)); } catch (_) {
-            try { localStorage.setItem(key, JSON.stringify(cleaned.slice(0, 50))); } catch (__) {}
+          try {
+            localStorage.setItem(key, JSON.stringify(cleaned));
+          } catch (_) {
+            try {
+              localStorage.setItem(key, JSON.stringify(cleaned.slice(0, 50)));
+            } catch (__) {}
           }
         }
       } catch (_) {}
@@ -339,12 +378,16 @@ class FirebaseManager {
   // Cada coleção faz seu próprio upload independentemente, sem esperar pela outra.
   load(onComplete) {
     this._purgeLocalDataUrls();
-    if (!this._db) { if (onComplete) onComplete(); return; }
+    if (!this._db) {
+      if (onComplete) onComplete();
+      return;
+    }
 
     if (this._unsubEnt) this._unsubEnt();
     if (this._unsubSai) this._unsubSai();
 
-    let firstEntDone = false, firstSaiDone = false;
+    let firstEntDone = false,
+      firstSaiDone = false;
 
     const checkFirst = () => {
       if (!firstEntDone || !firstSaiDone) return;
@@ -375,39 +418,39 @@ class FirebaseManager {
   async saveSession(user) {
     if (!this._db || !user || !user.id) return;
     try {
-      const ref  = this._db.collection('Sessoes').doc(user.id);
+      const ref = this._db.collection('Sessoes').doc(user.id);
       const snap = await ref.get();
-      const now  = Date.now();
-      const iso  = new Date(now).toISOString();
+      const now = Date.now();
+      const iso = new Date(now).toISOString();
 
       if (!snap.exists) {
         await ref.set({
-          userId:           user.id,
-          name:             user.name,
-          role:             user.role,
-          loginAt:          iso,
-          loginAtMs:        now,
-          lastSeen:         iso,
-          lastHeartbeatMs:  now,
-          active:           true,
+          userId: user.id,
+          name: user.name,
+          role: user.role,
+          loginAt: iso,
+          loginAtMs: now,
+          lastSeen: iso,
+          lastHeartbeatMs: now,
+          active: true,
           currentSessionMs: 0,
         });
         return;
       }
 
-      const data    = snap.data();
+      const data = snap.data();
       const updates = {
-        userId:   user.id,
-        name:     user.name,
-        role:     user.role,
+        userId: user.id,
+        name: user.name,
+        role: user.role,
         lastSeen: iso,
-        active:   true,
+        active: true,
       };
       // Se a sessão anterior estava encerrada, inicia uma nova
       if (data.active === false) {
-        updates.loginAt          = iso;
-        updates.loginAtMs        = now;
-        updates.lastHeartbeatMs  = now;
+        updates.loginAt = iso;
+        updates.loginAtMs = now;
+        updates.lastHeartbeatMs = now;
         updates.currentSessionMs = 0;
       }
       await ref.update(updates);
@@ -418,21 +461,21 @@ class FirebaseManager {
     if (!this._db || !userId) return;
     try {
       const FieldValue = window.firebase.firestore.FieldValue;
-      const ref  = this._db.collection('Sessoes').doc(userId);
+      const ref = this._db.collection('Sessoes').doc(userId);
       const snap = await ref.get();
       const data = snap.exists ? snap.data() : null;
 
-      const now      = Date.now();
-      const lastHb   = data && data.lastHeartbeatMs ? data.lastHeartbeatMs : (data && data.loginAtMs);
-      const delta    = lastHb ? Math.min(now - lastHb, this._HEARTBEAT_CAP_MS) : 0;
-      const lastSess = (data && Number(data.currentSessionMs) || 0) + delta;
+      const now = Date.now();
+      const lastHb = data && data.lastHeartbeatMs ? data.lastHeartbeatMs : data && data.loginAtMs;
+      const delta = lastHb ? Math.min(now - lastHb, this._HEARTBEAT_CAP_MS) : 0;
+      const lastSess = ((data && Number(data.currentSessionMs)) || 0) + delta;
 
       const updates = {
-        active:             false,
-        lastSeen:           new Date(now).toISOString(),
-        lastSessionMs:      lastSess,
+        active: false,
+        lastSeen: new Date(now).toISOString(),
+        lastSessionMs: lastSess,
         lastSessionEndedAt: new Date(now).toISOString(),
-        currentSessionMs:   0,
+        currentSessionMs: 0,
       };
       if (delta > 0) updates.totalLoggedMs = FieldValue.increment(delta);
       await ref.update(updates);
@@ -443,20 +486,20 @@ class FirebaseManager {
     if (!this._db || !userId) return;
     try {
       const FieldValue = window.firebase.firestore.FieldValue;
-      const ref  = this._db.collection('Sessoes').doc(userId);
+      const ref = this._db.collection('Sessoes').doc(userId);
       const snap = await ref.get();
       const data = snap.exists ? snap.data() : null;
 
-      const now    = Date.now();
-      const lastHb = data && data.lastHeartbeatMs ? data.lastHeartbeatMs : (data && data.loginAtMs);
-      const delta  = lastHb ? Math.min(now - lastHb, this._HEARTBEAT_CAP_MS) : 0;
+      const now = Date.now();
+      const lastHb = data && data.lastHeartbeatMs ? data.lastHeartbeatMs : data && data.loginAtMs;
+      const delta = lastHb ? Math.min(now - lastHb, this._HEARTBEAT_CAP_MS) : 0;
 
       const updates = {
-        lastSeen:        new Date(now).toISOString(),
+        lastSeen: new Date(now).toISOString(),
         lastHeartbeatMs: now,
       };
       if (delta > 0) {
-        updates.totalLoggedMs    = FieldValue.increment(delta);
+        updates.totalLoggedMs = FieldValue.increment(delta);
         updates.currentSessionMs = FieldValue.increment(delta);
       }
       await ref.update(updates);
@@ -465,18 +508,29 @@ class FirebaseManager {
 
   listenSessions(callback) {
     if (!this._db) return () => {};
-    return this._db.collection('Sessoes').onSnapshot(snap => {
-      const map = {};
-      snap.docs.forEach(d => { map[d.data().userId] = d.data(); });
-      callback(map);
-    }, e => console.warn('listenSessions:', e));
+    return this._db.collection('Sessoes').onSnapshot(
+      (snap) => {
+        const map = {};
+        snap.docs.forEach((d) => {
+          map[d.data().userId] = d.data();
+        });
+        callback(map);
+      },
+      (e) => console.warn('listenSessions:', e)
+    );
   }
 
   // Reconecta silenciosamente (sem overlay) ao voltar ao foco.
   silentRefresh() {
     if (!this._db) return;
-    if (this._unsubEnt) { this._unsubEnt(); this._unsubEnt = null; }
-    if (this._unsubSai) { this._unsubSai(); this._unsubSai = null; }
+    if (this._unsubEnt) {
+      this._unsubEnt();
+      this._unsubEnt = null;
+    }
+    if (this._unsubSai) {
+      this._unsubSai();
+      this._unsubSai = null;
+    }
     this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', () => {});
     this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', () => {});
   }
@@ -489,10 +543,17 @@ class FirebaseManager {
       return;
     }
 
-    if (this._unsubEnt) { this._unsubEnt(); this._unsubEnt = null; }
-    if (this._unsubSai) { this._unsubSai(); this._unsubSai = null; }
+    if (this._unsubEnt) {
+      this._unsubEnt();
+      this._unsubEnt = null;
+    }
+    if (this._unsubSai) {
+      this._unsubSai();
+      this._unsubSai = null;
+    }
 
-    let entDone = false, saiDone = false;
+    let entDone = false,
+      saiDone = false;
     const check = () => {
       if (!entDone || !saiDone) return;
       if (this._onDataUpdate) this._onDataUpdate();
@@ -501,11 +562,13 @@ class FirebaseManager {
 
     this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', (_ok, docs) => {
       this._uploadMissing('Entradas', docs);
-      entDone = true; check();
+      entDone = true;
+      check();
     });
     this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', (_ok, docs) => {
       this._uploadMissing('Saídas', docs);
-      saiDone = true; check();
+      saiDone = true;
+      check();
     });
   }
 }

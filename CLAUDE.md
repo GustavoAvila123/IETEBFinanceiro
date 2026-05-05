@@ -38,10 +38,12 @@ npm run test:watch # roda em modo watch
 ```
 
 Os testes rodam **automaticamente**:
+
 - **Antes de cada commit** (via `.githooks/pre-commit`) — bloqueia se falhar
 - **Em cada push para master** (via `.github/workflows/test.yml`)
 
 Para pular o hook em um commit específico:
+
 ```bash
 git commit --no-verify -m "..."
 ```
@@ -98,28 +100,34 @@ netlify.toml             # config + headers HTTP (se migrar)
 ## Decisões importantes
 
 ### Por que Firebase Auth?
+
 Antes a auth era 100% client-side (tudo em `sessionStorage`). Era bypassável.
 Hoje cada user tem conta no Firebase Auth com email derivado do legacyId
 (ex.: `tester1@ieteb.app`). As rules do Firestore validam `request.auth.uid`
 contra o doc `/Users/{uid}.role` para distinguir admin/tester.
 
 ### Por que cache-buster (`?v=YYYYMMDDx`)?
+
 GitHub Pages serve com cache agressivo. Sem o `?v=`, mudanças em `.js`/`.css`
 podem não chegar no usuário até que ele limpe o cache. O hook pre-commit
 bumpa automaticamente toda vez que algum `.js`/`.css` é commitado:
+
 - Mesmo dia: a → b → c ...
 - Dia novo: reseta para 'a'
 
 ### Por que `escHtml` em todos os `innerHTML`?
+
 Defesa contra XSS. Tudo que vem de `localStorage` ou OCR pode conter
 caracteres maliciosos.
 
 ### Por que Otsu na binarização do OCR?
+
 Cupons fiscais amassados/com sombra ficam ilegíveis com threshold fixo.
 Otsu calcula o threshold ideal a partir do histograma. Combinado com
 contraste 1.6× e PSM=4 do Tesseract, dá boa cobertura para NFC-e.
 
 ### Por que módulos no escopo global (sem ESM)?
+
 Decisão pragmática: sem build, scripts são concatenados pelo browser.
 Para os testes no Node, usamos `eval` controlado em `tests/setup.js` que
 carrega os arquivos no escopo global do módulo de teste.
@@ -140,12 +148,14 @@ O app é instalável e funciona offline com cache básico.
   invalidação total do cache do SW (raro — só se mudar estrutura).
 
 ### Testar PWA local
+
 ```bash
 npx serve .  # SW só funciona em https ou localhost
 # Abrir http://localhost:3000 e clicar em "Instalar" no Chrome
 ```
 
 ### Quando bumpar CACHE_VERSION em sw.js
+
 - Se mudar a lista APP_SHELL ou a estratégia de roteamento
 - Se um bug de cache estiver "preso" no client e o ?v=YYYYMMDDx
   do index.html não conseguir invalidar
@@ -162,25 +172,27 @@ npx serve .  # SW só funciona em https ou localhost
 ## Como adicionar um novo banco no OCR
 
 Editar `js/ocr/entradas.js` (ou `saidas.js`), na lista `bancos`:
+
 ```js
 ['NomeDoBanco', /regex_que_casa_no_texto/i],
 ```
+
 E em `normalizarBanco()` adicionar o mesmo nome.
 
 Sempre adicionar um teste em `tests/ocr/entradas.test.js` ou `saidas.test.js`.
 
 ## Onde está o que
 
-| Quero... | Vai em |
-|---|---|
-| Mudar a aparência | `lancamento.css` |
-| Adicionar campo no formulário de entrada | `index.html` + `js/pages/entradas.js` |
-| Mudar regra de cálculo de saldo | `js/domain/financeiro.js` |
-| Adicionar banco/operadora no OCR | `js/ocr/entradas.js` ou `saidas.js` |
-| Mudar regras de quem vê o quê | `firestore.rules` |
-| Mudar headers HTTP (Netlify) | `netlify.toml` |
-| Mudar headers HTTP (GitHub Pages) | meta `<http-equiv>` em `index.html` |
-| Adicionar teste | `tests/...` (segue o padrão dos existentes) |
+| Quero...                                 | Vai em                                      |
+| ---------------------------------------- | ------------------------------------------- |
+| Mudar a aparência                        | `lancamento.css`                            |
+| Adicionar campo no formulário de entrada | `index.html` + `js/pages/entradas.js`       |
+| Mudar regra de cálculo de saldo          | `js/domain/financeiro.js`                   |
+| Adicionar banco/operadora no OCR         | `js/ocr/entradas.js` ou `saidas.js`         |
+| Mudar regras de quem vê o quê            | `firestore.rules`                           |
+| Mudar headers HTTP (Netlify)             | `netlify.toml`                              |
+| Mudar headers HTTP (GitHub Pages)        | meta `<http-equiv>` em `index.html`         |
+| Adicionar teste                          | `tests/...` (segue o padrão dos existentes) |
 
 ## Cache-buster atual
 

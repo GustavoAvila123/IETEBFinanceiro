@@ -26,7 +26,9 @@ class AlunosManager {
 
   addRow() {
     const id = this.nextId++;
-    document.getElementById('alunosContainer').insertAdjacentHTML('beforeend', this._buildRowHTML(id, false));
+    document
+      .getElementById('alunosContainer')
+      .insertAdjacentHTML('beforeend', this._buildRowHTML(id, false));
     this._attachListeners(id);
   }
 
@@ -36,10 +38,10 @@ class AlunosManager {
   }
 
   getData() {
-    return Array.from(document.querySelectorAll('#alunosContainer .aluno-row')).map(row => {
+    return Array.from(document.querySelectorAll('#alunosContainer .aluno-row')).map((row) => {
       const id = row.dataset.alunoId;
       return {
-        nome:    document.getElementById(`alunoNome_${id}`).value.trim(),
+        nome: document.getElementById(`alunoNome_${id}`).value.trim(),
         parcela: document.getElementById(`alunoParcela_${id}`).value.trim(),
       };
     });
@@ -49,14 +51,16 @@ class AlunosManager {
     let ok = true;
     const errEl = document.getElementById('alunosError');
     if (errEl) errEl.textContent = '';
-    document.querySelectorAll('#alunosContainer .aluno-row').forEach(row => {
-      const id      = row.dataset.alunoId;
-      const nome    = document.getElementById(`alunoNome_${id}`).value.trim();
+    document.querySelectorAll('#alunosContainer .aluno-row').forEach((row) => {
+      const id = row.dataset.alunoId;
+      const nome = document.getElementById(`alunoNome_${id}`).value.trim();
       const parcela = document.getElementById(`alunoParcela_${id}`).value.trim();
       const nomeErr = document.getElementById(`alunoNomeError_${id}`);
-      const parErr  = document.getElementById(`alunoParcelaError_${id}`);
-      if (!nome) { nomeErr.textContent = 'Informe o nome do aluno.'; ok = false; }
-      else         nomeErr.textContent = '';
+      const parErr = document.getElementById(`alunoParcelaError_${id}`);
+      if (!nome) {
+        nomeErr.textContent = 'Informe o nome do aluno.';
+        ok = false;
+      } else nomeErr.textContent = '';
       if (!parcela) {
         parErr.textContent = 'Informe a parcela.';
         ok = false;
@@ -74,10 +78,11 @@ class AlunosManager {
   }
 
   _attachListeners(id) {
-    const nome    = document.getElementById(`alunoNome_${id}`);
+    const nome = document.getElementById(`alunoNome_${id}`);
     const parcela = document.getElementById(`alunoParcela_${id}`);
-    if (nome)    nome.addEventListener('input',    () => clearFieldError(`alunoNomeError_${id}`));
-    if (parcela) parcela.addEventListener('input', () => clearFieldError(`alunoParcelaError_${id}`));
+    if (nome) nome.addEventListener('input', () => clearFieldError(`alunoNomeError_${id}`));
+    if (parcela)
+      parcela.addEventListener('input', () => clearFieldError(`alunoParcelaError_${id}`));
   }
 
   _buildRowHTML(id, isFirst) {

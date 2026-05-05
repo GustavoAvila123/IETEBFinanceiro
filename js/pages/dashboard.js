@@ -1,8 +1,7 @@
-
 class DashboardPage {
   constructor(modal) {
-    this.modal      = modal;
-    this.dashMes    = '';
+    this.modal = modal;
+    this.dashMes = '';
     this.dashCharts = {};
     this._closePickerHandler = null;
     this.filtroAplicado = false;
@@ -21,9 +20,9 @@ class DashboardPage {
   resetPage() {
     this.dashMes = this._mesAtualISO();
     this.filtroAplicado = false;
-    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const deEl = document.getElementById('dashDiaFiltroDE');
     const ateEl = document.getElementById('dashDiaFiltroATE');
-    if (deEl)  deEl.value  = '';
+    if (deEl) deEl.value = '';
     if (ateEl) ateEl.value = '';
     this.render();
   }
@@ -34,9 +33,9 @@ class DashboardPage {
     this.dashMes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     // Navegar mês desativa o filtro de datas (que era específico de período)
     this.filtroAplicado = false;
-    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const deEl = document.getElementById('dashDiaFiltroDE');
     const ateEl = document.getElementById('dashDiaFiltroATE');
-    if (deEl)  deEl.value  = '';
+    if (deEl) deEl.value = '';
     if (ateEl) ateEl.value = '';
     this.fecharPicker();
     this.render();
@@ -44,7 +43,7 @@ class DashboardPage {
 
   // ── Filtro de datas (período personalizado) ──────────────────────────
   aplicarFiltroDatas() {
-    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const deEl = document.getElementById('dashDiaFiltroDE');
     const ateEl = document.getElementById('dashDiaFiltroATE');
     if (!deEl.value && !ateEl.value) return;
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
@@ -58,7 +57,7 @@ class DashboardPage {
   }
 
   onFiltroDeBlur() {
-    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const deEl = document.getElementById('dashDiaFiltroDE');
     const ateEl = document.getElementById('dashDiaFiltroATE');
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
       ateEl.value = '';
@@ -67,7 +66,7 @@ class DashboardPage {
   }
 
   onFiltroAteBlur() {
-    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const deEl = document.getElementById('dashDiaFiltroDE');
     const ateEl = document.getElementById('dashDiaFiltroATE');
     if (deEl.value && ateEl.value && dateInputToISO(ateEl.value) < dateInputToISO(deEl.value)) {
       ateEl.value = '';
@@ -79,7 +78,7 @@ class DashboardPage {
   togglePicker(evt) {
     if (evt) evt.stopPropagation();
     const picker = document.getElementById('dashMonthPicker');
-    const label  = document.getElementById('dashMesLabel');
+    const label = document.getElementById('dashMesLabel');
     if (!picker) return;
     const open = picker.hasAttribute('hidden');
     if (open) {
@@ -98,7 +97,7 @@ class DashboardPage {
 
   fecharPicker() {
     const picker = document.getElementById('dashMonthPicker');
-    const label  = document.getElementById('dashMesLabel');
+    const label = document.getElementById('dashMesLabel');
     if (picker) picker.setAttribute('hidden', '');
     if (label) label.setAttribute('aria-expanded', 'false');
     if (this._closePickerHandler) {
@@ -115,20 +114,39 @@ class DashboardPage {
 
     const anosEl = document.getElementById('dashPickerAnos');
     if (anosEl) {
-      anosEl.innerHTML = anos.map(a => `
+      anosEl.innerHTML = anos
+        .map(
+          (a) => `
         <button type="button" class="dash-picker-btn ${a === yearAtual ? 'dash-picker-btn--active' : ''}"
           onclick="selectDashAno(${a})">${a}</button>
-      `).join('');
+      `
+        )
+        .join('');
     }
 
     const mesesEl = document.getElementById('dashPickerMeses');
     if (mesesEl) {
-      const abreviados = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-      mesesEl.innerHTML = abreviados.map((nome, i) => {
-        const m = i + 1;
-        return `<button type="button" class="dash-picker-btn ${m === mesAtual ? 'dash-picker-btn--active' : ''}"
+      const abreviados = [
+        'Jan',
+        'Fev',
+        'Mar',
+        'Abr',
+        'Mai',
+        'Jun',
+        'Jul',
+        'Ago',
+        'Set',
+        'Out',
+        'Nov',
+        'Dez',
+      ];
+      mesesEl.innerHTML = abreviados
+        .map((nome, i) => {
+          const m = i + 1;
+          return `<button type="button" class="dash-picker-btn ${m === mesAtual ? 'dash-picker-btn--active' : ''}"
           onclick="selectDashMes(${m})">${nome}</button>`;
-      }).join('');
+        })
+        .join('');
     }
   }
 
@@ -149,9 +167,9 @@ class DashboardPage {
   limparFiltro() {
     this.dashMes = this._mesAtualISO();
     this.filtroAplicado = false;
-    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const deEl = document.getElementById('dashDiaFiltroDE');
     const ateEl = document.getElementById('dashDiaFiltroATE');
-    if (deEl)  deEl.value  = '';
+    if (deEl) deEl.value = '';
     if (ateEl) ateEl.value = '';
     this.fecharPicker();
     this.render();
@@ -159,10 +177,13 @@ class DashboardPage {
 
   _loadChartJs() {
     return new Promise((resolve, reject) => {
-      if (window.Chart) { resolve(); return; }
-      const s   = document.createElement('script');
-      s.src     = 'https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js';
-      s.onload  = resolve;
+      if (window.Chart) {
+        resolve();
+        return;
+      }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js';
+      s.onload = resolve;
       s.onerror = reject;
       document.head.appendChild(s);
     });
@@ -175,24 +196,25 @@ class DashboardPage {
 
     // Período: se o usuário aplicou filtro de datas, usa De/Até; caso
     // contrário, usa o mês selecionado (comportamento original).
-    const deEl  = document.getElementById('dashDiaFiltroDE');
+    const deEl = document.getElementById('dashDiaFiltroDE');
     const ateEl = document.getElementById('dashDiaFiltroATE');
-    const deISO  = deEl  && deEl.value.length  === 10 ? dateInputToISO(deEl.value)  : '';
+    const deISO = deEl && deEl.value.length === 10 ? dateInputToISO(deEl.value) : '';
     const ateISO = ateEl && ateEl.value.length === 10 ? dateInputToISO(ateEl.value) : '';
 
     let periodoDe, periodoAte;
     if (this.filtroAplicado && (deISO || ateISO)) {
-      periodoDe  = deISO  || '0000-01-01';
+      periodoDe = deISO || '0000-01-01';
       periodoAte = ateISO || '9999-12-31';
     } else {
       const r = inicioFimDoMes(this.dashMes);
-      periodoDe  = r.de;
+      periodoDe = r.de;
       periodoAte = r.ate;
     }
 
     // Quando o filtro de datas está ativo, esmaece a navegação de mês
     const monthControls = document.querySelector('.dash-month-controls');
-    if (monthControls) monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);
+    if (monthControls)
+      monthControls.classList.toggle('caixa-month-controls--inactive', this.filtroAplicado);
 
     // Botão "Limpar filtro" sempre visível — mesmo padrão da Tesouraria.
     // Click sem nada filtrado é no-op (limparFiltro reseta pro estado base).
@@ -200,19 +222,19 @@ class DashboardPage {
     if (clearBtn) clearBtn.removeAttribute('hidden');
 
     const entradas = filtrarEntradasPorPeriodo(getEntradasData(), periodoDe, periodoAte);
-    const saidas   = filtrarSaidasPorPeriodo  (getSaidasData(),   periodoDe, periodoAte);
+    const saidas = filtrarSaidasPorPeriodo(getSaidasData(), periodoDe, periodoAte);
 
     const totalEntradas = somarValores(entradas);
-    const totalSaidas   = somarValores(saidas);
-    const saldoMes      = totalEntradas - totalSaidas;
+    const totalSaidas = somarValores(saidas);
+    const saldoMes = totalEntradas - totalSaidas;
 
     document.getElementById('dashTotalEntradas').textContent = `R$ ${formatBRL(totalEntradas)}`;
-    document.getElementById('dashTotalSaidas').textContent   = `R$ ${formatBRL(totalSaidas)}`;
+    document.getElementById('dashTotalSaidas').textContent = `R$ ${formatBRL(totalSaidas)}`;
     const saldoEl = document.getElementById('dashSaldoMes');
     saldoEl.textContent = `R$ ${formatBRL(saldoMes)}`;
     saldoEl.style.color = saldoMes >= 0 ? '' : 'var(--danger, #e53e3e)';
 
-    const porCurso     = agruparEntradasPorCurso(entradas);
+    const porCurso = agruparEntradasPorCurso(entradas);
     const porCategoria = agruparSaidasPorCategoria(saidas);
 
     try {
@@ -229,7 +251,10 @@ class DashboardPage {
   _renderChartEntradas(porCurso) {
     const wrap = document.getElementById('wrapEntradasCurso');
     const legendEl = document.getElementById('legendEntradasCurso');
-    if (this.dashCharts.entradas) { this.dashCharts.entradas.destroy(); delete this.dashCharts.entradas; }
+    if (this.dashCharts.entradas) {
+      this.dashCharts.entradas.destroy();
+      delete this.dashCharts.entradas;
+    }
 
     const labels = Object.keys(porCurso);
     const values = Object.values(porCurso);
@@ -243,17 +268,31 @@ class DashboardPage {
       wrap.innerHTML = '<canvas id="chartEntradasCurso"></canvas>';
     }
 
-    const ctx    = document.getElementById('chartEntradasCurso').getContext('2d');
+    const ctx = document.getElementById('chartEntradasCurso').getContext('2d');
     const colors = labels.map((_, i) => DASH_COLORS[i % DASH_COLORS.length]);
 
     this.dashCharts.entradas = new Chart(ctx, {
       type: 'doughnut',
-      data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(), borderWidth: 2, borderColor: '#fff', hoverOffset: 14, offset: labels.map(() => 0) }] },
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            backgroundColor: colors.slice(),
+            borderWidth: 2,
+            borderColor: '#fff',
+            hoverOffset: 14,
+            offset: labels.map(() => 0),
+          },
+        ],
+      },
       options: {
-        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` R$ ${formatBRL(ctx.parsed)}` } },
+          tooltip: { callbacks: { label: (ctx) => ` R$ ${formatBRL(ctx.parsed)}` } },
         },
         onClick: (_e, els, chart) => this._onChartSliceClick('entradas', chart, els),
       },
@@ -266,10 +305,13 @@ class DashboardPage {
   _renderChartSaidas(porCategoria) {
     const wrap = document.getElementById('wrapDespesasCategoria');
     const legendEl = document.getElementById('legendDespesasCategoria');
-    if (this.dashCharts.saidas) { this.dashCharts.saidas.destroy(); delete this.dashCharts.saidas; }
+    if (this.dashCharts.saidas) {
+      this.dashCharts.saidas.destroy();
+      delete this.dashCharts.saidas;
+    }
 
     const labels = Object.keys(porCategoria).sort((a, b) => porCategoria[b] - porCategoria[a]);
-    const values = labels.map(l => porCategoria[l]);
+    const values = labels.map((l) => porCategoria[l]);
 
     if (!labels.length) {
       wrap.innerHTML = '<div class="dash-empty">Nenhuma despesa neste mês</div>';
@@ -280,20 +322,30 @@ class DashboardPage {
       wrap.innerHTML = '<canvas id="chartDespesasCategoria"></canvas>';
     }
 
-    const ctx    = document.getElementById('chartDespesasCategoria').getContext('2d');
+    const ctx = document.getElementById('chartDespesasCategoria').getContext('2d');
     const colors = labels.map((_, i) => DASH_COLORS[i % DASH_COLORS.length]);
 
     this.dashCharts.saidas = new Chart(ctx, {
       type: 'bar',
-      data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(), borderRadius: 4, borderSkipped: false }] },
+      data: {
+        labels,
+        datasets: [
+          { data: values, backgroundColor: colors.slice(), borderRadius: 4, borderSkipped: false },
+        ],
+      },
       options: {
-        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` R$ ${formatBRL(ctx.parsed.x)}` } },
+          tooltip: { callbacks: { label: (ctx) => ` R$ ${formatBRL(ctx.parsed.x)}` } },
         },
         scales: {
-          x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { callback: v => `R$ ${formatBRL(v)}`, font: { size: 11 } } },
+          x: {
+            grid: { color: 'rgba(0,0,0,0.06)' },
+            ticks: { callback: (v) => `R$ ${formatBRL(v)}`, font: { size: 11 } },
+          },
           y: { grid: { display: false }, ticks: { font: { size: 12 } } },
         },
         onClick: (_e, els, chart) => this._onChartSliceClick('saidas', chart, els),
@@ -308,9 +360,10 @@ class DashboardPage {
   _buildLegend(key, listEl, labels, values, colors) {
     if (!listEl) return;
     const total = values.reduce((a, b) => a + b, 0) || 1;
-    listEl.innerHTML = labels.map((label, i) => {
-      const pct = (values[i] / total) * 100;
-      return `
+    listEl.innerHTML = labels
+      .map((label, i) => {
+        const pct = (values[i] / total) * 100;
+        return `
         <li class="dash-legend-item" data-chart="${key}" data-index="${i}">
           <span class="dash-legend-dot" style="background:${colors[i]}"></span>
           <span class="dash-legend-info">
@@ -319,13 +372,16 @@ class DashboardPage {
           </span>
           <span class="dash-legend-pct">${pct.toFixed(1).replace('.', ',')}%</span>
         </li>`;
-    }).join('');
+      })
+      .join('');
 
     // Hover na legenda destaca o gomo. Click alterna o destaque persistente.
-    listEl.querySelectorAll('.dash-legend-item').forEach(el => {
-      el.addEventListener('mouseenter', () => this._highlight(key, Number(el.dataset.index), false));
+    listEl.querySelectorAll('.dash-legend-item').forEach((el) => {
+      el.addEventListener('mouseenter', () =>
+        this._highlight(key, Number(el.dataset.index), false)
+      );
       el.addEventListener('mouseleave', () => this._restoreHover(key));
-      el.addEventListener('click', e => {
+      el.addEventListener('click', (e) => {
         e.stopPropagation();
         const idx = Number(el.dataset.index);
         const cur = this._activeIndex && this._activeIndex[key];
@@ -336,11 +392,16 @@ class DashboardPage {
 
     // Click fora limpa o destaque persistente
     if (!this._outsideHandler) {
-      this._outsideHandler = e => {
+      this._outsideHandler = (e) => {
         const cards = document.querySelectorAll('.dash-chart-card');
         let dentro = false;
-        cards.forEach(c => { if (c.contains(e.target)) dentro = true; });
-        if (!dentro) { this._clearActive('entradas'); this._clearActive('saidas'); }
+        cards.forEach((c) => {
+          if (c.contains(e.target)) dentro = true;
+        });
+        if (!dentro) {
+          this._clearActive('entradas');
+          this._clearActive('saidas');
+        }
       };
       document.addEventListener('click', this._outsideHandler);
     }
@@ -396,10 +457,10 @@ class DashboardPage {
       // Destaca: o gomo selecionado salta mais e fica em cor cheia,
       // os demais ficam atenuados (alpha baixo) para reforçar o foco.
       if (chart.config.type === 'doughnut') {
-        ds.offset = ds.data.map((_, i) => i === idx ? 28 : 0);
-        ds.borderWidth = ds.data.map((_, i) => i === idx ? 3 : 2);
+        ds.offset = ds.data.map((_, i) => (i === idx ? 28 : 0));
+        ds.borderWidth = ds.data.map((_, i) => (i === idx ? 3 : 2));
       }
-      ds.backgroundColor = orig.map((c, i) => i === idx ? c : this._dimColor(c, 0.18));
+      ds.backgroundColor = orig.map((c, i) => (i === idx ? c : this._dimColor(c, 0.18)));
       chart.setActiveElements([{ datasetIndex: 0, index: idx }]);
     }
     chart.update();
@@ -419,7 +480,7 @@ class DashboardPage {
     const listId = key === 'entradas' ? 'legendEntradasCurso' : 'legendDespesasCategoria';
     const list = document.getElementById(listId);
     if (!list) return;
-    list.querySelectorAll('.dash-legend-item').forEach(el => {
+    list.querySelectorAll('.dash-legend-item').forEach((el) => {
       const i = Number(el.dataset.index);
       el.classList.toggle('dash-legend-item--active', i === idx);
     });

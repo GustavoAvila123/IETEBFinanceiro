@@ -1,8 +1,7 @@
-
 class MonitorPage {
   constructor(firebase) {
-    this.firebase       = firebase;
-    this._sessions      = {};
+    this.firebase = firebase;
+    this._sessions = {};
     this._unsubSessions = null;
   }
 
@@ -12,8 +11,11 @@ class MonitorPage {
   }
 
   _subscribeToSessions() {
-    if (this._unsubSessions) { this._unsubSessions(); this._unsubSessions = null; }
-    this._unsubSessions = this.firebase.listenSessions(sessions => {
+    if (this._unsubSessions) {
+      this._unsubSessions();
+      this._unsubSessions = null;
+    }
+    this._unsubSessions = this.firebase.listenSessions((sessions) => {
       this._sessions = sessions;
       this.render();
     });
@@ -21,34 +23,43 @@ class MonitorPage {
 
   _isOnline(session) {
     if (!session || !session.active) return false;
-    return (Date.now() - new Date(session.lastSeen).getTime()) < 5 * 60 * 1000;
+    return Date.now() - new Date(session.lastSeen).getTime() < 5 * 60 * 1000;
   }
 
   _fmtDatetime(iso) {
     if (!iso) return '—';
     try {
       const d = new Date(iso);
-      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    } catch (_) { return '—'; }
+      return (
+        d.toLocaleDateString('pt-BR') +
+        ' ' +
+        d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      );
+    } catch (_) {
+      return '—';
+    }
   }
 
   _fmtLastSeen(iso) {
     if (!iso) return '—';
     try {
       const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-      if (diff < 60)   return 'há menos de 1 min';
+      if (diff < 60) return 'há menos de 1 min';
       if (diff < 3600) return `há ${Math.floor(diff / 60)} min`;
       return this._fmtDatetime(iso);
-    } catch (_) { return '—'; }
+    } catch (_) {
+      return '—';
+    }
   }
 
   // Delta entre o último heartbeat e agora, capado a 3min para não contar
   // tempo offline.
   _liveDelta(session) {
     if (!session || !session.active || !this._isOnline(session)) return 0;
-    const lastHb = Number(session.lastHeartbeatMs) ||
-                   (session.loginAtMs ? Number(session.loginAtMs) : null) ||
-                   (session.loginAt ? new Date(session.loginAt).getTime() : null);
+    const lastHb =
+      Number(session.lastHeartbeatMs) ||
+      (session.loginAtMs ? Number(session.loginAtMs) : null) ||
+      (session.loginAt ? new Date(session.loginAt).getTime() : null);
     if (!lastHb) return 0;
     return Math.min(Date.now() - lastHb, 3 * 60 * 1000);
   }
@@ -73,7 +84,7 @@ class MonitorPage {
   _fmtDuration(ms) {
     if (!ms || ms < 0) return '—';
     const totalMin = Math.floor(ms / 60000);
-    if (totalMin < 1)  return 'menos de 1 min';
+    if (totalMin < 1) return 'menos de 1 min';
     if (totalMin < 60) return `${totalMin} min`;
     const h = Math.floor(totalMin / 60);
     const m = totalMin % 60;
@@ -85,42 +96,44 @@ class MonitorPage {
     if (!grid) return;
 
     const allEntradas = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
-    const allSaidas   = JSON.parse(localStorage.getItem('ieteb_saidas')      || '[]');
+    const allSaidas = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
 
-    const testers = (typeof USERS !== 'undefined' ? USERS : []).filter(u => u.role === 'tester');
+    const testers = (typeof USERS !== 'undefined' ? USERS : []).filter((u) => u.role === 'tester');
 
     if (!testers.length) {
-      grid.innerHTML = '<p style="color:rgba(255,255,255,.5);text-align:center;padding:40px">Nenhum tester configurado.</p>';
+      grid.innerHTML =
+        '<p style="color:rgba(255,255,255,.5);text-align:center;padding:40px">Nenhum tester configurado.</p>';
       return;
     }
 
-    const totalEntGeral = allEntradas.filter(r => testers.some(t => t.id === r.userId));
-    const totalSaiGeral = allSaidas.filter(r => testers.some(t => t.id === r.userId));
+    const totalEntGeral = allEntradas.filter((r) => testers.some((t) => t.id === r.userId));
+    const totalSaiGeral = allSaidas.filter((r) => testers.some((t) => t.id === r.userId));
 
     // Resumo geral no topo
-    const sumEnt     = somarValores(totalEntGeral);
-    const sumSai     = somarValores(totalSaiGeral);
+    const sumEnt = somarValores(totalEntGeral);
+    const sumSai = somarValores(totalSaiGeral);
     const saldoGeral = sumEnt - sumSai;
-    const onlineCount = testers.filter(t => this._isOnline(this._sessions[t.id])).length;
+    const onlineCount = testers.filter((t) => this._isOnline(this._sessions[t.id])).length;
 
     document.getElementById('monitorSumEntradas').textContent = `R$ ${formatBRL(sumEnt)}`;
-    document.getElementById('monitorSumSaidas').textContent   = `R$ ${formatBRL(sumSai)}`;
+    document.getElementById('monitorSumSaidas').textContent = `R$ ${formatBRL(sumSai)}`;
     const saldoEl = document.getElementById('monitorSumSaldo');
     saldoEl.textContent = `R$ ${formatBRL(Math.abs(saldoGeral))}`;
     saldoEl.style.color = saldoGeral < 0 ? 'var(--danger)' : 'var(--gold)';
     document.getElementById('monitorOnlineCount').textContent = `${onlineCount} online`;
 
-    grid.innerHTML = testers.map(t => {
-      const session = this._sessions[t.id];
-      const online  = this._isOnline(session);
-      const tEnt    = allEntradas.filter(r => r.userId === t.id);
-      const tSai    = allSaidas.filter(r => r.userId === t.id);
-      const totEnt  = somarValores(tEnt);
-      const totSai  = somarValores(tSai);
-      const saldo   = totEnt - totSai;
-      const inicial = t.name.charAt(0).toUpperCase();
+    grid.innerHTML = testers
+      .map((t) => {
+        const session = this._sessions[t.id];
+        const online = this._isOnline(session);
+        const tEnt = allEntradas.filter((r) => r.userId === t.id);
+        const tSai = allSaidas.filter((r) => r.userId === t.id);
+        const totEnt = somarValores(tEnt);
+        const totSai = somarValores(tSai);
+        const saldo = totEnt - totSai;
+        const inicial = t.name.charAt(0).toUpperCase();
 
-      return `
+        return `
       <div class="monitor-card">
         <div class="monitor-card-header">
           <div class="monitor-avatar">${escHtml(inicial)}</div>
@@ -168,10 +181,12 @@ class MonitorPage {
         </div>
 
         <div class="monitor-card-footer">
-          ${session ? (() => {
-            const sess = this._calcSessao(session);
-            const total = this._calcTempoTotal(session);
-            return `
+          ${
+            session
+              ? (() => {
+                  const sess = this._calcSessao(session);
+                  const total = this._calcTempoTotal(session);
+                  return `
             <span class="monitor-footer-item">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               Último acesso: ${this._fmtLastSeen(session.lastSeen)}
@@ -188,10 +203,13 @@ class MonitorPage {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 12 11 12"/></svg>
               Tempo total: <strong>${escHtml(this._fmtDuration(total))}</strong>
             </span>`;
-          })() : '<span class="monitor-footer-item" style="opacity:.45">Sem sessão registrada</span>'}
+                })()
+              : '<span class="monitor-footer-item" style="opacity:.45">Sem sessão registrada</span>'
+          }
         </div>
       </div>`;
-    }).join('');
+      })
+      .join('');
 
     document.getElementById('monitorUpdatedAt').textContent =
       `Atualizado às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;

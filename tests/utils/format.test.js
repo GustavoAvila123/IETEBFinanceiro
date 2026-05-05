@@ -56,7 +56,7 @@ describe('dateInputToISO / isoToDateInput', () => {
   });
 
   it('roundtrip', () => {
-    const br  = '01/01/2026';
+    const br = '01/01/2026';
     const iso = dateInputToISO(br);
     expect(isoToDateInput(iso)).toBe(br);
   });

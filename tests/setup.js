@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const root      = join(__dirname, '..');
+const root = join(__dirname, '..');
 
 /**
  * Carrega um ou mais arquivos JS do projeto e expõe seus símbolos
@@ -24,9 +24,7 @@ const root      = join(__dirname, '..');
  * @param {string[]} relativePaths — caminhos relativos à raiz do repo
  */
 export function loadProjectGlobals(relativePaths) {
-  const code = relativePaths
-    .map(p => readFileSync(join(root, p), 'utf-8'))
-    .join('\n');
+  const code = relativePaths.map((p) => readFileSync(join(root, p), 'utf-8')).join('\n');
 
   // Wrap: encerra cada declaração em globalThis para garantir exposição
   // mesmo quando o arquivo declara `class X` ou `function fn()` no topo.
@@ -73,9 +71,20 @@ export function loadProjectGlobals(relativePaths) {
 export const modalMock = {
   toasts: [],
   opened: [],
-  showToast(msg, type) { this.toasts.push({ msg, type }); },
-  showNotif(msg, type) { this.toasts.push({ msg, type }); },
-  open(id) { this.opened.push(id); },
-  close(id) { /* no-op */ },
-  reset() { this.toasts.length = 0; this.opened.length = 0; },
+  showToast(msg, type) {
+    this.toasts.push({ msg, type });
+  },
+  showNotif(msg, type) {
+    this.toasts.push({ msg, type });
+  },
+  open(id) {
+    this.opened.push(id);
+  },
+  close(id) {
+    /* no-op */
+  },
+  reset() {
+    this.toasts.length = 0;
+    this.opened.length = 0;
+  },
 };

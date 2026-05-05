@@ -1,0 +1,71 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "script"
+  },
+  "globals": {
+    "firebase": "readonly",
+    "Tesseract": "readonly",
+    "pdfjsLib": "readonly",
+    "XLSX": "readonly",
+    "Chart": "readonly",
+    "USERS": "readonly",
+    "CHURCHES": "readonly",
+    "MESES": "readonly",
+    "DASH_COLORS": "readonly",
+    "loadScript": "readonly",
+    "escHtml": "readonly",
+    "toTitleCase": "readonly",
+    "setInput": "readonly",
+    "isoToDateInput": "readonly",
+    "dateInputToISO": "readonly",
+    "parseBRL": "readonly",
+    "formatBRL": "readonly",
+    "getCurrentUser": "readonly",
+    "getEntradasData": "readonly",
+    "getSaidasData": "readonly",
+    "filtrarEntradasPorPeriodo": "readonly",
+    "filtrarSaidasPorPeriodo": "readonly",
+    "somarValores": "readonly",
+    "inicioFimDoMes": "readonly",
+    "truncate": "readonly",
+    "badgePagamento": "readonly",
+    "OCREntradas": "readonly",
+    "OCRSaidas": "readonly",
+    "FirebaseManager": "readonly",
+    "ModalManager": "readonly",
+    "NavigationManager": "readonly",
+    "EntradaPage": "readonly",
+    "SaidaPage": "readonly",
+    "RelatorioPage": "readonly",
+    "TesourariaPage": "readonly",
+    "DashboardPage": "readonly",
+    "MonitorPage": "readonly",
+    "LoginPage": "readonly"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-undef": "error",
+    "no-console": "off",
+    "no-empty": ["warn", { "allowEmptyCatch": true }],
+    "no-constant-condition": ["error", { "checkLoops": false }],
+    "no-prototype-builtins": "off",
+    "prefer-const": "warn",
+    "no-var": "warn",
+    "eqeqeq": ["warn", "smart"],
+    "curly": ["warn", "multi-line"]
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "tests/",
+    "sw.js",
+    "*.min.js",
+    "playwright.config.js"
+  ]
+}

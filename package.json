@@ -7,9 +7,18 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "lint": "eslint \"js/**/*.js\"",
+    "lint:fix": "eslint \"js/**/*.js\" --fix",
+    "format": "prettier --write \"**/*.{js,html,css,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,html,css,json,md}\""
   },
   "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.0",
     "vitest": "^1.6.0"
   }
 }

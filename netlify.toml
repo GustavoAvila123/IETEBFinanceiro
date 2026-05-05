@@ -1,23 +1,63 @@
 [build]
   publish = "."
 
+# ── Redirects ─────────────────────────────────────────────────────────
+# SPA fallback: qualquer path retorna o index.html (o roteamento do app
+# é client-side). Status 200 para não disparar 404.
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# ── Headers de segurança ──────────────────────────────────────────────
-# Aplicados quando hospedado no Netlify. No GitHub Pages estes headers
-# precisam vir das tags <meta http-equiv="..."> em index.html, já que
-# GitHub Pages não permite customizar HTTP headers.
+# ── Cache strategy ────────────────────────────────────────────────────
+# HTML nunca é cacheado pelo browser (precisa ler o ?v= novo a cada deploy).
+# JS/CSS já carregam com cache-buster, então podem ter cache longo.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    # Service Worker precisa atualizar rápido; max-age 0 força revalidação.
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    # Com cache-buster em ?v=, podemos manter cache longo
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/lancamento.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ── Security headers ──────────────────────────────────────────────────
+# Aplicados em TODAS as respostas do Netlify. No GitHub Pages estes
+# headers precisam vir das tags <meta http-equiv="..."> em index.html
+# (limitado, pois GH Pages não permite customizar HTTP headers).
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options             = "DENY"
     X-Content-Type-Options      = "nosniff"
     Referrer-Policy             = "strict-origin-when-cross-origin"
-    Permissions-Policy          = "camera=(), microphone=(), geolocation=(), payment=()"
+    Permissions-Policy          = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), accelerometer=(), gyroscope=()"
     Strict-Transport-Security   = "max-age=63072000; includeSubDomains; preload"
-    Content-Security-Policy     = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.sheetjs.com https://*.firebaseio.com https://*.googleapis.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' blob: https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://cdn.sheetjs.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://tessdata.projectnaptha.com wss://*.firebaseio.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
     Cross-Origin-Opener-Policy  = "same-origin-allow-popups"
     Cross-Origin-Resource-Policy= "same-site"
+    # CSP — duplica o que está no <meta> do index.html, mas via header
+    # ganha precedência e cobre fallbacks que o <meta> não cobre.
+    Content-Security-Policy     = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://www.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.sheetjs.com https://*.firebaseio.com https://*.googleapis.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' blob: https://*.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://cdn.sheetjs.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://tessdata.projectnaptha.com wss://*.firebaseio.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"

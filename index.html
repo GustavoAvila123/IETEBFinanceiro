@@ -87,8 +87,8 @@
 
       <!-- Cabeçalho -->
       <div class="ls-header">
-        <h1 class="ls-title">Bem-vindo</h1>
-        <p class="ls-subtitle">Sistema de Gestão Financeira</p>
+        <h1 class="ls-title" data-i18n="login.welcome">Bem-vindo</h1>
+        <p class="ls-subtitle" data-i18n="app.tagline">Sistema de Gestão Financeira</p>
       </div>
 
       <!-- Formulário -->
@@ -1679,9 +1679,14 @@
   <!-- Constantes globais -->
   <script src="js/config.js?v=20260504g"></script>
 
+  <!-- i18n (deve vir antes dos demais para t() estar disponível) -->
+  <script src="js/i18n/strings.js?v=20260504g"></script>
+  <script src="js/i18n/i18n.js?v=20260504g"></script>
+
   <!-- Utilitários -->
   <script src="js/utils/helpers.js?v=20260504g"></script>
   <script src="js/utils/format.js?v=20260504g"></script>
+  <script src="js/utils/tooltip.js?v=20260504g"></script>
 
   <!-- Domínio -->
   <script src="js/domain/financeiro.js?v=20260504g"></script>

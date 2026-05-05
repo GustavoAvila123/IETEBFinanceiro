@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.firebase/
+.netlify/
+.github/
+.githooks/
+package-lock.json
+*.min.js
+*.min.css
+sw.js
+test-results/
+playwright-report/

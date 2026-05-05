@@ -61,15 +61,20 @@
     if (meta) meta.setAttribute('content', value === 'dark' ? '#0d1129' : '#0b1f5c');
   }
 
-  // Atualiza o ícone do botão de toggle, se existir
+  // Atualiza o ícone dos botões de toggle existentes (topbar mobile +
+  // sidebar desktop). Ambos têm os ícones .theme-icon-sun/.theme-icon-moon
+  // que CSS troca automaticamente pelo seletor html[data-theme].
   function updateButton(value) {
-    const btn = document.getElementById('themeToggleBtn');
-    if (!btn) return;
     const isDark = value === 'dark';
-    btn.setAttribute('aria-label', isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro');
-    btn.setAttribute('title', isDark ? 'Tema claro' : 'Tema escuro');
-    // Ícone via data-attr (CSS pode usar pra trocar via ::before)
-    btn.dataset.themeNext = isDark ? 'light' : 'dark';
+    const label = isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro';
+    const titleTxt = isDark ? 'Tema claro' : 'Tema escuro';
+    ['themeToggleBtn', 'sidebarThemeBtn'].forEach((id) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('title', titleTxt);
+      btn.dataset.themeNext = isDark ? 'light' : 'dark';
+    });
   }
 
   function init() {

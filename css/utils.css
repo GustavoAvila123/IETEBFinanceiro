@@ -7,30 +7,81 @@
 /* ─── ACESSIBILIDADE: focus-visible global ─────────────────────────────
    Anel dourado de alto contraste em QUALQUER elemento focável via
    teclado (Tab/Shift+Tab/setas). Não dispara em mouse click — só
-   em navegação por teclado, graças ao :focus-visible. */
+   em navegação por teclado, graças ao :focus-visible.
+
+   IMPORTANTE: aplica box-shadow só a elementos que NÃO já têm seu
+   próprio tratamento de foco (login screen, modal close, payment
+   tiles, etc.). Combinar 2 box-shadows em campos de senha causa
+   "halo" duplo que parece bug de layout. */
 :focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Adiciona o halo translúcido APENAS em elementos genéricos. Inputs
+   e botões com look custom (login, payment, etc.) ficam só com o
+   outline pra não conflitar. */
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible:not([tabindex='-1']) {
   box-shadow: 0 0 0 5px rgba(212, 175, 55, 0.18);
 }
 
 /* No tema escuro de filtros, contraste reforçado */
 .report-filters :focus-visible {
   outline-color: #ffd95a;
+}
+.report-filters button:focus-visible {
   box-shadow: 0 0 0 5px rgba(255, 217, 90, 0.25);
 }
 
 /* Dentro do sidebar (também escuro) */
 .sidebar :focus-visible {
   outline-color: #ffd95a;
+}
+.sidebar button:focus-visible,
+.sidebar a:focus-visible {
   box-shadow: 0 0 0 4px rgba(255, 217, 90, 0.2);
 }
 
-/* Inputs com :focus-visible mantêm a borda navy/gold própria + anel */
+/* Inputs do app (form-input/form-select) ficam só com o outline +
+   border-color próprio em foco. Sem box-shadow halo extra. */
 .form-input:focus-visible,
 .form-select:focus-visible {
   outline-offset: 1px;
+}
+
+/* Login screen (.ls-input/.ls-eye) tem look próprio elaborado —
+   anula o halo global pra preservar o gold dim original. */
+.ls-input:focus-visible,
+.ls-eye:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.ls-input:focus-visible {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 3px rgba(212, 175, 55, 0.14),
+    0 0 16px rgba(212, 175, 55, 0.08);
+}
+.ls-eye:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Anti-autofill amarelo do Chrome no login screen — preserva o
+   navy translúcido original. Sem isso, ao recarregar com auto-fill
+   ativo, o campo vira amarelo e fica "quebrado" visualmente. */
+.ls-input:-webkit-autofill,
+.ls-input:-webkit-autofill:hover,
+.ls-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-on-dark);
+  -webkit-box-shadow: 0 0 0 1000px rgba(6, 15, 46, 0.65) inset;
+  caret-color: var(--gold);
+  /* Delay enorme finge desativar o transition do autofill, deixando
+     a cor fixa em vez de fazer fade. */
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 /* Contraste do placeholder nos filtros escuros: era .30 (abaixo de

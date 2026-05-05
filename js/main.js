@@ -408,20 +408,42 @@ window._tryShowInstallBanner = function () {
   }
 };
 
+// Watchdog GLOBAL anti-loop: garante que o splash desaparece em
+// no máximo 10s sem importar o que aconteça abaixo. checkAuth()
+// já tem o seu próprio timeout de 8s, mas se algum erro JS estourar
+// antes ou se a Promise nunca resolver, este fallback ainda salva.
+function _hideSplash() {
+  const splash = document.getElementById('appBootSplash');
+  if (!splash) return;
+  splash.classList.add('boot-splash--exit');
+  setTimeout(() => splash.remove(), 400);
+}
+const _splashWatchdog = setTimeout(() => {
+  console.warn('[boot] watchdog: forçando esconder splash (10s timeout)');
+  _hideSplash();
+}, 10000);
+
 document.addEventListener('DOMContentLoaded', async () => {
-  firebase.init();
+  try {
+    firebase.init();
+  } catch (e) {
+    console.error('[boot] firebase.init falhou:', e);
+  }
 
   // Aguarda restauração de sessão (Firebase Auth persistido) antes de
   // carregar dados/UI. Se autenticado, login.checkAuth() esconde a tela de
   // login. Se não, o login screen permanece e nada de Firestore é assinado.
-  const authed = await login.checkAuth();
-
-  // Remove o splash de boot que cobria a tela enquanto Auth restaurava.
-  const splash = document.getElementById('appBootSplash');
-  if (splash) {
-    splash.classList.add('boot-splash--exit');
-    setTimeout(() => splash.remove(), 400);
+  let authed = false;
+  try {
+    authed = await login.checkAuth();
+  } catch (e) {
+    console.error('[boot] checkAuth falhou:', e);
+    authed = false;
   }
+
+  // Splash sai sempre nesta fase, watchdog é cancelado.
+  clearTimeout(_splashWatchdog);
+  _hideSplash();
 
   entradas.initAlunosContainer();
   entradas.initValidationListeners();

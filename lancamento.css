@@ -460,11 +460,24 @@ html[data-theme='dark'] .theme-icon-moon {
   position: relative;
   padding: 22px 26px;
   /* Reserva espaço à direita para o botão "Início" não sobrepor o
-     título nem a descrição em nenhuma largura. */
-  padding-right: 140px;
+     título nem a descrição em nenhuma largura. 170px cobre o botão
+     (~90px) + folga (40px) + halo de :focus-visible (5px*2). */
+  padding-right: 170px;
+  /* Garante altura suficiente pro tile vertical do botão "Início"
+     em mobile/tablet — sem isso, o botão sobressai do header se o
+     título for curto (caso "Dashboard"). */
+  min-height: 78px;
   background: linear-gradient(135deg, #050d27 0%, #091640 60%, #0c1d52 100%);
   border-radius: var(--radius-lg);
   overflow: hidden;
+}
+
+/* Título e descrição não podem invadir a área reservada do botão.
+   max-width via 100% (que já é limitado pelo padding-right). */
+.content-header .page-title,
+.content-header .page-desc {
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .content-header::before {
@@ -4505,6 +4518,7 @@ body.modal-open {
 
 /* ── Sidebar footer buttons ── */
 .sidebar-refresh-btn,
+.sidebar-theme-btn,
 .sidebar-logout-btn {
   display: flex;
   align-items: center;
@@ -4526,8 +4540,20 @@ body.modal-open {
 }
 
 .sidebar-refresh-btn:active,
+.sidebar-theme-btn:active,
 .sidebar-logout-btn:active {
   transform: scale(0.96);
+}
+
+.sidebar-theme-btn {
+  background: rgba(212, 175, 55, 0.07);
+  border-color: rgba(212, 175, 55, 0.2);
+  color: rgba(212, 175, 55, 0.65);
+}
+.sidebar-theme-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.42);
+  color: var(--gold);
 }
 
 .sidebar-refresh-btn {

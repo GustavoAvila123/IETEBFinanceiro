@@ -11,25 +11,47 @@ class LoginPage {
 
   // Restaura sessão a partir do Firebase Auth (que persiste no localStorage).
   // Resolve sempre — nunca rejeita — para a inicialização não travar.
+  //
+  // PROTEÇÃO ANTI-LOOP (PWA): se Firebase Auth não responder em 8s
+  // (rede ruim, SDK não inicializou, App Check falhou), trata como
+  // "não autenticado" e mostra a tela de login. Antes desse timeout
+  // o splash ficava eterno em qualquer falha de rede no PWA.
   checkAuth() {
+    const TIMEOUT_MS = 8000;
     return new Promise((resolve) => {
       if (!window._firebase || !window._firebase.onAuthStateChanged) {
         resolve(false);
         return;
       }
+      let settled = false;
+      const settle = (val) => {
+        if (settled) return;
+        settled = true;
+        resolve(val);
+      };
+      const watchdog = setTimeout(() => {
+        console.warn(
+          '[checkAuth] Firebase Auth não respondeu em ' +
+            TIMEOUT_MS +
+            'ms — mostrando login.'
+        );
+        this._maybeShowInactivityBanner();
+        settle(false);
+      }, TIMEOUT_MS);
       const unsub = window._firebase.onAuthStateChanged(async (user) => {
+        clearTimeout(watchdog);
         try {
           unsub();
         } catch (_) {}
         if (!user) {
           this._maybeShowInactivityBanner();
-          resolve(false);
+          settle(false);
           return;
         }
         try {
           const profile = await window._firebase.loadProfileFor(user);
           if (!profile) {
-            resolve(false);
+            settle(false);
             return;
           }
           this._populateLocalSession(profile);
@@ -50,9 +72,9 @@ class LoginPage {
           } catch (_) {}
           const el = document.getElementById('loginScreen');
           if (el) el.remove();
-          resolve(true);
+          settle(true);
         } catch (_) {
-          resolve(false);
+          settle(false);
         }
       });
     });

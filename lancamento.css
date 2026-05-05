@@ -296,10 +296,26 @@ body {
   gap: 7px;
 }
 
+/* Grid 2 colunas: em desktop, Atualizar + Tema na linha 1, Sair
+   ocupa linha 2 inteira (3 botões em flex-row no sidebar de 240px
+   ficavam apertados demais). Em mobile o Tema some (já existe no
+   topbar), e Atualizar + Sair voltam a dividir 1 linha. */
 .sidebar-footer-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 7px;
 }
+
+/* Desktop: Sair ocupa linha cheia, abaixo de Atualizar+Tema */
+@media (min-width: 1025px) {
+  .sidebar-logout-btn {
+    grid-column: 1 / -1;
+  }
+}
+
+/* (Regra "tema some no sidebar mobile" foi MOVIDA pro final do arquivo
+   pra ficar depois da definição base de .sidebar-theme-btn — sem isso,
+   a base "display: flex" sobrescrevia o "display: none" por ordem.) */
 
 /* ─── PAGE WRAPPER ─── */
 .page-wrapper {
@@ -455,28 +471,39 @@ html[data-theme='dark'] .theme-icon-moon {
   display: none;
 }
 
+/* CSS Grid garante que título e botão NUNCA se sobreponham, mesmo
+   quando o título for longo, o botão crescer, ou o focus halo
+   adicionar pixels visuais. Layout fica:
+     [page-title  ] [btn-back-home]
+     [page-desc   ] [             ]
+   Botão fica na coluna 2 (auto width), título/desc na coluna 1
+   (fr restante). Em mobile, mesma estrutura — o botão é tile mais
+   largo mas a coluna se ajusta. */
 .content-header {
   margin-bottom: 24px;
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'title btn'
+    'desc  btn';
+  gap: 4px 18px;
+  align-items: start;
   padding: 22px 26px;
-  /* Reserva espaço à direita para o botão "Início" não sobrepor o
-     título nem a descrição em nenhuma largura. 170px cobre o botão
-     (~90px) + folga (40px) + halo de :focus-visible (5px*2). */
-  padding-right: 170px;
-  /* Garante altura suficiente pro tile vertical do botão "Início"
-     em mobile/tablet — sem isso, o botão sobressai do header se o
-     título for curto (caso "Dashboard"). */
   min-height: 78px;
   background: linear-gradient(135deg, #050d27 0%, #091640 60%, #0c1d52 100%);
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
-/* Título e descrição não podem invadir a área reservada do botão.
-   max-width via 100% (que já é limitado pelo padding-right). */
-.content-header .page-title,
+.content-header .page-title {
+  grid-area: title;
+  min-width: 0;
+  word-break: break-word;
+}
 .content-header .page-desc {
-  max-width: 100%;
+  grid-area: desc;
+  min-width: 0;
   word-break: break-word;
 }
 
@@ -514,13 +541,14 @@ html[data-theme='dark'] .theme-icon-moon {
   margin-top: 5px;
 }
 
-/* Botão "Início" — discreto no canto superior direito do content-header.
+/* Botão "Início" — coluna direita do grid do .content-header.
    Desktop: linha (ícone + "Início").
-   Mobile/Tablet/iPad: tile vertical (ícone grande + "Ir para Home"). */
+   Mobile/Tablet/iPad: tile vertical (ícone grande + "Ir para Home").
+   Garantia: como o botão ocupa coluna própria do grid (auto width),
+   ele NUNCA pode sobrepor o título — independente de tamanho. */
 .btn-back-home {
-  position: absolute;
-  top: 18px;
-  right: 22px;
+  grid-area: btn;
+  align-self: start;
   z-index: 2;
   display: inline-flex;
   align-items: center;
@@ -568,8 +596,6 @@ html[data-theme='dark'] .theme-icon-moon {
    tocável (44px+ de touch target). */
 @media (max-width: 1024px) {
   .btn-back-home {
-    top: 12px;
-    right: 12px;
     padding: 8px 10px;
     flex-direction: column;
     gap: 2px;
@@ -595,8 +621,6 @@ html[data-theme='dark'] .theme-icon-moon {
 
 @media (max-width: 480px) {
   .btn-back-home {
-    top: 10px;
-    right: 10px;
     padding: 7px 8px;
     min-width: 58px;
   }
@@ -2690,15 +2714,12 @@ body.modal-open {
   }
 
   .content-header {
+    /* Grid layout do desktop continua aqui — só ajustamos paddings.
+       Botão e texto têm colunas próprias, não há mais risco de overlap. */
     padding: 18px 18px;
-    /* Reserva espaço para o botão "Ir para Home" tile.
-       O botão tile no mobile tem ~95-110px de largura (ícone + texto
-       "Ir para Home") + margem direita 12px. Folga para nunca colidir. */
-    padding-right: 120px;
-    /* min-height garante que o header acomode o botão (≈70px de altura)
-       mesmo se o texto for curto. */
     min-height: 84px;
     border-radius: 12px;
+    gap: 4px 12px;
   }
   .page-title {
     font-size: 1.2rem;
@@ -2828,11 +2849,12 @@ body.modal-open {
   }
   /* page-content padding agora vem dos tokens em BLOCO 4 */
 
-  /* Botão "Ir para Home" tile compacto em iPhone — folga generosa. */
+  /* Botão "Ir para Home" tile compacto em iPhone — grid já reserva
+     coluna própria, sem mais padding-right manual. */
   .content-header {
     padding: 16px 14px;
-    padding-right: 110px;
     min-height: 80px;
+    gap: 4px 10px;
   }
 }
 
@@ -4408,25 +4430,40 @@ body.modal-open {
 }
 
 .ls-input--pw {
-  padding-right: 46px;
+  /* Folga maior pra evitar overlap com o botão olho mesmo em zoom */
+  padding-right: 52px;
 }
 
 .ls-eye {
   position: absolute;
-  right: 12px;
+  right: 8px;
+  /* Centraliza verticalmente em qualquer altura do input — sem isso
+     o botão "vaza" pra fora quando o input cresce em algum estado */
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
   color: rgba(212, 175, 55, 0.45);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.2s;
+  padding: 6px;
+  border-radius: 6px;
+  transition:
+    color 0.2s,
+    background 0.18s;
+  /* Garante que o botão fica colável e o ícone não escapa */
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
 }
 .ls-eye:hover {
   color: var(--gold);
+  background: rgba(212, 175, 55, 0.08);
+}
+.ls-eye:active {
+  transform: translateY(-50%) scale(0.92);
 }
 .ls-eye svg {
   width: 17px;
@@ -4554,6 +4591,16 @@ body.modal-open {
   background: rgba(212, 175, 55, 0.15);
   border-color: rgba(212, 175, 55, 0.42);
   color: var(--gold);
+}
+
+/* Em mobile/tablet/iPad o tema some do sidebar — usuário usa o
+   #themeToggleBtn que já existe no .topbar. Esta regra precisa
+   estar DEPOIS da definição base "display: flex" (linha 4562)
+   pra vencer por ordem. */
+@media (max-width: 1024px) {
+  .sidebar-theme-btn {
+    display: none;
+  }
 }
 
 .sidebar-refresh-btn {

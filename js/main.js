@@ -228,6 +228,7 @@ window.reloadMonitor = () => monitor.render();
 // Auditoria (admin only)
 window.recarregarAuditoria = () => auditoria.carregar();
 window.aplicarAuditoriaFiltros = () => auditoria.aplicarFiltros();
+window.limparAuditoriaFiltros = () => auditoria.limparFiltros();
 
 // Backup / Restauração (admin only)
 window.exportarBackup = () => backup.exportar();

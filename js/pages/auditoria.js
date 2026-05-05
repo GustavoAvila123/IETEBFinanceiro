@@ -11,7 +11,19 @@ class AuditoriaPage {
   }
 
   resetPage() {
+    this.limparFiltros();
     this.carregar();
+  }
+
+  // Reseta os 3 filtros (ação, recurso, usuário) sem recarregar a lista —
+  // a aplicarFiltros é chamada em seguida pra refletir os campos limpos.
+  limparFiltros() {
+    const ids = ['auditoriaFiltroAcao', 'auditoriaFiltroRecurso', 'auditoriaFiltroUser'];
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    this.aplicarFiltros();
   }
 
   async carregar() {

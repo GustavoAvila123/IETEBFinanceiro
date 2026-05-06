@@ -1,1 +1,7 @@
-{"projects":{"default":"ieteb-financeiro"}}
+{
+  "projects": {
+    "default": "ieteb-financeiro",
+    "prod": "ieteb-financeiro",
+    "dev": "ieteb-financeiro-dev"
+  }
+}

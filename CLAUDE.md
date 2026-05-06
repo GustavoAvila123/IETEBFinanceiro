@@ -1,9 +1,9 @@
 # IETEB Financeiro — Guia do projeto
 
 Sistema de gestão financeira: registra entradas (mensalidades de cursos
-teológicos), saídas (despesas), gera relatórios, dashboard e monitora
-sessões de testers. Roda no navegador, hospedado no GitHub Pages, com
-persistência no Firebase Firestore.
+teológicos), saídas (despesas), gera relatórios e dashboard. Roda no
+navegador, hospedado no Cloudflare Pages, com persistência no Firebase
+Firestore.
 
 ## ⚠️ Branches — workflow obrigatório
 
@@ -99,7 +99,6 @@ js/
     relatorios.js        # tabela + filtros + export PDF/Excel
     tesouraria.js        # saldo do mês + entradas/saídas
     dashboard.js         # gráficos + filtro mês/ano + datas
-    monitor.js           # admin: sessões dos testers + tempo logado
 
 tests/
   setup.js               # helper para carregar globals do projeto

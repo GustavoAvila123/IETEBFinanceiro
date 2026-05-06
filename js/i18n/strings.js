@@ -34,7 +34,6 @@ const I18N_STRINGS = {
     'nav.relatorios': 'Relatórios',
     'nav.tesouraria': 'Tesouraria',
     'nav.dashboard': 'Dashboard',
-    'nav.monitor': 'Monitor de Testers',
 
     // Botões comuns
     'btn.save': 'Salvar',
@@ -85,7 +84,6 @@ const I18N_STRINGS = {
     'nav.relatorios': 'Reports',
     'nav.tesouraria': 'Treasury',
     'nav.dashboard': 'Dashboard',
-    'nav.monitor': 'Tester Monitor',
 
     'btn.save': 'Save',
     'btn.cancel': 'Cancel',

@@ -18,7 +18,6 @@ const relatorios = new RelatorioPage(modal, firebase);
 relatorios.bindAlunoOutsideClose();
 const tesouraria = new TesourariaPage(modal);
 const dashboard = new DashboardPage(modal);
-const monitor = new MonitorPage(firebase);
 const auditoria = new AuditoriaPage(firebase);
 const backup = new BackupPage(modal, firebase);
 const login = new LoginPage(modal);
@@ -36,7 +35,6 @@ const nav = new NavigationManager({
   relatorioPage: relatorios,
   tesourariaPage: tesouraria,
   dashboardPage: dashboard,
-  monitorPage: monitor,
   auditoriaPage: auditoria,
   backupPage: backup,
 });
@@ -221,9 +219,6 @@ window.fecharDashDataModal = () => {
   const ate = document.getElementById('dashDiaFiltroATE');
   if (ate) ate.focus();
 };
-
-// Monitor (admin only)
-window.reloadMonitor = () => monitor.render();
 
 // Auditoria (admin only)
 window.recarregarAuditoria = () => auditoria.carregar();

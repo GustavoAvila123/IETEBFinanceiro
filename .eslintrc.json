@@ -61,7 +61,6 @@
     "RelatorioPage": "readonly",
     "TesourariaPage": "readonly",
     "DashboardPage": "readonly",
-    "MonitorPage": "readonly",
     "LoginPage": "readonly",
     "AuditoriaPage": "readonly",
     "BackupPage": "readonly",

@@ -5,7 +5,6 @@ class NavigationManager {
     relatorioPage,
     tesourariaPage,
     dashboardPage,
-    monitorPage,
     auditoriaPage,
     backupPage,
   }) {
@@ -14,26 +13,22 @@ class NavigationManager {
     this.relatorioPage = relatorioPage;
     this.tesourariaPage = tesourariaPage;
     this.dashboardPage = dashboardPage;
-    this.monitorPage = monitorPage;
     this.auditoriaPage = auditoriaPage;
     this.backupPage = backupPage;
   }
 
   initAdminUI() {
     const isAdmin = getCurrentUser().role === 'admin';
-    ['sidebarAdminSection', 'navMonitor', 'navAuditoria', 'navBackup'].forEach((id) => {
+    ['sidebarAdminSection', 'navAuditoria', 'navBackup'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.style.display = isAdmin ? '' : 'none';
     });
   }
 
   showPage(page) {
-    // Monitor, Auditoria e Backup são restritos a admin — defesa em
+    // Auditoria e Backup são restritos a admin — defesa em
     // profundidade caso alguém tente abrir via console.
-    if (
-      (page === 'monitor' || page === 'auditoria' || page === 'backup') &&
-      getCurrentUser().role !== 'admin'
-    ) {
+    if ((page === 'auditoria' || page === 'backup') && getCurrentUser().role !== 'admin') {
       page = 'home';
     }
     [
@@ -43,7 +38,6 @@ class NavigationManager {
       'relatorios',
       'caixa',
       'dashboard',
-      'monitor',
       'auditoria',
       'backup',
     ].forEach((p) => {
@@ -63,7 +57,6 @@ class NavigationManager {
       relatorios: 'Relatórios',
       caixa: 'Tesouraria',
       dashboard: 'Dashboard',
-      monitor: 'Monitor de Testers',
       auditoria: 'Auditoria',
       backup: 'Backup & Restauração',
     };
@@ -82,7 +75,6 @@ class NavigationManager {
       if (page === 'relatorios') this.relatorioPage.resetPage();
       if (page === 'caixa') this.tesourariaPage.resetPage();
       if (page === 'dashboard') this.dashboardPage.resetPage();
-      if (page === 'monitor') this.monitorPage && this.monitorPage.resetPage();
       if (page === 'auditoria') this.auditoriaPage && this.auditoriaPage.resetPage();
       if (page === 'backup') this.backupPage && this.backupPage.resetPage();
     } catch (e) {

@@ -2,8 +2,8 @@
  * Domínio Financeiro — funções puras de cálculo
  *
  * Centraliza a lógica de soma, filtro por período, agrupamento e cálculo
- * de saldo que antes estava espalhada em tesouraria.js, dashboard.js,
- * navigation.js (initHome) e monitor.js.
+ * de saldo que antes estava espalhada em tesouraria.js, dashboard.js e
+ * navigation.js (initHome).
  *
  * Todas as funções são SEM side-effect: recebem dados, retornam números
  * ou novos arrays/objetos. Não tocam DOM nem leem localStorage.

@@ -2,7 +2,7 @@
   "name": "ieteb-financeiro",
   "version": "1.0.0",
   "private": true,
-  "description": "Sistema de gestão financeira IETEB — entradas, saídas, dashboard, monitor.",
+  "description": "Sistema de gestão financeira IETEB — entradas, saídas, dashboard.",
   "type": "module",
   "scripts": {
     "test": "vitest run",

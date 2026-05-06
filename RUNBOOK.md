@@ -206,7 +206,7 @@ Detalhes completos em [RELEASE.md](RELEASE.md). Resumo:
 | ------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | Erros de Auth            | Firebase Console → Authentication → Users (timestamps de last sign-in)                                          |
 | Performance Firestore    | Firebase Console → Firestore → Usage                                                                            |
-| Sessões dos testers      | Coleção `/Sessoes` no Firestore. Visualizar pela página /monitor (admin).                                       |
+| Sessões dos testers      | Coleção `/Sessoes` no Firestore Console (Firebase).                                                             |
 | Logs do navegador        | DevTools → Console (F12). Os errors são `console.error('[OCR] ...')`, `console.error('[navigation] ...')`, etc. |
 | GitHub Actions           | github.com/GustavoAvila123/IETEBFinanceiro/actions                                                              |
 | Service Worker no client | DevTools → Application → Service Workers                                                                        |

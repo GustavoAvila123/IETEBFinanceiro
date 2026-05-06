@@ -65,6 +65,7 @@
     "BackupPage": "readonly",
     "IgrejaDropdown": "readonly",
     "AlunosManager": "readonly",
+    "PickList": "readonly",
     "t": "readonly",
     "getLang": "readonly",
     "setLang": "readonly",

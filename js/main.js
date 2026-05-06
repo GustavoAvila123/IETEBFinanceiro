@@ -445,6 +445,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   entradas.initValidationListeners();
   saidas.initValidationListeners();
 
+  // Converte todo <select data-picklist> em UI custom premium consistente
+  // entre desktop, tablet e celular. Mantém o <select> no DOM como fonte
+  // da verdade — value, change events e validações continuam funcionando.
+  if (typeof PickList !== 'undefined') {
+    try {
+      PickList.initAll();
+    } catch (e) {
+      console.warn('[boot] PickList.initAll falhou:', e);
+    }
+  }
+
   if (!authed) return; // sem sessão: para por aqui, espera o user logar
 
   nav.initAdminUI();

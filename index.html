@@ -47,12 +47,12 @@
       rel="stylesheet"
       referrerpolicy="no-referrer"
     />
-    <link rel="stylesheet" href="lancamento.css?v=20260506j" />
+    <link rel="stylesheet" href="lancamento.css?v=20260506k" />
     <!-- CSS modular extraído (admin pages, onboarding, utils) — carrega
          em paralelo após o principal. Ver MIGRATION.md item #5 do roadmap. -->
-    <link rel="stylesheet" href="css/admin.css?v=20260506j" />
-    <link rel="stylesheet" href="css/onboarding.css?v=20260506j" />
-    <link rel="stylesheet" href="css/utils.css?v=20260506j" />
+    <link rel="stylesheet" href="css/admin.css?v=20260506k" />
+    <link rel="stylesheet" href="css/onboarding.css?v=20260506k" />
+    <link rel="stylesheet" href="css/utils.css?v=20260506k" />
     <!-- Anti-FOUC: aplica o tema ANTES do CSS render. Sem isso, o user
          em dark mode veria flash branco enquanto o JS tradicional
          carrega. Roda sincronamente, lê localStorage e seta data-theme. -->
@@ -979,7 +979,7 @@
                   <label class="form-label" for="curso"
                     >Curso <span class="required">*</span></label
                   >
-                  <select class="form-select" id="curso" required>
+                  <select class="form-select" id="curso" data-picklist required>
                     <option value="">Selecione o curso</option>
                     <option value="CFAM">CFAM</option>
                     <option value="Básico Teologia">Básico em Teologia</option>
@@ -1482,7 +1482,7 @@
                   <label class="form-label" for="saidaCategoria"
                     >Categoria <span class="required">*</span></label
                   >
-                  <select class="form-select" id="saidaCategoria">
+                  <select class="form-select" id="saidaCategoria" data-picklist>
                     <option value="">Selecione a categoria</option>
                     <option value="Pagamento de Professor">Pagamento de Professor</option>
                     <option value="Material de Escritório">Material de Escritório</option>
@@ -1855,7 +1855,7 @@
           </div>
           <div class="filter-group" id="filtroCursoGrupo">
             <label class="form-label" for="filtroCurso">Curso</label>
-            <select class="form-select filter-input" id="filtroCurso" onchange="aplicarFiltros()">
+            <select class="form-select filter-input" id="filtroCurso" data-picklist onchange="aplicarFiltros()">
               <option value="">Todos</option>
               <option value="CFAM">CFAM</option>
               <option value="Básico Teologia">Básico em Teologia</option>
@@ -1868,6 +1868,7 @@
             <select
               class="form-select filter-input"
               id="filtroPagamento"
+              data-picklist
               onchange="aplicarFiltros()"
             >
               <option value="">Todos</option>
@@ -2477,7 +2478,7 @@
           <div class="auditoria-filters">
             <div class="filter-group">
               <label class="form-label" for="auditoriaFiltroAcao">Ação</label>
-              <select class="form-select filter-input" id="auditoriaFiltroAcao"
+              <select class="form-select filter-input" id="auditoriaFiltroAcao" data-picklist
                       onchange="aplicarAuditoriaFiltros()">
                 <option value="">Todas</option>
                 <option value="create">Criação</option>
@@ -2487,7 +2488,7 @@
             </div>
             <div class="filter-group">
               <label class="form-label" for="auditoriaFiltroRecurso">Recurso</label>
-              <select class="form-select filter-input" id="auditoriaFiltroRecurso"
+              <select class="form-select filter-input" id="auditoriaFiltroRecurso" data-picklist
                       onchange="aplicarAuditoriaFiltros()">
                 <option value="">Todos</option>
                 <option value="Entradas">Entradas</option>
@@ -3079,51 +3080,52 @@
     ></script>
 
     <!-- Constantes globais -->
-    <script src="js/config.js?v=20260506j"></script>
+    <script src="js/config.js?v=20260506k"></script>
 
     <!-- i18n (deve vir antes dos demais para t() estar disponível) -->
-    <script src="js/i18n/strings.js?v=20260506j"></script>
-    <script src="js/i18n/i18n.js?v=20260506j"></script>
+    <script src="js/i18n/strings.js?v=20260506k"></script>
+    <script src="js/i18n/i18n.js?v=20260506k"></script>
 
     <!-- Utilitários -->
-    <script src="js/utils/helpers.js?v=20260506j"></script>
-    <script src="js/utils/format.js?v=20260506j"></script>
-    <script src="js/utils/tooltip.js?v=20260506j"></script>
-    <script src="js/utils/a11y.js?v=20260506j"></script>
-    <script src="js/utils/shortcuts.js?v=20260506j"></script>
-    <script src="js/utils/theme.js?v=20260506j"></script>
-    <script src="js/utils/onboarding.js?v=20260506j"></script>
-    <script src="js/utils/form-persist.js?v=20260506j"></script>
+    <script src="js/utils/helpers.js?v=20260506k"></script>
+    <script src="js/utils/format.js?v=20260506k"></script>
+    <script src="js/utils/tooltip.js?v=20260506k"></script>
+    <script src="js/utils/a11y.js?v=20260506k"></script>
+    <script src="js/utils/shortcuts.js?v=20260506k"></script>
+    <script src="js/utils/theme.js?v=20260506k"></script>
+    <script src="js/utils/onboarding.js?v=20260506k"></script>
+    <script src="js/utils/form-persist.js?v=20260506k"></script>
 
     <!-- Domínio -->
-    <script src="js/domain/financeiro.js?v=20260506j"></script>
+    <script src="js/domain/financeiro.js?v=20260506k"></script>
 
     <!-- Componentes -->
-    <script src="js/components/igreja-dropdown.js?v=20260506j"></script>
-    <script src="js/components/alunos-manager.js?v=20260506j"></script>
+    <script src="js/components/picklist.js?v=20260506k"></script>
+    <script src="js/components/igreja-dropdown.js?v=20260506k"></script>
+    <script src="js/components/alunos-manager.js?v=20260506k"></script>
 
     <!-- Core -->
-    <script src="js/core/modal.js?v=20260506j"></script>
-    <script src="js/core/firebase.js?v=20260506j"></script>
+    <script src="js/core/modal.js?v=20260506k"></script>
+    <script src="js/core/firebase.js?v=20260506k"></script>
 
     <!-- OCR -->
-    <script src="js/ocr/entradas.js?v=20260506j"></script>
-    <script src="js/ocr/saidas.js?v=20260506j"></script>
+    <script src="js/ocr/entradas.js?v=20260506k"></script>
+    <script src="js/ocr/saidas.js?v=20260506k"></script>
 
     <!-- Pages -->
-    <script src="js/pages/login.js?v=20260506j"></script>
-    <script src="js/pages/entradas.js?v=20260506j"></script>
-    <script src="js/pages/saidas.js?v=20260506j"></script>
-    <script src="js/pages/relatorios.js?v=20260506j"></script>
-    <script src="js/pages/tesouraria.js?v=20260506j"></script>
-    <script src="js/pages/dashboard.js?v=20260506j"></script>
-    <script src="js/pages/auditoria.js?v=20260506j"></script>
-    <script src="js/pages/backup.js?v=20260506j"></script>
+    <script src="js/pages/login.js?v=20260506k"></script>
+    <script src="js/pages/entradas.js?v=20260506k"></script>
+    <script src="js/pages/saidas.js?v=20260506k"></script>
+    <script src="js/pages/relatorios.js?v=20260506k"></script>
+    <script src="js/pages/tesouraria.js?v=20260506k"></script>
+    <script src="js/pages/dashboard.js?v=20260506k"></script>
+    <script src="js/pages/auditoria.js?v=20260506k"></script>
+    <script src="js/pages/backup.js?v=20260506k"></script>
 
     <!-- Navegação (depende das pages) -->
-    <script src="js/core/navigation.js?v=20260506j"></script>
+    <script src="js/core/navigation.js?v=20260506k"></script>
 
     <!-- Entry point -->
-    <script src="js/main.js?v=20260506j"></script>
+    <script src="js/main.js?v=20260506k"></script>
   </body>
 </html>

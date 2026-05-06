@@ -1,13 +1,11 @@
-name: Deploy PROD (GitHub Pages)
+name: Deploy PROD (GitHub Pages — DESATIVADO)
 
-# Dispara EXCLUSIVAMENTE em push pra master.
-# master é a branch de PRODUÇÃO — nunca commitar direto, só receber
-# merges de dev após autorização explícita do dono do projeto.
+# DESATIVADO em 2026-05-06 — hosting migrado para Cloudflare Pages,
+# que faz deploy automático por branch. Este workflow fica como
+# fallback manual (workflow_dispatch) caso precise reativar GitHub
+# Pages em emergência. Não dispara automaticamente.
 
 on:
-  push:
-    branches: [master]
-  # Permite re-deploy manual via UI do GitHub Actions
   workflow_dispatch:
 
 # GitHub Pages usa o mecanismo "actions" (não branch gh-pages).

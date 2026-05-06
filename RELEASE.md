@@ -84,54 +84,113 @@ novo e publica em `gustavoavila123.github.io/IETEBFinanceiro`.
 
 ---
 
-## ⚠️ Migração obrigatória ANTES da próxima promoção dev → master
+## 🔥 Setup do ambiente — Cloudflare Pages
 
-A coleção `Saídas` (com acento) foi renomeada para `Saidas` (sem
-acento) em 2026-05-06 para resolver erro de parser do Firebase
-Rules. PROD ainda tem dados na coleção `Saídas` que precisam ser
-movidos antes de promover.
+A partir de 2026-05-06 a hospedagem de **AMBOS** ambientes vai pra
+Cloudflare Pages. URLs ficam:
 
-### Passo 1 — Migrar dados em PROD
+- **PROD** (`master`) → `https://<projeto>.pages.dev`
+- **DEV** (`dev`) → `https://dev.<projeto>.pages.dev`
+- Cada feature branch ganha URL automática (`https://feat-x.<projeto>.pages.dev`)
 
-1. Logue como **Admin** em https://gustavoavila123.github.io/IETEBFinanceiro
-2. Abra DevTools (F12) → aba Console
-3. Cole e execute:
+### Setup inicial (uma vez, ~5 min)
+
+1. Criar conta em [pages.cloudflare.com](https://pages.cloudflare.com).
+2. **Connect to Git → GitHub** → autorizar acesso ao repo `IETEBFinanceiro`.
+3. Configurar projeto:
+   - **Project name:** `ieteb-financeiro` (será usado no subdomínio).
+   - **Production branch:** `master`.
+   - **Framework preset:** `None`.
+   - **Build command:** *(deixar vazio — app é estático)*
+   - **Build output directory:** `/`
+4. **Save and Deploy**. Aguarda ~30s — primeira deploy de master.
+5. URL gerada: `https://ieteb-financeiro.pages.dev` (ou prefixo
+   se o nome já estiver tomado).
+
+### Habilitar deploy automático de `dev` (preview branch)
+
+Por padrão Cloudflare deploya TODAS as branches automaticamente —
+geralmente já está ativo. Confirme:
+
+1. No projeto Cloudflare → **Settings → Builds & deployments → Branch deployments**.
+2. Garantir que está em **All branches** (ou pelo menos `dev`).
+3. Cada commit em `dev` agora deploya em ~30s pra
+   `https://dev.ieteb-financeiro.pages.dev`.
+
+### Adicionar URLs em Firebase Auth → Authorized domains
+
+Sem isso, login dá `auth/unauthorized-domain`.
+
+**Projeto PROD** (`ieteb-financeiro`):
+- Console → Authentication → Settings → Authorized domains → Add domain
+- Adicionar: `ieteb-financeiro.pages.dev`
+
+**Projeto DEV** (`ieteb-financeiro-dev`):
+- Mesmo caminho no projeto DEV
+- Adicionar: `dev.ieteb-financeiro.pages.dev`
+
+### Atualizar `PROD_HOSTS` no código (eu faço)
+
+Após você compartilhar comigo a URL exata gerada (passo 5), eu
+adiciono no array `PROD_HOSTS` em `js/core/firebase.js`. Sem isso,
+o app pode resolver pro Firebase errado.
+
+### Desativar GitHub Pages (opcional)
+
+Pra evitar dois sites publicados ao mesmo tempo:
+
+1. Repo GitHub → Settings → Pages → **Source: None**.
+2. URL antiga (`https://gustavoavila123.github.io/IETEBFinanceiro/`)
+   para de funcionar em alguns minutos.
+3. Workflow `.github/workflows/deploy-prod.yml` foi DESATIVADO no
+   trigger automático em 2026-05-06 (só dispara via
+   `workflow_dispatch` manual, como fallback emergencial).
+
+---
+
+## 🧹 Wipe completo de PROD (uma vez, antes do go-live)
+
+Decisão de 2026-05-06: começar PROD do zero, sem dados de teste
+acumulados. **DEV mantém os dados** (é o sandbox).
+
+### Quando rodar
+
+- ANTES de promover dev → master pela primeira vez no novo setup.
+- O wipe limpa Entradas, Saidas, Saídas (legacy), Sessoes e
+  Auditoria. Mantém `/Users` (perfis de auth).
+
+### Como rodar
+
+1. Logue como **Admin** em PROD (URL antiga GitHub Pages enquanto
+   ainda estiver no ar; ou a nova URL Cloudflare se já migrou).
+2. F12 → aba Console.
+3. Cole e execute (vai pedir confirmação):
 
 ```js
 (async () => {
+  if (!confirm('Apagar TODOS os dados de PROD? Ação irreversível.')) return;
   const db = firebase.firestore();
-  const old = await db.collection('Saídas').get();
-  if (old.empty) { console.log('Nenhum doc em Saídas — nada a migrar'); return; }
-  const batch = db.batch();
-  old.docs.forEach((d) => batch.set(db.collection('Saidas').doc(d.id), d.data()));
-  await batch.commit();
-  console.log(`✅ Migrados ${old.size} docs de Saídas → Saidas`);
+  const cols = ['Entradas', 'Saidas', 'Saídas', 'Sessoes', 'Auditoria'];
+  let total = 0;
+  for (const col of cols) {
+    const snap = await db.collection(col).get();
+    if (snap.empty) { console.log(`${col}: vazio`); continue; }
+    // Firestore só aceita 500 ops por batch — chunk se preciso
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i += 400) {
+      const batch = db.batch();
+      docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+    total += docs.length;
+    console.log(`✅ ${col}: ${docs.length} docs apagados`);
+  }
+  console.log(`\n🧹 Total apagado: ${total} docs em PROD`);
 })();
 ```
 
-4. Verifique no Firebase Console (Firestore) que a coleção `Saidas`
-   apareceu com os mesmos docs.
-5. **NÃO apague `Saídas` ainda** — guarde como backup até confirmar
-   que tudo funciona pós-deploy. Pode apagar manualmente no Console
-   uma semana depois.
-
-### Passo 2 — Promover dev → master normalmente
-
-```bash
-git checkout master
-git merge --ff-only dev
-git push origin master
-```
-
-GitHub Action faz deploy. Em ~3 min, PROD usa o código novo lendo
-de `Saidas`.
-
-### Passo 3 — Validar
-
-- Abrir o app em PROD, logar como tester comum.
-- Conferir que histórico de saídas está intacto.
-- Cadastrar uma nova saída — deve aparecer na coleção `Saidas` no
-  Firebase Console.
+4. Verifique no Firebase Console (PROD) que as coleções listadas
+   estão vazias. **Users continua intocado** (admin/testers).
 
 ---
 

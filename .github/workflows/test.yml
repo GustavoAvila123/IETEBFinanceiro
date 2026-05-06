@@ -35,8 +35,9 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # E2E é mais pesado (browser, ~50s) — só roda em PR e push pra master,
-    # não em cada commit em dev (pra não custar minutos da Action toda hora).
+    # E2E é pesado (browser, ~50s). Roda em PR ou push pra master
+    # (cobertura de release). Em dev, só rola se for PR — commits
+    # diários ficam mais ágeis.
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
 
     steps:

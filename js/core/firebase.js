@@ -17,10 +17,20 @@
  * Enquanto _CONFIGS.dev tiver apiKey vazia, ambos ambientes apontam
  * pro mesmo projeto PROD (comportamento atual). */
 
+// Hostnames considerados PRODUÇÃO. Tudo o que NÃO estiver aqui
+// (localhost, *.netlify.app, dev.*.pages.dev, *.workers.dev, etc.)
+// é tratado como DEV e usa _CONFIGS.dev.
+//
+// IMPORTANTE: a URL de DEV no Cloudflare ('dev.<projeto>.pages.dev')
+// começa com 'dev.' — então adicionar APENAS o subdomínio de PROD
+// aqui (sem o 'dev.'). Exemplo:
+//   PROD: 'ieteb-financeiro.pages.dev'   ← entra na lista
+//   DEV:  'dev.ieteb-financeiro.pages.dev' ← NÃO entra (cai em DEV)
 const PROD_HOSTS = [
-  'gustavoavila123.github.io',
+  'gustavoavila123.github.io', // hospedagem antiga (GitHub Pages) — manter até desativar
   'ieteb-financeiro.web.app',
   'ieteb-financeiro.firebaseapp.com',
+  'ieteb-financeiro.pages.dev', // Cloudflare Pages — production branch (master)
   // Adicione aqui o domínio custom de PROD quando configurar
 ];
 

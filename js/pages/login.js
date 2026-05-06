@@ -386,6 +386,16 @@ class LoginPage {
           </button>
         </form>
         <div class="ls-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Todos os direitos reservados</div>
+        <div class="ls-loading" id="lsLoading" aria-hidden="true">
+          <div class="ls-loading-spinner">
+            <div class="ls-loading-ring ls-loading-ring--1"></div>
+            <div class="ls-loading-ring ls-loading-ring--2"></div>
+            <div class="ls-loading-ring ls-loading-ring--3"></div>
+          </div>
+          <div class="ls-loading-text">
+            Autenticando<span class="ls-loading-dots"><span>.</span><span>.</span><span>.</span></span>
+          </div>
+        </div>
       </div>`;
     document.body.appendChild(ls);
     window.scrollTo(0, 0);
@@ -421,6 +431,22 @@ class LoginPage {
     }
     if (!ok) return;
 
+    // Loading premium: mostra overlay com 3 anéis girando + texto pulsando.
+    // Garante visibilidade mínima de 2s pra dar a sensação "verificando
+    // suas credenciais com segurança" mesmo em redes rápidas / cache.
+    const loadingEl = document.getElementById('lsLoading');
+    const showLoading = () => loadingEl && loadingEl.classList.add('ls-loading--active');
+    const hideLoading = () => loadingEl && loadingEl.classList.remove('ls-loading--active');
+    const MIN_LOADING_MS = 2000;
+    const startedAt = Date.now();
+    const ensureMinElapsed = async () => {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < MIN_LOADING_MS) {
+        await new Promise((r) => setTimeout(r, MIN_LOADING_MS - elapsed));
+      }
+    };
+
+    showLoading();
     if (btn) btn.disabled = true;
     try {
       if (!window._firebase) throw new Error('firebase-indisponivel');
@@ -443,6 +469,10 @@ class LoginPage {
 
       this._startHeartbeat(profile.legacyId);
 
+      // Mantém o loading por no mínimo 2s antes de fazer o reload.
+      // Não escondemos o overlay no sucesso — o reload faz isso.
+      await ensureMinElapsed();
+
       // Recarrega a tela inteira para que os listeners do Firestore
       // assinem com o novo contexto autenticado.
       const screen = document.getElementById('loginScreen');
@@ -455,6 +485,10 @@ class LoginPage {
         }, 250);
       }
     } catch (err) {
+      // No erro, garantimos que o loading apareceu por pelo menos 2s
+      // antes de mostrar a mensagem — evita "flash" desconcertante.
+      await ensureMinElapsed();
+      hideLoading();
       const code = err && err.code;
       let msg =
         'Ops! Não conseguimos entrar com esses dados. Confirme seu usuário e senha e tente novamente.';

@@ -47,12 +47,12 @@
       rel="stylesheet"
       referrerpolicy="no-referrer"
     />
-    <link rel="stylesheet" href="lancamento.css?v=20260506g" />
+    <link rel="stylesheet" href="lancamento.css?v=20260506h" />
     <!-- CSS modular extraído (admin pages, onboarding, utils) — carrega
          em paralelo após o principal. Ver MIGRATION.md item #5 do roadmap. -->
-    <link rel="stylesheet" href="css/admin.css?v=20260506g" />
-    <link rel="stylesheet" href="css/onboarding.css?v=20260506g" />
-    <link rel="stylesheet" href="css/utils.css?v=20260506g" />
+    <link rel="stylesheet" href="css/admin.css?v=20260506h" />
+    <link rel="stylesheet" href="css/onboarding.css?v=20260506h" />
+    <link rel="stylesheet" href="css/utils.css?v=20260506h" />
     <!-- Anti-FOUC: aplica o tema ANTES do CSS render. Sem isso, o user
          em dark mode veria flash branco enquanto o JS tradicional
          carrega. Roda sincronamente, lê localStorage e seta data-theme. -->
@@ -229,6 +229,18 @@
         </form>
 
         <div class="ls-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Todos os direitos reservados</div>
+
+        <!-- Overlay de loading durante autenticação (3 anéis concêntricos dourados) -->
+        <div class="ls-loading" id="lsLoading" aria-hidden="true">
+          <div class="ls-loading-spinner">
+            <div class="ls-loading-ring ls-loading-ring--1"></div>
+            <div class="ls-loading-ring ls-loading-ring--2"></div>
+            <div class="ls-loading-ring ls-loading-ring--3"></div>
+          </div>
+          <div class="ls-loading-text">
+            Autenticando<span class="ls-loading-dots"><span>.</span><span>.</span><span>.</span></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -3067,51 +3079,51 @@
     ></script>
 
     <!-- Constantes globais -->
-    <script src="js/config.js?v=20260506g"></script>
+    <script src="js/config.js?v=20260506h"></script>
 
     <!-- i18n (deve vir antes dos demais para t() estar disponível) -->
-    <script src="js/i18n/strings.js?v=20260506g"></script>
-    <script src="js/i18n/i18n.js?v=20260506g"></script>
+    <script src="js/i18n/strings.js?v=20260506h"></script>
+    <script src="js/i18n/i18n.js?v=20260506h"></script>
 
     <!-- Utilitários -->
-    <script src="js/utils/helpers.js?v=20260506g"></script>
-    <script src="js/utils/format.js?v=20260506g"></script>
-    <script src="js/utils/tooltip.js?v=20260506g"></script>
-    <script src="js/utils/a11y.js?v=20260506g"></script>
-    <script src="js/utils/shortcuts.js?v=20260506g"></script>
-    <script src="js/utils/theme.js?v=20260506g"></script>
-    <script src="js/utils/onboarding.js?v=20260506g"></script>
-    <script src="js/utils/form-persist.js?v=20260506g"></script>
+    <script src="js/utils/helpers.js?v=20260506h"></script>
+    <script src="js/utils/format.js?v=20260506h"></script>
+    <script src="js/utils/tooltip.js?v=20260506h"></script>
+    <script src="js/utils/a11y.js?v=20260506h"></script>
+    <script src="js/utils/shortcuts.js?v=20260506h"></script>
+    <script src="js/utils/theme.js?v=20260506h"></script>
+    <script src="js/utils/onboarding.js?v=20260506h"></script>
+    <script src="js/utils/form-persist.js?v=20260506h"></script>
 
     <!-- Domínio -->
-    <script src="js/domain/financeiro.js?v=20260506g"></script>
+    <script src="js/domain/financeiro.js?v=20260506h"></script>
 
     <!-- Componentes -->
-    <script src="js/components/igreja-dropdown.js?v=20260506g"></script>
-    <script src="js/components/alunos-manager.js?v=20260506g"></script>
+    <script src="js/components/igreja-dropdown.js?v=20260506h"></script>
+    <script src="js/components/alunos-manager.js?v=20260506h"></script>
 
     <!-- Core -->
-    <script src="js/core/modal.js?v=20260506g"></script>
-    <script src="js/core/firebase.js?v=20260506g"></script>
+    <script src="js/core/modal.js?v=20260506h"></script>
+    <script src="js/core/firebase.js?v=20260506h"></script>
 
     <!-- OCR -->
-    <script src="js/ocr/entradas.js?v=20260506g"></script>
-    <script src="js/ocr/saidas.js?v=20260506g"></script>
+    <script src="js/ocr/entradas.js?v=20260506h"></script>
+    <script src="js/ocr/saidas.js?v=20260506h"></script>
 
     <!-- Pages -->
-    <script src="js/pages/login.js?v=20260506g"></script>
-    <script src="js/pages/entradas.js?v=20260506g"></script>
-    <script src="js/pages/saidas.js?v=20260506g"></script>
-    <script src="js/pages/relatorios.js?v=20260506g"></script>
-    <script src="js/pages/tesouraria.js?v=20260506g"></script>
-    <script src="js/pages/dashboard.js?v=20260506g"></script>
-    <script src="js/pages/auditoria.js?v=20260506g"></script>
-    <script src="js/pages/backup.js?v=20260506g"></script>
+    <script src="js/pages/login.js?v=20260506h"></script>
+    <script src="js/pages/entradas.js?v=20260506h"></script>
+    <script src="js/pages/saidas.js?v=20260506h"></script>
+    <script src="js/pages/relatorios.js?v=20260506h"></script>
+    <script src="js/pages/tesouraria.js?v=20260506h"></script>
+    <script src="js/pages/dashboard.js?v=20260506h"></script>
+    <script src="js/pages/auditoria.js?v=20260506h"></script>
+    <script src="js/pages/backup.js?v=20260506h"></script>
 
     <!-- Navegação (depende das pages) -->
-    <script src="js/core/navigation.js?v=20260506g"></script>
+    <script src="js/core/navigation.js?v=20260506h"></script>
 
     <!-- Entry point -->
-    <script src="js/main.js?v=20260506g"></script>
+    <script src="js/main.js?v=20260506h"></script>
   </body>
 </html>

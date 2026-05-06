@@ -4083,6 +4083,148 @@ body:has(#loginScreen) {
   animation: lsShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   LOADING OVERLAY — 3 anéis dourados concêntricos rotacionando
+   Cobre o card durante a autenticação. Mínimo 2s visível.
+══════════════════════════════════════════════════════════════════ */
+.ls-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  background: linear-gradient(
+    135deg,
+    rgba(11, 31, 92, 0.92),
+    rgba(6, 15, 46, 0.94)
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: inherit;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.35s ease,
+    visibility 0.35s ease;
+  z-index: 5;
+}
+
+.ls-loading--active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.ls-loading-spinner {
+  position: relative;
+  width: 90px;
+  height: 90px;
+}
+
+.ls-loading-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  will-change: transform;
+}
+
+/* Anel externo: maior, gira devagar (2.4s), gold sólido no topo + soft no lado */
+.ls-loading-ring--1 {
+  width: 90px;
+  height: 90px;
+  margin: -45px 0 0 -45px;
+  border-top-color: var(--gold);
+  border-right-color: rgba(212, 175, 55, 0.35);
+  animation: lsLoadingRot 2.4s linear infinite;
+  box-shadow:
+    0 0 24px rgba(212, 175, 55, 0.18),
+    inset 0 0 12px rgba(212, 175, 55, 0.08);
+}
+
+/* Anel médio: gira em sentido oposto, mais rápido (1.8s) */
+.ls-loading-ring--2 {
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-top-color: #f4d36a;
+  border-left-color: rgba(244, 211, 106, 0.3);
+  animation: lsLoadingRot 1.8s linear infinite reverse;
+}
+
+/* Anel interno: pequeno, brilhoso, gira rápido (1.2s) */
+.ls-loading-ring--3 {
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border-top-color: #fff3b8;
+  animation: lsLoadingRot 1.2s linear infinite;
+  box-shadow: 0 0 14px rgba(255, 243, 184, 0.55);
+}
+
+@keyframes lsLoadingRot {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ls-loading-text {
+  color: var(--gold);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
+}
+
+/* Reticências animadas: 3 pontos que aparecem em sequência */
+.ls-loading-dots {
+  display: inline-block;
+  margin-left: 2px;
+  width: 1.2em;
+  text-align: left;
+}
+.ls-loading-dots span {
+  display: inline-block;
+  opacity: 0;
+  animation: lsLoadingDot 1.4s ease-in-out infinite;
+}
+.ls-loading-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+.ls-loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.ls-loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes lsLoadingDot {
+  0%,
+  60%,
+  100% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+/* Acessibilidade: sem animação se o usuário pediu */
+@media (prefers-reduced-motion: reduce) {
+  .ls-loading-ring,
+  .ls-loading-dots span {
+    animation: none !important;
+  }
+  .ls-loading-dots span {
+    opacity: 1;
+  }
+}
+
 /* Banner de aviso (ex.: deslogado por inatividade).
    Posicionado como toast no topo da .ls (fora do fluxo do card),
    para não competir com o logo nem deslocar o layout do login. */

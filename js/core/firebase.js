@@ -57,7 +57,11 @@ const _CONFIGS = {
 
 function _resolveFirebaseConfig() {
   const host = (typeof location !== 'undefined' && location.hostname) || '';
-  const isProd = PROD_HOSTS.some((h) => host === h || host.endsWith('.' + h));
+  // Match EXATO — sem subdomínio. Antes usávamos host.endsWith('.' + h)
+  // mas isso fazia 'dev.ieteb-financeiro.pages.dev' (DEV no Cloudflare)
+  // bater com PROD_HOSTS contendo 'ieteb-financeiro.pages.dev'.
+  // Agora: cada subdomínio tem que estar EXPLICITAMENTE em PROD_HOSTS.
+  const isProd = PROD_HOSTS.includes(host);
   const env = isProd ? 'prod' : 'dev';
   const cfg = _CONFIGS[env];
   if (!cfg.apiKey) {

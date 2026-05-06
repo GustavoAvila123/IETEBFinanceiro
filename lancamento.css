@@ -3776,65 +3776,203 @@ body.modal-open {
   pointer-events: none;
 }
 
-/* ── Background ── */
+/* ══════════════════════════════════════════════════════════════════
+   BACKGROUND ANIMADO — aurora mesh + spotlight + partículas
+   Inspirado em Vercel, Linear, Stripe. Tudo CSS puro, GPU-accelerated
+   (só transform/opacity), respeita prefers-reduced-motion.
+══════════════════════════════════════════════════════════════════ */
 .ls-bg {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 20%, rgba(11, 31, 92, 0.6), transparent 70%),
+    radial-gradient(ellipse 80% 60% at 70% 80%, rgba(6, 15, 46, 0.5), transparent 70%);
 }
 
+/* ── Aurora mesh: 5 orbs grandes que se movem em câmera lenta ── */
 .ls-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.45;
-  animation: lsFloat 12s ease-in-out infinite alternate;
+  filter: blur(110px);
+  will-change: transform;
+  animation: lsFloat 22s ease-in-out infinite alternate;
 }
 .ls-orb--1 {
-  width: 520px;
-  height: 520px;
+  width: 620px;
+  height: 620px;
   background: radial-gradient(circle, #1a3a8f 0%, transparent 70%);
-  top: -120px;
-  left: -140px;
-  animation-duration: 14s;
+  top: -180px;
+  left: -180px;
+  opacity: 0.55;
+  animation-duration: 24s;
 }
 .ls-orb--2 {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, #c8a92260 0%, transparent 70%);
-  bottom: -80px;
-  right: -80px;
-  animation-duration: 10s;
-  animation-delay: -4s;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(200, 169, 34, 0.45) 0%, transparent 70%);
+  bottom: -140px;
+  right: -120px;
+  opacity: 0.55;
+  animation-duration: 18s;
+  animation-delay: -6s;
 }
 .ls-orb--3 {
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, #0b1f5c 0%, transparent 70%);
+  top: 38%;
+  left: 48%;
+  opacity: 0.65;
+  animation-duration: 26s;
+  animation-delay: -12s;
+}
+.ls-orb--4 {
+  width: 340px;
+  height: 340px;
+  background: radial-gradient(circle, rgba(74, 39, 130, 0.42) 0%, transparent 70%);
+  top: 58%;
+  left: 4%;
+  opacity: 0.5;
+  animation-duration: 20s;
+  animation-delay: -3s;
+}
+.ls-orb--5 {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, #0b1f5c 0%, transparent 70%);
-  top: 40%;
-  left: 55%;
-  animation-duration: 16s;
-  animation-delay: -8s;
+  background: radial-gradient(circle, rgba(30, 107, 138, 0.38) 0%, transparent 70%);
+  top: 6%;
+  right: 18%;
+  opacity: 0.45;
+  animation-duration: 28s;
+  animation-delay: -10s;
 }
 
 @keyframes lsFloat {
   0% {
-    transform: translate(0, 0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
-  50% {
-    transform: translate(30px, -25px) scale(1.06);
+  33% {
+    transform: translate3d(45px, -35px, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-30px, 30px, 0) scale(0.94);
   }
   100% {
-    transform: translate(-20px, 20px) scale(0.96);
+    transform: translate3d(20px, -15px, 0) scale(1.04);
   }
 }
 
+/* ── Grid de pontos sutil (existia, refinado) ── */
 .ls-grid {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(212, 175, 55, 0.12) 1px, transparent 1px);
-  background-size: 36px 36px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  background-image: radial-gradient(circle, rgba(212, 175, 55, 0.09) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 90%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 90%);
+}
+
+/* ── Spotlight cinematográfico que vagueia lento ── */
+.ls-spotlight {
+  position: absolute;
+  inset: -15%;
+  background: radial-gradient(
+    circle 700px at 50% 50%,
+    rgba(212, 175, 55, 0.08),
+    transparent 65%
+  );
+  mix-blend-mode: screen;
+  will-change: transform;
+  animation: lsSpotlightDrift 32s ease-in-out infinite alternate;
+}
+
+@keyframes lsSpotlightDrift {
+  0% {
+    transform: translate3d(-18%, -12%, 0);
+  }
+  50% {
+    transform: translate3d(15%, 18%, 0);
+  }
+  100% {
+    transform: translate3d(-10%, 8%, 0);
+  }
+}
+
+/* ── Partículas douradas (constellation, 12 estrelas piscando) ── */
+.ls-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ls-stars span {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #f4d36a;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 1px rgba(212, 175, 55, 0.55);
+  opacity: 0;
+  animation: lsTwinkle 5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+/* Posições e timings escolhidos pra parecer aleatório mas equilibrado */
+.ls-stars span:nth-child(1)  { top: 12%; left: 18%; animation-delay: 0.0s; animation-duration: 4.0s; }
+.ls-stars span:nth-child(2)  { top: 24%; left: 78%; animation-delay: 1.2s; animation-duration: 4.6s; width: 3px; height: 3px; }
+.ls-stars span:nth-child(3)  { top: 8%;  left: 52%; animation-delay: 2.4s; animation-duration: 3.8s; }
+.ls-stars span:nth-child(4)  { top: 38%; left: 8%;  animation-delay: 0.8s; animation-duration: 4.2s; }
+.ls-stars span:nth-child(5)  { top: 72%; left: 22%; animation-delay: 3.0s; animation-duration: 5.2s; width: 3px; height: 3px; }
+.ls-stars span:nth-child(6)  { top: 84%; left: 64%; animation-delay: 1.8s; animation-duration: 4.4s; }
+.ls-stars span:nth-child(7)  { top: 58%; left: 88%; animation-delay: 2.2s; animation-duration: 3.6s; }
+.ls-stars span:nth-child(8)  { top: 14%; left: 90%; animation-delay: 4.0s; animation-duration: 5.0s; }
+.ls-stars span:nth-child(9)  { top: 92%; left: 36%; animation-delay: 0.4s; animation-duration: 4.8s; }
+.ls-stars span:nth-child(10) { top: 46%; left: 42%; animation-delay: 2.8s; animation-duration: 4.2s; width: 3px; height: 3px; }
+.ls-stars span:nth-child(11) { top: 68%; left: 56%; animation-delay: 3.5s; animation-duration: 3.4s; }
+.ls-stars span:nth-child(12) { top: 32%; left: 32%; animation-delay: 1.5s; animation-duration: 4.6s; }
+
+@keyframes lsTwinkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+/* ── Film grain (estilo Stripe) — SVG turbulence inline ── */
+.ls-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.14 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ── Vignette: escurece bordas, foca atenção no card central ── */
+.ls-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 100% 80% at 50% 50%,
+    transparent 35%,
+    rgba(2, 7, 22, 0.65) 100%
+  );
+}
+
+/* ── Acessibilidade: respeitar usuários que pediram menos animação ── */
+@media (prefers-reduced-motion: reduce) {
+  .ls-orb,
+  .ls-spotlight,
+  .ls-stars span {
+    animation: none !important;
+  }
+  .ls-stars span {
+    opacity: 0.55;
+  }
 }
 
 /* ── Card ── */

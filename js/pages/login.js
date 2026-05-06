@@ -324,7 +324,17 @@ class LoginPage {
         <div class="ls-orb ls-orb--1"></div>
         <div class="ls-orb ls-orb--2"></div>
         <div class="ls-orb ls-orb--3"></div>
+        <div class="ls-orb ls-orb--4"></div>
+        <div class="ls-orb ls-orb--5"></div>
         <div class="ls-grid"></div>
+        <div class="ls-spotlight"></div>
+        <div class="ls-stars">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="ls-noise"></div>
+        <div class="ls-vignette"></div>
       </div>
       <div class="ls-card" id="loginCard">
         <div class="ls-card-accent"></div>

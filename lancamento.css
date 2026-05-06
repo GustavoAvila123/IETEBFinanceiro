@@ -4392,6 +4392,10 @@ body.modal-open {
 .ls-icon {
   position: absolute;
   left: 14px;
+  /* Centraliza verticalmente — antes o display:flex do wrap fazia
+     isso, mas o wrap virou block; agora cada ícone se centra sozinho. */
+  top: 50%;
+  transform: translateY(-50%);
   width: 17px;
   height: 17px;
   color: rgba(212, 175, 55, 0.55);

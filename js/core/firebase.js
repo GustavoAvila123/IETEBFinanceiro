@@ -33,33 +33,33 @@ const _CONFIGS = {
     messagingSenderId: '514664099454',
     appId: '1:514664099454:web:72177a3d36afc85782b22f',
   },
-  // PLACEHOLDER — substituir pelas credenciais do projeto Firebase de DEV
-  // quando ele for criado. Enquanto apiKey for falsy, fallback pra PROD.
+  // Projeto Firebase DEV separado — dados isolados de PROD.
+  // Criado em 2026-05-05.
   dev: {
-    apiKey: '',
-    authDomain: '',
-    projectId: '',
-    storageBucket: '',
-    messagingSenderId: '',
-    appId: '',
+    apiKey: 'AIzaSyCefT5hrrqngFNQPBz9COUvJOgy22POnnk',
+    authDomain: 'ieteb-financeiro-dev.firebaseapp.com',
+    projectId: 'ieteb-financeiro-dev',
+    storageBucket: 'ieteb-financeiro-dev.firebasestorage.app',
+    messagingSenderId: '371258565272',
+    appId: '1:371258565272:web:a57f7c3928de92212c26ed',
   },
 };
 
 function _resolveFirebaseConfig() {
   const host = (typeof location !== 'undefined' && location.hostname) || '';
   const isProd = PROD_HOSTS.some((h) => host === h || host.endsWith('.' + h));
-  // Se DEV não foi configurado ainda, usa PROD em todos os ambientes
-  // pra app continuar funcionando. Console alerta admin.
-  if (!isProd && !_CONFIGS.dev.apiKey) {
+  const env = isProd ? 'prod' : 'dev';
+  const cfg = _CONFIGS[env];
+  if (!cfg.apiKey) {
     console.warn(
-      '[firebase] Hostname "' +
-        host +
-        '" não está em PROD_HOSTS, mas DEV config está vazio — usando credenciais PROD. ' +
-        'Configure _CONFIGS.dev em js/core/firebase.js para isolar dados.'
+      '[firebase] Config "' + env + '" sem apiKey — fallback pra PROD. ' +
+        'Hostname atual: "' + host + '".'
     );
     return _CONFIGS.prod;
   }
-  return isProd ? _CONFIGS.prod : _CONFIGS.dev;
+  // Log discreto para o admin saber em qual env conectou
+  console.info('[firebase] Conectado no projeto', cfg.projectId, '(' + env.toUpperCase() + ')');
+  return cfg;
 }
 
 const _fbConfig = _resolveFirebaseConfig();

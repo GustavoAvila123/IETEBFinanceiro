@@ -329,9 +329,11 @@ class LoginPage {
         <div class="ls-grid"></div>
         <div class="ls-spotlight"></div>
         <div class="ls-stars">
-          <span></span><span></span><span></span><span></span>
-          <span></span><span></span><span></span><span></span>
-          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
         </div>
         <div class="ls-noise"></div>
         <div class="ls-vignette"></div>

@@ -3916,7 +3916,9 @@ body.modal-open {
   animation: lsTwinkle 5s ease-in-out infinite;
   will-change: opacity, transform;
 }
-/* Posições e timings escolhidos pra parecer aleatório mas equilibrado */
+/* Posições e timings escolhidos pra parecer aleatório mas equilibrado.
+   25 estrelas: tamanho 2px ou 3px (mistura pra parecer orgânico),
+   delays 0–4.5s, durações 3.4–5.6s (cada uma pisca em ritmo próprio). */
 .ls-stars span:nth-child(1)  { top: 12%; left: 18%; animation-delay: 0.0s; animation-duration: 4.0s; }
 .ls-stars span:nth-child(2)  { top: 24%; left: 78%; animation-delay: 1.2s; animation-duration: 4.6s; width: 3px; height: 3px; }
 .ls-stars span:nth-child(3)  { top: 8%;  left: 52%; animation-delay: 2.4s; animation-duration: 3.8s; }
@@ -3929,6 +3931,19 @@ body.modal-open {
 .ls-stars span:nth-child(10) { top: 46%; left: 42%; animation-delay: 2.8s; animation-duration: 4.2s; width: 3px; height: 3px; }
 .ls-stars span:nth-child(11) { top: 68%; left: 56%; animation-delay: 3.5s; animation-duration: 3.4s; }
 .ls-stars span:nth-child(12) { top: 32%; left: 32%; animation-delay: 1.5s; animation-duration: 4.6s; }
+.ls-stars span:nth-child(13) { top: 18%; left: 70%; animation-delay: 0.6s; animation-duration: 5.0s; }
+.ls-stars span:nth-child(14) { top: 6%;  left: 28%; animation-delay: 3.2s; animation-duration: 4.0s; width: 3px; height: 3px; }
+.ls-stars span:nth-child(15) { top: 50%; left: 14%; animation-delay: 2.0s; animation-duration: 5.4s; }
+.ls-stars span:nth-child(16) { top: 26%; left: 6%;  animation-delay: 4.5s; animation-duration: 3.6s; }
+.ls-stars span:nth-child(17) { top: 62%; left: 4%;  animation-delay: 1.0s; animation-duration: 4.8s; width: 3px; height: 3px; }
+.ls-stars span:nth-child(18) { top: 88%; left: 80%; animation-delay: 2.6s; animation-duration: 4.2s; }
+.ls-stars span:nth-child(19) { top: 76%; left: 38%; animation-delay: 0.2s; animation-duration: 5.6s; }
+.ls-stars span:nth-child(20) { top: 54%; left: 72%; animation-delay: 3.8s; animation-duration: 3.8s; width: 3px; height: 3px; }
+.ls-stars span:nth-child(21) { top: 22%; left: 48%; animation-delay: 1.4s; animation-duration: 4.4s; }
+.ls-stars span:nth-child(22) { top: 96%; left: 14%; animation-delay: 4.2s; animation-duration: 4.0s; }
+.ls-stars span:nth-child(23) { top: 42%; left: 92%; animation-delay: 0.9s; animation-duration: 5.2s; width: 3px; height: 3px; }
+.ls-stars span:nth-child(24) { top: 80%; left: 50%; animation-delay: 2.5s; animation-duration: 4.6s; }
+.ls-stars span:nth-child(25) { top: 4%;  left: 76%; animation-delay: 1.7s; animation-duration: 3.4s; }
 
 @keyframes lsTwinkle {
   0%, 100% {

@@ -541,21 +541,59 @@ class RelatorioPage {
       doc.setTextColor(120, 120, 120);
       doc.text(`Gerado em: ${agora}  |  Total: ${this.filteredData.length} registro(s)`, 40, 52);
 
+      // Larguras explícitas por coluna pra evitar que campo longo
+      // (ex.: nome de igreja ou aluno) "vaze" pra coluna ao lado em
+      // mobile. Em A4 paisagem temos ~795pt úteis (842 − 24 − 24).
+      // overflow: 'linebreak' garante quebra de linha ao invés de overflow.
+      const columnStyles = isSaidas
+        ? {
+            0: { cellWidth: 56 }, // Data
+            1: { cellWidth: 42 }, // Hora
+            2: { cellWidth: 110 }, // Categoria
+            3: { cellWidth: 165 }, // Fornecedor
+            4: { cellWidth: 78 }, // Pagamento
+            5: { cellWidth: 70, halign: 'right' }, // Valor
+            6: { cellWidth: 'auto' }, // Obs.
+          }
+        : {
+            0: { cellWidth: 50 }, // Data
+            1: { cellWidth: 38 }, // Hora
+            2: { cellWidth: 120 }, // Aluno
+            3: { cellWidth: 100 }, // Curso
+            4: { cellWidth: 130 }, // Igreja
+            5: { cellWidth: 56 }, // Pagto
+            6: { cellWidth: 100 }, // Depositante
+            7: { cellWidth: 70 }, // Banco Dep.
+            8: { cellWidth: 70 }, // Banco Rec.
+            9: { cellWidth: 60, halign: 'right' }, // Valor
+          };
+
       // Tabela
       doc.autoTable({
         head,
         body,
         startY: 64,
         theme: 'grid',
-        styles: { fontSize: 7, cellPadding: 3, overflow: 'linebreak' },
+        styles: {
+          fontSize: 7,
+          cellPadding: 3,
+          overflow: 'linebreak',
+          valign: 'middle',
+          lineWidth: 0.3,
+          lineColor: [220, 220, 220],
+        },
         headStyles: {
           fillColor: [11, 31, 92],
           textColor: [212, 175, 55],
           fontSize: 7,
           fontStyle: 'bold',
+          halign: 'center',
         },
+        bodyStyles: { textColor: [33, 33, 33] },
         alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles,
         margin: { top: 64, left: 24, right: 24, bottom: 30 },
+        tableWidth: 'auto',
         didDrawPage: (data) => {
           // Rodapé
           const page = doc.internal.getCurrentPageInfo().pageNumber;
@@ -614,6 +652,16 @@ class RelatorioPage {
       const agora = new Date().toISOString().slice(0, 10);
       let headers, rows, sheetName, fileName, colWidths;
 
+      // Converte "1.234,56" (BR) → 1234.56 (Number). Mantém 0 se vazio.
+      // Valor como Number permite Excel/Sheets reconhecer e somar/formatar
+      // como moeda. Se ficar como string "R$ 1.234,56", o Sheets mobile
+      // pode renderizar fora da coluna ou cortar.
+      const toNumber = (brl) => {
+        if (!brl) return 0;
+        const n = parseFloat(String(brl).replace(/\./g, '').replace(',', '.'));
+        return Number.isFinite(n) ? n : 0;
+      };
+
       if (isSaidas) {
         headers = [
           'Data',
@@ -621,7 +669,7 @@ class RelatorioPage {
           'Categoria',
           'Fornecedor',
           'Forma de Pagamento',
-          'Valor',
+          'Valor (R$)',
           'Observação',
         ];
         rows = this.filteredData.map((item) => [
@@ -630,12 +678,13 @@ class RelatorioPage {
           item.categoria || '',
           item.fornecedor || '',
           item.formaPagamento || '',
-          `R$ ${item.valor || '0,00'}`,
+          toNumber(item.valor),
           item.observacao || '',
         ]);
         sheetName = 'Saídas';
         fileName = `IETEB_Saidas_${agora}.xlsx`;
-        colWidths = [8, 6, 24, 28, 12, 10, 24];
+        // Larguras generosas: previne corte/overflow em Sheets mobile.
+        colWidths = [12, 8, 22, 32, 18, 14, 40];
       } else {
         headers = [
           'Data',
@@ -647,7 +696,7 @@ class RelatorioPage {
           'Depositante',
           'Banco Depositante',
           'Banco Recebedor',
-          'Valor',
+          'Valor (R$)',
           'Observação',
         ];
         rows = this.filteredData.map((item) => [
@@ -660,18 +709,28 @@ class RelatorioPage {
           item.nomeDepositante || '',
           item.bancoDepositante || '',
           item.bancoRecebedor || '',
-          `R$ ${item.valor || '0,00'}`,
+          toNumber(item.valor),
           item.observacao || '',
         ]);
         sheetName = 'Lançamentos';
         fileName = `IETEB_Lancamentos_${agora}.xlsx`;
-        colWidths = [8, 6, 22, 20, 28, 12, 20, 16, 16, 10, 20];
+        colWidths = [12, 8, 28, 26, 36, 18, 24, 22, 22, 14, 32];
       }
 
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
       ws['!cols'] = colWidths.map((w) => ({ wch: w }));
+      // Formata coluna Valor como moeda BRL (índice varia por tipo)
+      const valorColIdx = isSaidas ? 5 : 9;
+      const totalRows = rows.length;
+      for (let r = 1; r <= totalRows; r++) {
+        const cellRef = XLSX.utils.encode_cell({ c: valorColIdx, r });
+        if (ws[cellRef]) {
+          ws[cellRef].t = 'n';
+          ws[cellRef].z = 'R$ #,##0.00';
+        }
+      }
       XLSX.writeFile(wb, fileName);
       if (window.showProcessSuccess) {
         window.showProcessSuccess('Excel exportado!', 'O download foi iniciado.');

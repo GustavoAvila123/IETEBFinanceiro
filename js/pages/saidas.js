@@ -53,8 +53,34 @@ class SaidaPage {
       ['saidaData', 'input', 'saidaDataError'],
     ].forEach(([inputId, evt, errId]) => {
       const el = document.getElementById(inputId);
-      if (el) el.addEventListener(evt, () => clearFieldError(errId));
+      if (el) {
+        el.addEventListener(evt, () => {
+          clearFieldError(errId);
+          this._updateSubmitState();
+        });
+      }
     });
+    this._updateSubmitState();
+  }
+
+  _isFormReady() {
+    const v = (id) => {
+      const el = document.getElementById(id);
+      return el ? (el.value || '').trim() : '';
+    };
+    return !!(
+      v('saidaCategoria') &&
+      v('saidaFornecedor') &&
+      v('saidaFormaPagamento') &&
+      v('saidaValor') &&
+      v('saidaData')
+    );
+  }
+
+  _updateSubmitState() {
+    const btn = document.getElementById('btnSalvarSaida');
+    if (!btn) return;
+    btn.classList.toggle('btn-primary--ready', this._isFormReady());
   }
 
   // ── Pagamento ─────────────────────────────────────────────────────────────────
@@ -73,6 +99,7 @@ class SaidaPage {
     btn.classList.add('payment-btn--active');
     document.getElementById('saidaFormaPagamento').value = btn.dataset.value;
     document.getElementById('saidaPagamentoError').textContent = '';
+    this._updateSubmitState();
   }
 
   // ── Upload ────────────────────────────────────────────────────────────────────

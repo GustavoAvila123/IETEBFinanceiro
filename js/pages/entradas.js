@@ -57,6 +57,7 @@ class EntradaPage {
   }
   selectChurch(value) {
     this.igreja.select(value);
+    this._updateSubmitState();
   }
 
   // ── Pagamento ─────────────────────────────────────────────────────────────────
@@ -76,6 +77,7 @@ class EntradaPage {
     document.getElementById('formaPagamento').value = btn.dataset.value;
     document.getElementById('pagamentoError').textContent = '';
     this.ajustarFormPorPagamento(btn.dataset.value);
+    this._updateSubmitState();
   }
 
   _setLabelText(id, texto) {
@@ -117,7 +119,7 @@ class EntradaPage {
       this._setLabelText('labelNomeDepositante', 'Nome da Loja ');
       this._setLabelText('labelNomeRecebedor', 'Maquininha ');
       this._setLabelText('labelDataDeposito', 'Data da Transação ');
-      if (labelHora) labelHora.textContent = 'Hora da Transação';
+      if (labelHora) labelHora.textContent = 'Horário do Recebimento';
       if (inputNomeDepo) inputNomeDepo.placeholder = 'Nome do estabelecimento';
       if (inputNomeRec) inputNomeRec.placeholder = 'Ex: Laranjinha, Stone, Cielo...';
     } else {
@@ -127,7 +129,7 @@ class EntradaPage {
         'labelDataDeposito',
         isDinheiro ? 'Data do Pagamento ' : 'Data do Depósito '
       );
-      if (labelHora) labelHora.textContent = 'Hora do Depósito';
+      if (labelHora) labelHora.textContent = 'Horário do Recebimento';
       if (inputNomeDepo) inputNomeDepo.placeholder = 'Quem realizou o pagamento';
       if (inputNomeRec) inputNomeRec.placeholder = 'Quem recebeu o valor';
     }
@@ -244,8 +246,44 @@ class EntradaPage {
       ['dataDeposito', 'input', 'dataError'],
     ].forEach(([inputId, evt, errId]) => {
       const el = document.getElementById(inputId);
-      if (el) el.addEventListener(evt, () => clearFieldError(errId));
+      if (el) {
+        el.addEventListener(evt, () => {
+          clearFieldError(errId);
+          this._updateSubmitState();
+        });
+      }
     });
+    // Estado inicial do botão Salvar
+    this._updateSubmitState();
+  }
+
+  /**
+   * Versão silenciosa do validate() — retorna true se TODOS os campos
+   * obrigatórios estão preenchidos. Não mexe em mensagens de erro.
+   * Usado pra atualizar visualmente o botão Salvar (pulsa quando pronto).
+   */
+  _isFormReady() {
+    const fp = document.getElementById('formaPagamento').value;
+    if (!fp) return false;
+    const isDinheiro = fp === 'Dinheiro';
+    const isCredito = fp === 'Crédito';
+    const isDebito = fp === 'Débito';
+    const v = (id) => (document.getElementById(id) || {}).value || '';
+    if (!v('curso')) return false;
+    if (!v('igreja')) return false;
+    if (!isDinheiro && !v('nomeDepositante').trim()) return false;
+    if (!v('nomeRecebedor').trim()) return false;
+    if (!isDinheiro && !isCredito && !isDebito && !v('bancoDepositante').trim()) return false;
+    if (!isDinheiro && !isCredito && !isDebito && !v('bancoRecebedor').trim()) return false;
+    if (!v('valorEntrada').trim()) return false;
+    if (!v('dataDeposito')) return false;
+    return true;
+  }
+
+  _updateSubmitState() {
+    const btn = document.getElementById('btnSalvar');
+    if (!btn) return;
+    btn.classList.toggle('btn-primary--ready', this._isFormReady());
   }
 
   // ── Validação ─────────────────────────────────────────────────────────────────

@@ -1220,16 +1220,59 @@ html[data-theme='dark'] .theme-icon-moon {
   border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* Estado padrão (form incompleto) — gold suave/calmo, sem chamar atenção */
 .form-footer .btn-primary {
-  background: linear-gradient(135deg, var(--gold) 0%, #b8971e 100%);
-  color: #050d27;
-  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.35);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.55) 0%, rgba(184, 151, 30, 0.55) 100%);
+  color: rgba(5, 13, 39, 0.7);
+  box-shadow: 0 2px 10px rgba(212, 175, 55, 0.18);
+  transition:
+    background 0.35s ease,
+    color 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.15s ease;
 }
 
 .form-footer .btn-primary:hover {
   opacity: 1;
-  box-shadow: 0 6px 24px rgba(212, 175, 55, 0.5);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
+}
+
+/* Estado "pronto" — quando todos os campos obrigatórios estão preenchidos.
+   Gold vibrante + glow forte + pulse sutil pra convidar o clique. */
+.form-footer .btn-primary--ready {
+  background: linear-gradient(135deg, var(--gold) 0%, #b8971e 100%);
+  color: #050d27;
+  box-shadow:
+    0 4px 18px rgba(212, 175, 55, 0.45),
+    0 0 24px rgba(212, 175, 55, 0.3);
+  animation: btnReadyPulse 2.4s ease-in-out infinite;
+}
+
+.form-footer .btn-primary--ready:hover {
+  box-shadow:
+    0 6px 26px rgba(212, 175, 55, 0.6),
+    0 0 36px rgba(212, 175, 55, 0.45);
   transform: translateY(-1px);
+  animation-play-state: paused;
+}
+
+@keyframes btnReadyPulse {
+  0%, 100% {
+    box-shadow:
+      0 4px 18px rgba(212, 175, 55, 0.45),
+      0 0 24px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 4px 22px rgba(212, 175, 55, 0.6),
+      0 0 36px rgba(212, 175, 55, 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-footer .btn-primary--ready {
+    animation: none;
+  }
 }
 
 /* ─── LABEL DIM (alunos extras) ─── */

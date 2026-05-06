@@ -154,24 +154,39 @@ administrativos. Complementa o [CLAUDE.md](CLAUDE.md) (que cobre arquitetura).
 
 ## 4. Deploy e Ambiente
 
-### 4.1 Onde está hospedado
+### 4.1 Branches e ambientes
 
-- **Produção:** GitHub Pages (`gustavoavila123.github.io/IETEBFinanceiro`).
-- **Branch:** `master` (deploy automático).
-- **Backend:** Firebase (Firestore + Auth + Storage no projeto `ieteb-financeiro`).
+| Branch | Ambiente | Hospedagem | Deploy |
+|---|---|---|---|
+| `dev` | DEV | Netlify (após ativar) | manual / Netlify auto |
+| `master` | PROD | GitHub Pages | GitHub Actions automático |
 
-### 4.2 CI / Pre-commit
+- **PROD:** `gustavoavila123.github.io/IETEBFinanceiro` (master).
+- **DEV:** URL Netlify após setup. Veja [RELEASE.md](RELEASE.md).
+- **Backend:** Firebase project `ieteb-financeiro` (atualmente compartilhado).
+  Quando criar `ieteb-financeiro-dev`, preencher `_CONFIGS.dev` em
+  [js/core/firebase.js](js/core/firebase.js).
+
+### 4.2 Workflow de release (resumido)
+
+Detalhes completos em [RELEASE.md](RELEASE.md). Resumo:
+
+1. Comitar em `dev`. Nunca em `master` direto.
+2. Pedir autorização ao dono.
+3. `git checkout master && git merge --ff-only dev && git push`.
+4. GitHub Actions roda lint + Vitest + E2E. Se passar, deploya pra Pages.
+
+### 4.3 CI / Pre-commit
 
 - **Pre-commit local:** `.githooks/pre-commit`
   - Roda `npm test` (bloqueia se falhar)
   - Bumpa cache-buster nos `?v=` do `index.html`
   - Para pular em emergência: `git commit --no-verify`
-- **GitHub Actions:** `.github/workflows/test.yml`
-  - Roda em todo push pra master
-  - Roda nos PRs
-  - Falha = build vermelho no GitHub
+- **GitHub Actions:**
+  - `.github/workflows/test.yml` — lint + Vitest em todo push de `dev`/`master`. E2E em PR ou push pra master.
+  - `.github/workflows/deploy-prod.yml` — só em push pra master. Lint + Vitest + E2E + deploy GitHub Pages.
 
-### 4.3 Migrar pra Netlify/Cloudflare
+### 4.4 Migrar PROD pra Netlify/Cloudflare
 
 - `netlify.toml` já configurado com headers de segurança.
 - Veja [MIGRATION.md](MIGRATION.md) para passo-a-passo.

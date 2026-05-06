@@ -1,10 +1,12 @@
 name: Tests
 
+# Roda em push e PR pra DEV ou MASTER (PROD).
+# Bloqueia merge pra master se Vitest ou ESLint falharem.
 on:
   push:
-    branches: [master]
+    branches: [master, dev]
   pull_request:
-    branches: [master]
+    branches: [master, dev]
 
 jobs:
   test:
@@ -24,5 +26,34 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Run tests
+      - name: Lint
+        run: npm run lint
+
+      - name: Vitest unit tests
         run: npm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # E2E é mais pesado (browser, ~50s) — só roda em PR e push pra master,
+    # não em cada commit em dev (pra não custar minutos da Action toda hora).
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E
+        run: npm run test:e2e

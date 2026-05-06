@@ -1,0 +1,93 @@
+name: Deploy PROD (GitHub Pages)
+
+# Dispara EXCLUSIVAMENTE em push pra master.
+# master é a branch de PRODUÇÃO — nunca commitar direto, só receber
+# merges de dev após autorização explícita do dono do projeto.
+
+on:
+  push:
+    branches: [master]
+  # Permite re-deploy manual via UI do GitHub Actions
+  workflow_dispatch:
+
+# GitHub Pages usa o mecanismo "actions" (não branch gh-pages).
+# Permissões mínimas necessárias.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Concorrência: cancela deploy anterior se um novo for disparado
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      # Gates de qualidade — se algum falhar, o deploy NÃO acontece
+      - name: Lint
+        run: npm run lint
+
+      - name: Vitest unit tests
+        run: npm test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: npm run test:e2e
+
+      # Sem build step (app é estático). Empacota o repo direto.
+      # Excluímos node_modules, tests e arquivos de dev do artifact.
+      - name: Prepare release artifact
+        run: |
+          mkdir -p _site
+          rsync -av \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='playwright-report' \
+            --exclude='test-results' \
+            --exclude='.github' \
+            --exclude='.githooks' \
+            --exclude='.firebase' \
+            --exclude='.netlify' \
+            --exclude='.claude' \
+            --exclude='*.test.js' \
+            --exclude='*.e2e.js' \
+            --exclude='playwright.config.js' \
+            --exclude='vitest.config.js' \
+            --exclude='package*.json' \
+            --exclude='.eslintrc.json' \
+            --exclude='.prettierrc.json' \
+            --exclude='.prettierignore' \
+            ./ _site/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -5,6 +5,29 @@ teológicos), saídas (despesas), gera relatórios, dashboard e monitora
 sessões de testers. Roda no navegador, hospedado no GitHub Pages, com
 persistência no Firebase Firestore.
 
+## ⚠️ Branches — workflow obrigatório
+
+A partir de 2026-05-05 o projeto opera em DUAS branches:
+
+- **`dev`** — branch de desenvolvimento. **TODA mudança vai aqui primeiro.**
+- **`master`** — branch de produção. **Só recebe merges após autorização explícita do dono do projeto.**
+
+Detalhes completos em [RELEASE.md](RELEASE.md). Resumo do dia-a-dia:
+
+```bash
+git checkout dev               # SEMPRE começar aqui
+# ... mudanças, commits ...
+git push origin dev            # CI roda lint+test, NÃO deploya nada
+
+# Quando dono autorizar a release:
+git checkout master
+git merge --ff-only dev
+git push origin master         # dispara deploy-prod.yml automático
+```
+
+**Regra absoluta para o agente:** nunca commitar direto em `master`.
+Sempre em `dev`. Promoção só com pedido explícito do usuário.
+
 ## Stack
 
 - **Frontend**: HTML + JS vanilla (sem build), CSS único

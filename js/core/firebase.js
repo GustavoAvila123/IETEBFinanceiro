@@ -1,11 +1,68 @@
-const _fbConfig = {
-  apiKey: 'AIzaSyAH6mxJzzI1vOryKrw7DXNzODLOq2ZtFls',
-  authDomain: 'ieteb-financeiro.firebaseapp.com',
-  projectId: 'ieteb-financeiro',
-  storageBucket: 'ieteb-financeiro.firebasestorage.app',
-  messagingSenderId: '514664099454',
-  appId: '1:514664099454:web:72177a3d36afc85782b22f',
+/* ── Multi-environment config ──────────────────────────────────────────
+ * O app suporta 2 ambientes Firebase:
+ *   PROD  → projeto "ieteb-financeiro" (master, GitHub Pages)
+ *   DEV   → projeto "ieteb-financeiro-dev" (branch dev, host de testes)
+ *
+ * A escolha é por HOSTNAME no runtime — sem build step, sem env var.
+ * Hostnames de PROD listados em PROD_HOSTS abaixo. Tudo o que NÃO
+ * estiver lá (localhost, *.netlify.app de preview, etc.) usa DEV.
+ *
+ * Para ativar de fato o ambiente DEV separado:
+ *   1. Criar projeto "ieteb-financeiro-dev" no Firebase Console.
+ *   2. Copiar a config (apiKey, authDomain, projectId, etc.) e colar
+ *      em _CONFIGS.dev abaixo.
+ *   3. Aplicar firestore.rules e storage.rules nesse projeto também.
+ *   4. Adicionar o domínio de DEV em Firebase Auth → Authorized domains.
+ *
+ * Enquanto _CONFIGS.dev tiver apiKey vazia, ambos ambientes apontam
+ * pro mesmo projeto PROD (comportamento atual). */
+
+const PROD_HOSTS = [
+  'gustavoavila123.github.io',
+  'ieteb-financeiro.web.app',
+  'ieteb-financeiro.firebaseapp.com',
+  // Adicione aqui o domínio custom de PROD quando configurar
+];
+
+const _CONFIGS = {
+  prod: {
+    apiKey: 'AIzaSyAH6mxJzzI1vOryKrw7DXNzODLOq2ZtFls',
+    authDomain: 'ieteb-financeiro.firebaseapp.com',
+    projectId: 'ieteb-financeiro',
+    storageBucket: 'ieteb-financeiro.firebasestorage.app',
+    messagingSenderId: '514664099454',
+    appId: '1:514664099454:web:72177a3d36afc85782b22f',
+  },
+  // PLACEHOLDER — substituir pelas credenciais do projeto Firebase de DEV
+  // quando ele for criado. Enquanto apiKey for falsy, fallback pra PROD.
+  dev: {
+    apiKey: '',
+    authDomain: '',
+    projectId: '',
+    storageBucket: '',
+    messagingSenderId: '',
+    appId: '',
+  },
 };
+
+function _resolveFirebaseConfig() {
+  const host = (typeof location !== 'undefined' && location.hostname) || '';
+  const isProd = PROD_HOSTS.some((h) => host === h || host.endsWith('.' + h));
+  // Se DEV não foi configurado ainda, usa PROD em todos os ambientes
+  // pra app continuar funcionando. Console alerta admin.
+  if (!isProd && !_CONFIGS.dev.apiKey) {
+    console.warn(
+      '[firebase] Hostname "' +
+        host +
+        '" não está em PROD_HOSTS, mas DEV config está vazio — usando credenciais PROD. ' +
+        'Configure _CONFIGS.dev em js/core/firebase.js para isolar dados.'
+    );
+    return _CONFIGS.prod;
+  }
+  return isProd ? _CONFIGS.prod : _CONFIGS.dev;
+}
+
+const _fbConfig = _resolveFirebaseConfig();
 
 class FirebaseManager {
   constructor() {

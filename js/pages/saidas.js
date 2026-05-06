@@ -359,6 +359,8 @@ class SaidaPage {
   }
 
   limparSaida() {
+    // Reseta valores E dispara `change` pra que componentes que escutam
+    // (PickList, validation listeners, _updateSubmitState) sincronizem.
     [
       'saidaCategoria',
       'saidaFornecedor',
@@ -369,7 +371,10 @@ class SaidaPage {
       'saidaObservacao',
     ].forEach((id) => {
       const el = document.getElementById(id);
-      if (el) el.value = '';
+      if (!el) return;
+      el.value = '';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
     });
     document
       .querySelectorAll('#paymentTypesSaida .payment-btn')
@@ -386,5 +391,6 @@ class SaidaPage {
       if (el) el.textContent = '';
     });
     this.removeFile();
+    this._updateSubmitState();
   }
 }

@@ -17,7 +17,16 @@ function truncate(str, max) {
 
 function setInput(id, val) {
   const el = document.getElementById(id);
-  if (el) el.value = val;
+  if (!el) return;
+  el.value = val;
+  // Dispara `input` E `change` pra que TODOS os listeners (PickList,
+  // validation, _updateSubmitState, autocomplete custom etc.) sincronizem.
+  // Sem isso, value programático é silencioso e a UI fica dessincronizada
+  // após OCR, restauração de draft, ou limpar formulário.
+  try {
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  } catch (_) {}
 }
 
 function loadScript(src) {

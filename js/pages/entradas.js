@@ -434,6 +434,10 @@ class EntradaPage {
   }
 
   limparFormulario() {
+    // Reseta valores E dispara `change` pra que componentes que escutam
+    // (PickList, validation listeners, _updateSubmitState) sincronizem.
+    // Sem o dispatch, value programático é silencioso e o trigger do
+    // PickList continua mostrando o texto antigo após o save.
     [
       'curso',
       'nomeDepositante',
@@ -447,10 +451,17 @@ class EntradaPage {
       'formaPagamento',
     ].forEach((id) => {
       const el = document.getElementById(id);
-      if (el) el.value = '';
+      if (!el) return;
+      el.value = '';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
-    document.getElementById('igreja').value = '';
+    const igrejaEl = document.getElementById('igreja');
+    if (igrejaEl) {
+      igrejaEl.value = '';
+      igrejaEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     document.getElementById('igrejaSearch').value = '';
     document
       .querySelectorAll('.payment-btn')
@@ -476,5 +487,6 @@ class EntradaPage {
 
     this.initAlunosContainer();
     this.removeFile();
+    this._updateSubmitState();
   }
 }

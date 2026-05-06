@@ -7,6 +7,8 @@ administrativos. Complementa o [CLAUDE.md](CLAUDE.md) (que cobre arquitetura).
 
 ## 1. Acesso e contas
 
+> 📘 **Para criar/desativar/trocar usuários:** ver [CRIAR_USUARIO.md](CRIAR_USUARIO.md) — passo a passo completo com prints e templates.
+>
 > **Princípio de segurança:** senhas vivem APENAS no Firebase Auth
 > (server-side, criptografadas). Não existem senhas no código nem no
 > `config.js`. Toda criação/troca/desativação é feita pelo Firebase

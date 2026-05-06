@@ -51,8 +51,11 @@ service cloud.firestore {
       allow delete: if isAdmin() || ownsLegacyId(resource.data.userId);
     }
 
-    // ── /Saídas/{docId} ───────────────────────────────────────────────
-    match /Saídas/{docId} {
+    // ── /Saidas/{docId} ───────────────────────────────────────────────
+    // Sem acento no path: o parser de rules do Firebase rejeita
+    // caracteres não-ASCII em hardcoded paths (Saídas → erro de
+    // compilação). UI continua exibindo "Saídas" com acento.
+    match /Saidas/{docId} {
       allow read:   if isAdmin() || ownsLegacyId(resource.data.userId);
       allow create: if isAuthed()
                     && (isAdmin() || request.resource.data.userId == userProfile().legacyId);

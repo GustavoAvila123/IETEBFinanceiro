@@ -42,7 +42,7 @@ class BackupPage {
     this._setStatus('Lendo coleções do Firestore...', 'info');
 
     try {
-      const cols = ['Entradas', 'Saídas', 'Users', 'Sessoes', 'Auditoria'];
+      const cols = ['Entradas', 'Saidas', 'Users', 'Sessoes', 'Auditoria'];
       const data = {};
       const totals = {};
 

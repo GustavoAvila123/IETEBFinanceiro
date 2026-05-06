@@ -531,8 +531,8 @@ class FirebaseManager {
       firstEntDone = true;
       checkFirst();
     });
-    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', (_ok, docs) => {
-      this._uploadMissing('Saídas', docs);
+    this._unsubSai = this._subscribe('Saidas', 'ieteb_saidas', (_ok, docs) => {
+      this._uploadMissing('Saidas', docs);
       firstSaiDone = true;
       checkFirst();
     });
@@ -664,7 +664,7 @@ class FirebaseManager {
       this._unsubSai = null;
     }
     this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', () => {});
-    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', () => {});
+    this._unsubSai = this._subscribe('Saidas', 'ieteb_saidas', () => {});
   }
 
   // Reconecta os listeners para buscar dados frescos do servidor.
@@ -697,8 +697,8 @@ class FirebaseManager {
       entDone = true;
       check();
     });
-    this._unsubSai = this._subscribe('Saídas', 'ieteb_saidas', (_ok, docs) => {
-      this._uploadMissing('Saídas', docs);
+    this._unsubSai = this._subscribe('Saidas', 'ieteb_saidas', (_ok, docs) => {
+      this._uploadMissing('Saidas', docs);
       saiDone = true;
       check();
     });

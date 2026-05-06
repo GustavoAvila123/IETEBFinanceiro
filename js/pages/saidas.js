@@ -302,7 +302,7 @@ class SaidaPage {
           localStorage.setItem('ieteb_saidas', JSON.stringify(existing.slice(0, 100)));
         } catch (__) {}
       }
-      this.firebase.save('Saídas', registro);
+      this.firebase.save('Saidas', registro);
 
       this._showSnackbar();
       if (window.formPersist) window.formPersist.clear('saida');

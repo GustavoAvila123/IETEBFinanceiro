@@ -694,7 +694,7 @@ class RelatorioPage {
 
   confirmarExclusao() {
     if (this.deleteTarget === null) return;
-    const colName = this.tipo === 'saidas' ? 'Saídas' : 'Entradas';
+    const colName = this.tipo === 'saidas' ? 'Saidas' : 'Entradas';
     const storageKey = this.tipo === 'saidas' ? 'ieteb_saidas' : 'ieteb_lancamentos';
     const todos = JSON.parse(localStorage.getItem(storageKey) || '[]');
     const novos = todos.filter((l) => l.id !== this.deleteTarget);

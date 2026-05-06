@@ -84,6 +84,57 @@ novo e publica em `gustavoavila123.github.io/IETEBFinanceiro`.
 
 ---
 
+## ⚠️ Migração obrigatória ANTES da próxima promoção dev → master
+
+A coleção `Saídas` (com acento) foi renomeada para `Saidas` (sem
+acento) em 2026-05-06 para resolver erro de parser do Firebase
+Rules. PROD ainda tem dados na coleção `Saídas` que precisam ser
+movidos antes de promover.
+
+### Passo 1 — Migrar dados em PROD
+
+1. Logue como **Admin** em https://gustavoavila123.github.io/IETEBFinanceiro
+2. Abra DevTools (F12) → aba Console
+3. Cole e execute:
+
+```js
+(async () => {
+  const db = firebase.firestore();
+  const old = await db.collection('Saídas').get();
+  if (old.empty) { console.log('Nenhum doc em Saídas — nada a migrar'); return; }
+  const batch = db.batch();
+  old.docs.forEach((d) => batch.set(db.collection('Saidas').doc(d.id), d.data()));
+  await batch.commit();
+  console.log(`✅ Migrados ${old.size} docs de Saídas → Saidas`);
+})();
+```
+
+4. Verifique no Firebase Console (Firestore) que a coleção `Saidas`
+   apareceu com os mesmos docs.
+5. **NÃO apague `Saídas` ainda** — guarde como backup até confirmar
+   que tudo funciona pós-deploy. Pode apagar manualmente no Console
+   uma semana depois.
+
+### Passo 2 — Promover dev → master normalmente
+
+```bash
+git checkout master
+git merge --ff-only dev
+git push origin master
+```
+
+GitHub Action faz deploy. Em ~3 min, PROD usa o código novo lendo
+de `Saidas`.
+
+### Passo 3 — Validar
+
+- Abrir o app em PROD, logar como tester comum.
+- Conferir que histórico de saídas está intacto.
+- Cadastrar uma nova saída — deve aparecer na coleção `Saidas` no
+  Firebase Console.
+
+---
+
 ## Rollback (emergência em PROD)
 
 Se um deploy quebrou produção:

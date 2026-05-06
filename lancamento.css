@@ -3801,49 +3801,49 @@ body.modal-open {
 .ls-orb--1 {
   width: 620px;
   height: 620px;
-  background: radial-gradient(circle, #1a3a8f 0%, transparent 70%);
+  background: radial-gradient(circle, #2a5fd9 0%, transparent 70%);
   top: -180px;
   left: -180px;
-  opacity: 0.55;
+  opacity: 0.75;
   animation-duration: 24s;
 }
 .ls-orb--2 {
   width: 480px;
   height: 480px;
-  background: radial-gradient(circle, rgba(200, 169, 34, 0.45) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(232, 195, 58, 0.7) 0%, transparent 70%);
   bottom: -140px;
   right: -120px;
-  opacity: 0.55;
+  opacity: 0.7;
   animation-duration: 18s;
   animation-delay: -6s;
 }
 .ls-orb--3 {
   width: 380px;
   height: 380px;
-  background: radial-gradient(circle, #0b1f5c 0%, transparent 70%);
+  background: radial-gradient(circle, #1a3a8f 0%, transparent 70%);
   top: 38%;
   left: 48%;
-  opacity: 0.65;
+  opacity: 0.8;
   animation-duration: 26s;
   animation-delay: -12s;
 }
 .ls-orb--4 {
   width: 340px;
   height: 340px;
-  background: radial-gradient(circle, rgba(74, 39, 130, 0.42) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(120, 60, 200, 0.6) 0%, transparent 70%);
   top: 58%;
   left: 4%;
-  opacity: 0.5;
+  opacity: 0.65;
   animation-duration: 20s;
   animation-delay: -3s;
 }
 .ls-orb--5 {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(30, 107, 138, 0.38) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(50, 160, 200, 0.55) 0%, transparent 70%);
   top: 6%;
   right: 18%;
-  opacity: 0.45;
+  opacity: 0.6;
   animation-duration: 28s;
   animation-delay: -10s;
 }
@@ -3879,7 +3879,7 @@ body.modal-open {
   inset: -15%;
   background: radial-gradient(
     circle 700px at 50% 50%,
-    rgba(212, 175, 55, 0.08),
+    rgba(244, 211, 106, 0.16),
     transparent 65%
   );
   mix-blend-mode: screen;
@@ -3909,9 +3909,13 @@ body.modal-open {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: #f4d36a;
+  background: #fff3b8;
   border-radius: 50%;
-  box-shadow: 0 0 6px 1px rgba(212, 175, 55, 0.55);
+  /* Multi-layer glow: halo amplo + brilho próximo + ponto luminoso */
+  box-shadow:
+    0 0 4px 1px rgba(255, 235, 160, 0.95),
+    0 0 12px 2px rgba(244, 211, 106, 0.75),
+    0 0 24px 4px rgba(212, 175, 55, 0.4);
   opacity: 0;
   animation: lsTwinkle 5s ease-in-out infinite;
   will-change: opacity, transform;
@@ -3948,11 +3952,11 @@ body.modal-open {
 @keyframes lsTwinkle {
   0%, 100% {
     opacity: 0;
-    transform: scale(0.5);
+    transform: scale(0.4);
   }
   50% {
-    opacity: 0.9;
-    transform: scale(1);
+    opacity: 1;
+    transform: scale(1.15);
   }
 }
 

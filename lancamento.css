@@ -3761,14 +3761,39 @@ body.modal-open {
 .ls {
   position: fixed;
   inset: 0;
+  /* dvh: dynamic viewport height — em mobile encolhe quando o teclado
+     abre (em vez de manter o tamanho "completo" e jogar o card pra fora
+     da tela). Fallback pra 100vh em browsers sem suporte a dvh. */
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--navy-deep);
+  /* Trava o scroll do próprio container e impede pull-to-refresh /
+     bounce do iOS de "vazar" pro body por trás. */
+  overflow: hidden;
+  overscroll-behavior: contain;
   transition:
     opacity 0.5s ease,
     transform 0.5s ease;
+}
+
+/* Trava scroll do body enquanto a tela de login está montada.
+   Resolve o bug iOS em que abrir o teclado faz a layout viewport
+   encolher e o body "vaza" por trás do .ls (que perde o anchor de
+   position:fixed). Selector :has() funciona em iOS 15.4+, Chrome 105+
+   e Firefox 121+ — cobertura suficiente pro nosso público. */
+html:has(#loginScreen),
+body:has(#loginScreen) {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+  /* Trava também a barra de rolagem horizontal eventual. */
+  width: 100%;
+  overscroll-behavior: none;
 }
 
 .ls--exit {
@@ -4354,6 +4379,63 @@ body.modal-open {
   }
   .ls-title {
     font-size: 1.65rem;
+  }
+}
+
+/* Altura reduzida (mobile em portrait com teclado aberto, ou paisagem) —
+   encolhe os elementos do card pra caber sem scroll. */
+@media (max-height: 720px) {
+  .ls-card {
+    padding: 24px 24px 20px;
+  }
+  .ls-logo-ring {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 14px;
+  }
+  .ls-header {
+    margin-bottom: 18px;
+  }
+  .ls-title {
+    font-size: 1.4rem;
+  }
+  .ls-subtitle {
+    font-size: 0.82rem;
+  }
+  .ls-form {
+    gap: 14px;
+  }
+  .ls-input {
+    padding: 12px 14px 12px 42px;
+  }
+  .ls-footer {
+    margin-top: 18px;
+    font-size: 0.7rem;
+  }
+}
+
+/* Altura muito reduzida (paisagem mobile, teclado aberto em telas pequenas).
+   Esconde elementos não-essenciais e compacta tudo ao máximo. */
+@media (max-height: 560px) {
+  .ls-logo-ring {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 8px;
+  }
+  .ls-header {
+    margin-bottom: 12px;
+  }
+  .ls-title {
+    font-size: 1.2rem;
+  }
+  .ls-subtitle {
+    display: none;
+  }
+  .ls-card {
+    padding: 18px 22px 16px;
+  }
+  .ls-footer {
+    display: none;
   }
 }
 

@@ -87,6 +87,10 @@ class NavigationManager {
     const h = now.getHours();
     const gr = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
     const user = getCurrentUser();
+    // Topbar (mobile/tablet) sincronizada com a página atual.
+    // Sem isso, fica "Lançamentos" (default do HTML) mesmo na Home.
+    const topbarTitle = document.getElementById('topbarTitle');
+    if (topbarTitle) topbarTitle.textContent = 'Home';
     document.getElementById('homeGreeting').textContent = `${gr}, ${user.name}!`;
     document.getElementById('homeDate').textContent = now.toLocaleDateString('pt-BR', {
       weekday: 'long',

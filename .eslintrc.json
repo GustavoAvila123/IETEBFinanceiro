@@ -15,7 +15,6 @@
     "pdfjsLib": "readonly",
     "XLSX": "readonly",
     "Chart": "readonly",
-    "USERS": "readonly",
     "CHURCHES": "readonly",
     "MESES": "readonly",
     "DASH_COLORS": "readonly",

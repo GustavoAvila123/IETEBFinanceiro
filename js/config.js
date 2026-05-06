@@ -1,10 +1,7 @@
-const USERS = [
-  { id: 'admin', name: 'Jader Dias', pass: '863891', role: 'admin' },
-  { id: 'Tester1', name: 'Maurício Junior', pass: 'Tester1@', role: 'tester' },
-  { id: 'Tester2', name: 'Isaac Junior', pass: 'Tester2@', role: 'tester' },
-  { id: 'Tester3', name: 'Tiago Junior', pass: 'Tester3@', role: 'tester' },
-  { id: 'Tester4', name: 'Diogo Junior', pass: 'Tester4@', role: 'tester' },
-];
+// Usuários, senhas e perfis (legacyId, name, role) vivem APENAS no
+// Firebase: Auth (credenciais criptografadas) + Firestore /Users/{uid}
+// (perfil). Para criar/desativar/trocar senha, use o Firebase Console.
+// Ver RUNBOOK.md → "Adicionar / remover um usuário".
 
 const CHURCHES = [
   'Sem Igreja',

@@ -7,35 +7,49 @@ administrativos. Complementa o [CLAUDE.md](CLAUDE.md) (que cobre arquitetura).
 
 ## 1. Acesso e contas
 
-### 1.1 Adicionar um novo tester
+> **Princípio de segurança:** senhas vivem APENAS no Firebase Auth
+> (server-side, criptografadas). Não existem senhas no código nem no
+> `config.js`. Toda criação/troca/desativação é feita pelo Firebase
+> Console — nunca por commit.
 
-1. Abra [js/config.js](js/config.js).
-2. Adicione uma nova entrada no array `USERS` com o padrão:
-   ```js
-   { id: 'Tester5', name: 'Nome Completo', pass: 'senha-temp-forte', role: 'tester' },
+### 1.1 Adicionar um novo usuário (admin ou tester)
+
+1. **Firebase Console → Authentication → Users → Add user**
+   - Email: `<legacyId>@ieteb.app` (legacyId em minúsculo, sem acento;
+     ex.: `tester5@ieteb.app`, `avila@ieteb.app`)
+   - Password: senha forte (ex.: gerada por gerenciador de senhas)
+   - Clica **Add user**. Copia o **UID** mostrado na lista.
+2. **Firebase Console → Firestore Database → coleção `Users`** → adiciona
+   um novo documento com **Document ID = o UID copiado** e os campos:
    ```
-3. Commit + push (o pre-commit bumpa o cache-buster automaticamente).
-4. Avise o tester para fazer **primeiro login**: o app cria a conta no Firebase
-   Auth automaticamente (bootstrap) e popula `/Users/{uid}` no Firestore.
-5. **Logo após** o primeiro login, peça ao tester para trocar a senha:
-   - Abrir DevTools (F12) → Console
-   - `firebase.auth().currentUser.updatePassword('nova-senha-forte')`
+   legacyId : string  → "tester5"      (mesmo legacyId usado no email)
+   name     : string  → "Nome Completo"
+   role     : string  → "tester"       (ou "admin")
+   active   : boolean → true
+   ```
+3. Comunica ao usuário: ele faz login com `<legacyId>` (ex.: "Tester5")
+   e a senha que você definiu. Ele pode trocar a senha depois pelo
+   DevTools (F12 → Console → `firebase.auth().currentUser.updatePassword('nova-senha')`)
+   ou pedir um reset (1.2).
 
-### 1.2 Rotacionar a senha do admin
+### 1.2 Trocar a senha de um usuário
 
-- **Caminho automático (preferido):** alterar `pass` em `js/config.js`. Na próxima
-  tentativa de login com a senha nova, o `signIn()` em [js/core/firebase.js](js/core/firebase.js)
-  detecta divergência, loga internamente com a senha legada (lista
-  `_LEGACY_PASSES`) e faz `updatePassword` automático para a nova.
-- **Caminho manual (Firebase Console):**
-  1. Console Firebase → Authentication → Users
-  2. Localizar `admin@ieteb.app` (ou o e-mail do tester)
-  3. Menu "⋮" → **Redefinir senha** (envia e-mail) ou **Editar usuário**
+- **Pelo próprio usuário (recomendado, sem privilégio admin):**
+  - Logado no app, abre DevTools → Console:
+    ```js
+    firebase.auth().currentUser.updatePassword('nova-senha-forte');
+    ```
+- **Pelo admin (sem mexer no código):**
+  - Não dá pra setar senha específica direto pelo Firebase Console
+    (apenas mandar email reset, que requer email funcional).
+  - Caminho prático: **deletar a conta no Auth** (1.4 passos 1-2)
+    **e recriar** com a senha nova (1.1). O UID muda, então o doc
+    `/Users/{uid}` antigo precisa ser apagado e recriado com o novo UID.
 
-### 1.3 Resetar dados de um usuário
+### 1.3 Resetar dados de um usuário (sem deletar a conta)
 
 1. Console Firebase → Firestore Database
-2. Filtrar `Entradas` (e `Saídas`) onde `userId == "TesterX"`
+2. Filtrar `Entradas` (e `Saidas`, sem acento) onde `userId == "TesterX"`
 3. Deletar manualmente OU via script:
    ```js
    // No console do navegador, logado como admin:
@@ -50,7 +64,14 @@ administrativos. Complementa o [CLAUDE.md](CLAUDE.md) (que cobre arquitetura).
 
 1. Console Firebase → Authentication → Users → deletar `testerX@ieteb.app`
 2. Firestore → `/Users/{uid}` do tester → deletar
-3. Remover entrada do `USERS` em `js/config.js`
+3. (Opcional) Limpar dados criados por esse legacyId (ver 1.3)
+
+### 1.5 Desativar temporariamente (sem apagar)
+
+1. Firestore → `/Users/{uid}` → setar `active: false`
+2. Quando reativar: voltar `active: true`. (Hoje as rules ainda não
+   bloqueiam por `active`; quando habilitar, as rules vão filtrar
+   automaticamente.)
 
 ---
 

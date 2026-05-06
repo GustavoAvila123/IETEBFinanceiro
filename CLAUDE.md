@@ -75,7 +75,7 @@ git commit --no-verify -m "..."
 
 ```
 js/
-  config.js              # USERS, CHURCHES, MESES, DASH_COLORS
+  config.js              # CHURCHES, MESES, DASH_COLORS (sem segredos)
   main.js                # wiring: instancia tudo + window.* globals
   utils/
     helpers.js           # escHtml, getCurrentUser, getEntradas/Saidas
@@ -127,6 +127,12 @@ Antes a auth era 100% client-side (tudo em `sessionStorage`). Era bypassável.
 Hoje cada user tem conta no Firebase Auth com email derivado do legacyId
 (ex.: `tester1@ieteb.app`). As rules do Firestore validam `request.auth.uid`
 contra o doc `/Users/{uid}.role` para distinguir admin/tester.
+
+**Senhas vivem APENAS no Firebase Auth** (server-side, criptografadas).
+Não há lista de usuários nem senhas no código. Criar/desativar/trocar
+senha de usuário é feito direto no Firebase Console (Authentication tab)
++ Firestore Console (`/Users/{uid}` doc com legacyId/name/role).
+Ver RUNBOOK.md → "Adicionar / remover um usuário".
 
 ### Por que cache-buster (`?v=YYYYMMDDx`)?
 

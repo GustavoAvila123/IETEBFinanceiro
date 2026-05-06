@@ -131,23 +131,15 @@ class FirebaseManager {
     return this._auth.onAuthStateChanged(cb);
   }
 
-  // Senhas legadas que devem migrar para a senha atual do USERS quando o
-  // usuário tentar logar com a nova. Mantém aqui o histórico de senhas
-  // já trocadas no config.js — assim a próxima tentativa loga com a
-  // antiga internamente, faz updatePassword pra nova e o usuário entra.
-  // Após todos os admins terem rotacionado, a entrada pode ser removida.
-  static get _LEGACY_PASSES() {
-    return {
-      admin: ['IETEB@2030'],
-    };
-  }
-
-  // Tenta sign-in. Garante sessão limpa antes (deslogando qualquer sessão
-  // ativa). Se a conta não existir, cria via bootstrap. Se a conta existir
-  // mas a senha digitada (= seed atual) for rejeitada, tenta as senhas
-  // legadas e ROTACIONA pra atual ao primeiro sucesso — assim trocar a
-  // senha em config.js basta pra todos os clientes migrarem sem nenhum
-  // passo manual.
+  // Sign-in com Firebase Auth puro. Sem bootstrap, sem rotação automática,
+  // sem dependência de senhas no client. A criação de usuários (Auth +
+  // doc /Users/{uid}) é feita pelo admin direto no Firebase Console — ver
+  // RUNBOOK.md "Adicionar / remover um usuário".
+  //
+  // O legacyId digitado é convertido em email (<id>@ieteb.app) e usado
+  // como credencial no Auth. Após o sign-in, o perfil (legacyId, name,
+  // role) é carregado de /Users/{uid}; se não existir, throw — admin
+  // esqueceu de criar o doc.
   async signIn(legacyId, password) {
     if (!this._auth) throw new Error('auth-indisponivel');
 
@@ -158,57 +150,16 @@ class FirebaseManager {
     } catch (_) {}
 
     const email = this._legacyToEmail(legacyId);
-    const seed = (typeof USERS !== 'undefined' ? USERS : []).find(
-      (u) => u.id.toLowerCase() === String(legacyId).toLowerCase()
-    );
-    if (!seed) throw new Error('user-nao-cadastrado');
+    const cred = await this._auth.signInWithEmailAndPassword(email, password);
 
-    let cred;
-    try {
-      cred = await this._auth.signInWithEmailAndPassword(email, password);
-    } catch (e) {
-      const code = e && e.code;
-      const looksLikeNoAccount =
-        code === 'auth/user-not-found' ||
-        code === 'auth/invalid-credential' ||
-        code === 'auth/invalid-login-credentials';
-      if (!looksLikeNoAccount) throw e;
-
-      // Senha digitada precisa bater com a seed atual pra qualquer
-      // bootstrap/rotação rolar — sem isso, é só senha errada mesmo.
-      if (!seed.pass || seed.pass !== password) throw e;
-
-      // Caminho 1: conta ainda não existe → bootstrap normal.
+    const profile = await this.loadProfileFor(cred.user);
+    if (!profile) {
       try {
-        cred = await this._auth.createUserWithEmailAndPassword(email, password);
-      } catch (e2) {
-        if (e2 && e2.code !== 'auth/email-already-in-use') throw e2;
-
-        // Caminho 2: conta existe com senha antiga. Tenta as senhas
-        // legadas conhecidas e rotaciona pra senha atual.
-        const legacyKey = String(seed.id).toLowerCase();
-        const legacyList = FirebaseManager._LEGACY_PASSES[legacyKey] || [];
-        let rotated = false;
-        for (const oldPass of legacyList) {
-          if (oldPass === password) continue; // pular caso a "antiga" seja igual à nova
-          try {
-            cred = await this._auth.signInWithEmailAndPassword(email, oldPass);
-            try {
-              await cred.user.updatePassword(password);
-            } catch (_) {}
-            rotated = true;
-            break;
-          } catch (_) {
-            /* tenta próxima */
-          }
-        }
-        if (!rotated) throw e;
-      }
+        await this._auth.signOut();
+      } catch (_) {}
+      throw new Error('user-nao-cadastrado');
     }
-
-    await this._upsertUserProfile(cred.user.uid, seed);
-    this._currentUser = { legacyId: seed.id, name: seed.name, role: seed.role, uid: cred.user.uid };
-    return this._currentUser;
+    return profile;
   }
 
   async signOut() {
@@ -232,23 +183,6 @@ class FirebaseManager {
       }
     } catch (_) {}
     return null;
-  }
-
-  async _upsertUserProfile(uid, seed) {
-    if (!this._db) return;
-    try {
-      await this._db.collection('Users').doc(uid).set(
-        {
-          legacyId: seed.id,
-          name: seed.name,
-          role: seed.role,
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
-    } catch (e) {
-      console.warn('upsert user profile falhou');
-    }
   }
 
   currentUser() {

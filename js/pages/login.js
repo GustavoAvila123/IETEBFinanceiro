@@ -236,6 +236,7 @@ class LoginPage {
         'ieteb_deleted_ids',
         'ieteb_saldo_abertura',
         'ieteb_user',
+        'ieteb_session_id',
       ].forEach((k) => localStorage.removeItem(k));
     } catch (_) {}
 
@@ -311,6 +312,7 @@ class LoginPage {
         'ieteb_deleted_ids',
         'ieteb_saldo_abertura',
         'ieteb_user',
+        'ieteb_session_id',
       ].forEach((k) => localStorage.removeItem(k));
     } catch (_) {}
 
@@ -475,11 +477,12 @@ class LoginPage {
       }
 
       // Gera novo sessionId (UUID) — esse é o "token" que identifica
-      // ESTA sessão. Salvamos local e no Firestore. Outros devices que
-      // estavam logados vão ver o sessionId remoto mudar e auto-deslogar.
+      // ESTA sessão. Salvamos em localStorage (persiste entre abas/reloads,
+      // só limpa em logout) e no Firestore. Outros devices que estavam
+      // logados vão ver o sessionId remoto mudar e auto-deslogar.
       const sessionId = window._firebase._generateSessionId();
       try {
-        sessionStorage.setItem('ieteb_session_id', sessionId);
+        localStorage.setItem('ieteb_session_id', sessionId);
       } catch (_) {}
 
       this._populateLocalSession(profile);

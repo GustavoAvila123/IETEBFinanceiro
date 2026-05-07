@@ -4972,22 +4972,25 @@ body:has(#loginScreen) {
 }
 
 /* Footer mais polished no tablet/iPad — divisor edge-to-edge,
-   texto maior em linha única, mais respiro vertical. */
+   texto centralizado com mais respiro vertical. Permite 2 linhas
+   pra que "Centro Educacional Teológico" apareça INTEIRO (sem
+   cortar com ellipsis). */
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar-footer {
     padding: 12px 14px 18px;
   }
   .sidebar-footer-text {
-    font-size: 0.62rem;
-    color: rgba(255, 255, 255, 0.28);
-    letter-spacing: 0.08em;
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.32);
+    letter-spacing: 0.06em;
+    line-height: 1.45;
     margin-top: 10px;
-    padding: 8px 0 4px;
+    padding: 10px 4px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-    /* Esconde a quebra forçando a 1 linha (ellipsis se overflow) */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    text-align: center;
+    /* Sem nowrap/ellipsis — texto inteiro, quebra natural se precisar */
+    white-space: normal;
+    overflow: visible;
   }
 }
 

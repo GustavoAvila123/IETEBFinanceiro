@@ -461,49 +461,66 @@ document.addEventListener('DOMContentLoaded', async () => {
   nav.initAdminUI();
 
   // ── SINGLE-DEVICE SESSION: monitora se outro device fez login ──
-  // O sessionId desta sessão fica em sessionStorage. Se o /Sessoes/{legacyId}
-  // remoto trocar pra um sessionId diferente do nosso → fomos despejados
-  // (outro device entrou). Mostra modal "sessão encerrada" + força logout.
+  // O sessionId desta sessão vive em localStorage (persistente entre
+  // abas/reloads, só limpa em logout). Combinamos com o sessionId
+  // remoto em /Sessoes/{legacyId} pra detectar:
+  //   - Caso 1: localSid presente E remoteSid presente E iguais → tudo OK
+  //   - Caso 2: localSid presente E remoteSid presente MAS diferentes →
+  //             fomos evictados enquanto offline → modal + signOut
+  //   - Caso 3: localSid AUSENTE E remoteSid presente → "este device
+  //             nunca claimou a sessão atual" — provavelmente outro
+  //             device tomou conta enquanto este estava offline.
+  //             Trata como eviction (força re-login) pra evitar
+  //             cross-pollution de sessionId.
+  //   - Caso 4: localSid AUSENTE E remoteSid AUSENTE → migração de
+  //             sessão legacy → claima gerando novo sessionId.
+  //   - Caso 5: localSid presente E remoteSid AUSENTE (sessão limpa
+  //             remotamente) → re-grava o nosso (próxima saveSession
+  //             vai colocar de volta).
   try {
     const cu = getCurrentUser();
     let localSessionId = null;
     try {
-      localSessionId = sessionStorage.getItem('ieteb_session_id');
+      localSessionId = localStorage.getItem('ieteb_session_id');
     } catch (_) {}
 
-    // Primeiro boot após login: o sessionId já está em sessionStorage.
-    // Reload em sessão restaurada (auth persistido no Firebase Auth):
-    // o sessionStorage pode estar vazio. 3 casos a tratar:
-    //  a) Firestore tem sessionId → adota como nosso (sessão pré-existente)
-    //  b) Firestore NÃO tem sessionId (sessão legacy criada antes do
-    //     single-device feature) → "claima" gerando um novo e gravando.
-    //     Sem isso, o evictor não inicia e o outro device nunca seria
-    //     desconectado quando alguém logar em outro lugar.
-    //  c) Erro de leitura → pula o evictor (degrada graciosamente).
-    if (cu && cu.id && !localSessionId && firebase._db) {
+    let remoteSessionId = null;
+    if (cu && cu.id && firebase._db) {
       try {
         const snap = await firebase._db.collection('Sessoes').doc(cu.id).get();
-        if (snap.exists && snap.data().sessionId) {
-          // (a)
-          localSessionId = snap.data().sessionId;
-          sessionStorage.setItem('ieteb_session_id', localSessionId);
-        } else {
-          // (b) sessão legacy — claima escrevendo um novo sessionId.
-          localSessionId = firebase._generateSessionId();
-          sessionStorage.setItem('ieteb_session_id', localSessionId);
-          try {
-            await firebase.saveSession(
-              { id: cu.id, name: cu.name, role: cu.role },
-              localSessionId
-            );
-          } catch (_) {}
-        }
+        if (snap.exists) remoteSessionId = snap.data().sessionId || null;
       } catch (_) {}
     }
 
-    if (cu && cu.id && localSessionId) {
+    let bootEvicted = false;
+    if (cu && cu.id) {
+      if (!localSessionId && !remoteSessionId) {
+        // Caso 4: migração legacy — claima
+        const newSid = firebase._generateSessionId();
+        localSessionId = newSid;
+        try {
+          localStorage.setItem('ieteb_session_id', newSid);
+        } catch (_) {}
+        try {
+          await firebase.saveSession(
+            { id: cu.id, name: cu.name, role: cu.role },
+            newSid
+          );
+        } catch (_) {}
+      } else if (!localSessionId && remoteSessionId) {
+        // Caso 3: outro device tomou a sessão enquanto estávamos offline
+        bootEvicted = true;
+      } else if (localSessionId && remoteSessionId && localSessionId !== remoteSessionId) {
+        // Caso 2: evictamos enquanto offline
+        bootEvicted = true;
+      }
+      // Casos 1 e 5: tudo OK, segue com localSessionId existente
+    }
+
+    if (cu && cu.id && (localSessionId || bootEvicted)) {
       // Handler centralizado de eviction — usado tanto pelo listener
-      // em real-time quanto pelo polling em visibilitychange.
+      // em real-time quanto pelo polling em visibilitychange e pelo
+      // bootEvicted (caso o device chegou tarde e foi tomado).
       const onEvict = ({ device }) => {
         if (window._sessionEvicted) return; // idempotente
         window._sessionEvicted = true;
@@ -514,11 +531,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           } catch (_) {}
         }
         login._clearInactivityWatch();
-        // Limpa storage de auth
+        // Limpa storage de auth (sessionStorage E localStorage)
         try {
-          ['ieteb_auth', 'ieteb_user', 'ieteb_session_id'].forEach((k) =>
+          ['ieteb_auth', 'ieteb_user'].forEach((k) =>
             sessionStorage.removeItem(k)
           );
+          localStorage.removeItem('ieteb_session_id');
         } catch (_) {}
         try {
           firebase.signOut();
@@ -534,32 +552,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
       };
 
-      window._sessionEvictUnsub = firebase.listenSessionEvictor(
-        cu.id,
-        localSessionId,
-        onEvict
-      );
-
-      // FALLBACK pra iPad/PWA: quando o app é suspenso (background) por
-      // muito tempo, o websocket do Firestore pode cair e o listener
-      // perder o evento de eviction. Toda vez que voltamos pra foreground,
-      // refaz uma checagem one-shot do /Sessoes/{legacyId} e dispara o
-      // onEvict se o sessionId remoto não bater com o nosso.
-      const recheckSession = async () => {
-        if (window._sessionEvicted) return;
-        if (document.visibilityState !== 'visible') return;
+      // Caso bootEvicted: o device chegou pra "festa" tarde demais
+      // (sessionId remoto pertence a outro device). Dispara modal +
+      // signOut imediatamente, sem ativar o listener (não há sessão
+      // ativa pra defender).
+      if (bootEvicted) {
+        // Tenta extrair o device da sessão atual remota pra mostrar no modal
+        let evictedDev = 'outro dispositivo';
         try {
           const snap = await firebase._db.collection('Sessoes').doc(cu.id).get();
-          if (!snap.exists) return;
-          const data = snap.data();
-          if (data.sessionId && data.sessionId !== localSessionId) {
-            onEvict({ device: data.device });
-          }
+          if (snap.exists && snap.data().device) evictedDev = snap.data().device;
         } catch (_) {}
-      };
-      document.addEventListener('visibilitychange', recheckSession);
-      window.addEventListener('focus', recheckSession);
-      window.addEventListener('pageshow', recheckSession);
+        onEvict({ device: evictedDev });
+      } else {
+        window._sessionEvictUnsub = firebase.listenSessionEvictor(
+          cu.id,
+          localSessionId,
+          onEvict
+        );
+
+        // FALLBACK pra iPad/PWA: quando o app é suspenso (background) por
+        // muito tempo, o websocket do Firestore pode cair e o listener
+        // perder o evento de eviction. Toda vez que voltamos pra foreground,
+        // refaz uma checagem one-shot do /Sessoes/{legacyId} e dispara o
+        // onEvict se o sessionId remoto não bater com o nosso.
+        const recheckSession = async () => {
+          if (window._sessionEvicted) return;
+          if (document.visibilityState !== 'visible') return;
+          try {
+            const snap = await firebase._db.collection('Sessoes').doc(cu.id).get();
+            if (!snap.exists) return;
+            const data = snap.data();
+            if (data.sessionId && data.sessionId !== localSessionId) {
+              onEvict({ device: data.device });
+            }
+          } catch (_) {}
+        };
+        document.addEventListener('visibilitychange', recheckSession);
+        window.addEventListener('focus', recheckSession);
+        window.addEventListener('pageshow', recheckSession);
+      }
     }
   } catch (e) {
     console.warn('[boot] session evictor falhou:', e);

@@ -431,13 +431,14 @@ class LoginPage {
     }
     if (!ok) return;
 
-    // Loading premium: mostra overlay com 3 anéis girando + texto pulsando.
-    // Garante visibilidade mínima de 2s pra dar a sensação "verificando
-    // suas credenciais com segurança" mesmo em redes rápidas / cache.
+    // Loading premium: mostra overlay com moeda 3D IETEB girando + texto.
+    // Garante visibilidade mínima de 3s pra dar a sensação "verificando
+    // suas credenciais com segurança" mesmo em redes rápidas / cache, e
+    // pra dar tempo do usuário apreciar o ciclo completo da moeda 3D.
     const loadingEl = document.getElementById('lsLoading');
     const showLoading = () => loadingEl && loadingEl.classList.add('ls-loading--active');
     const hideLoading = () => loadingEl && loadingEl.classList.remove('ls-loading--active');
-    const MIN_LOADING_MS = 2000;
+    const MIN_LOADING_MS = 3000;
     const startedAt = Date.now();
     const ensureMinElapsed = async () => {
       const elapsed = Date.now() - startedAt;

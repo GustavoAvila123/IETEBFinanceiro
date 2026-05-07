@@ -4475,20 +4475,37 @@ body:has(#loginScreen) {
      — o usuário só vê o logo de frente, edge-on, e depois logo de novo. */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  animation: lsCoinSpin 2.6s ease-in-out infinite;
+  /* 3.2s é um tempo confortável pra apreciar o ciclo completo (ida + volta) */
+  animation: lsCoinSpin 3.2s ease-in-out infinite;
   will-change: transform;
 }
 
-/* Rotação 3D contínua no eixo Y (vertical) — "girando para lá e para cá"
-   é a sensação natural quando o eixo de rotação é vertical: a moeda
-   parece sair de frente, virar pro lado, sumir na borda, virar pro
-   outro lado, voltar de frente. */
+/* Rotação 3D "para lá e para cá": gira 360° pra direita (passando pela
+   edge-on duas vezes) e depois RETORNA 360° pra esquerda. Combinado
+   com tilt sutil no eixo X (frente-trás), dá a sensação de uma moeda
+   tridimensional flutuando, não apenas girando em loop linear.
+   - 0%: posição neutra (frente, sem tilt)
+   - 25%: virou 180° (volta da moeda — invisível pelo backface-visibility)
+          com tilt levemente pra cima (15deg X)
+   - 50%: completou 360° (frente novamente)
+   - 75%: REVERTEU pra 180° (movimento de volta) com tilt pra baixo (-15deg)
+   - 100%: voltou pra frente neutra
+*/
 @keyframes lsCoinSpin {
   0% {
-    transform: rotateY(0deg);
+    transform: rotateY(0deg) rotateX(0deg);
+  }
+  25% {
+    transform: rotateY(180deg) rotateX(15deg);
+  }
+  50% {
+    transform: rotateY(360deg) rotateX(0deg);
+  }
+  75% {
+    transform: rotateY(180deg) rotateX(-15deg);
   }
   100% {
-    transform: rotateY(360deg);
+    transform: rotateY(0deg) rotateX(0deg);
   }
 }
 

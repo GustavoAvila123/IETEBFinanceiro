@@ -2543,6 +2543,15 @@ body.modal-open {
   padding: 20px;
 }
 
+/* Modais de sessão (single-device) precisam ficar ACIMA da tela de
+   login (.ls tem z-index: 9999). Sem isso, o modal "Sessão ativa em
+   outro dispositivo" abre por trás do loginScreen — usuário vê só
+   a tela de login e o login trava esperando um clique invisível. */
+#sessionConflictModal,
+#sessionEvictedModal {
+  z-index: 10000;
+}
+
 .modal-card {
   background: var(--white);
   border-radius: var(--radius-lg);

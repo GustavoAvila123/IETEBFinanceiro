@@ -527,8 +527,12 @@ class FirebaseManager {
 
   // Verifica se existe sessão ativa de OUTRO device. Retorna {sessionId, device}
   // se sim, ou null se não houver sessão ativa recente.
-  // Usa lastHeartbeatMs como sinal de "online" (atualizado a cada 2 min
-  // pelo heartbeat).
+  //
+  // Sinais de "ativa": active != false E lastHeartbeatMs recente (< 10 min).
+  // Importante: NÃO exigir sessionId presente — sessões criadas antes
+  // do feature de single-device não têm esse campo, mas continuam ativas
+  // (com heartbeat). Sem isso, o modal de conflito não aparecia ao
+  // tentar logar em um novo device enquanto outro estava logado.
   async checkActiveSession(legacyId) {
     if (!this._db || !legacyId) return null;
     try {
@@ -536,13 +540,13 @@ class FirebaseManager {
       const snap = await ref.get();
       if (!snap.exists) return null;
       const data = snap.data();
-      if (!data.sessionId) return null;
       if (data.active === false) return null;
       const lastHb = Number(data.lastHeartbeatMs) || 0;
+      if (!lastHb) return null;
       const ageMs = Date.now() - lastHb;
       if (ageMs > this._ACTIVE_SESSION_WINDOW_MS) return null;
       return {
-        sessionId: data.sessionId,
+        sessionId: data.sessionId || null,
         device: data.device || 'outro dispositivo',
         lastSeen: data.lastSeen,
       };

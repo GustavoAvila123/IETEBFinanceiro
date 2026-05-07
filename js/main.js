@@ -473,15 +473,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Primeiro boot após login: o sessionId já está em sessionStorage.
     // Reload em sessão restaurada (auth persistido no Firebase Auth):
-    // o sessionStorage pode estar vazio. Nesse caso, NÃO temos como
-    // saber qual era nosso sessionId — então puxamos o atual do Firestore
-    // como "ours" pra evitar auto-eviction logo no boot.
+    // o sessionStorage pode estar vazio. 3 casos a tratar:
+    //  a) Firestore tem sessionId → adota como nosso (sessão pré-existente)
+    //  b) Firestore NÃO tem sessionId (sessão legacy criada antes do
+    //     single-device feature) → "claima" gerando um novo e gravando.
+    //     Sem isso, o evictor não inicia e o outro device nunca seria
+    //     desconectado quando alguém logar em outro lugar.
+    //  c) Erro de leitura → pula o evictor (degrada graciosamente).
     if (cu && cu.id && !localSessionId && firebase._db) {
       try {
         const snap = await firebase._db.collection('Sessoes').doc(cu.id).get();
         if (snap.exists && snap.data().sessionId) {
+          // (a)
           localSessionId = snap.data().sessionId;
           sessionStorage.setItem('ieteb_session_id', localSessionId);
+        } else {
+          // (b) sessão legacy — claima escrevendo um novo sessionId.
+          localSessionId = firebase._generateSessionId();
+          sessionStorage.setItem('ieteb_session_id', localSessionId);
+          try {
+            await firebase.saveSession(
+              { id: cu.id, name: cu.name, role: cu.role },
+              localSessionId
+            );
+          } catch (_) {}
         }
       } catch (_) {}
     }

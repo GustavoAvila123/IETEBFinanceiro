@@ -61,6 +61,9 @@ export function loadProjectGlobals(relativePaths) {
     try { globalThis.getCurrentUser = typeof getCurrentUser !== 'undefined' ? getCurrentUser : globalThis.getCurrentUser; } catch(_){}
     try { globalThis.getEntradasData = typeof getEntradasData !== 'undefined' ? getEntradasData : globalThis.getEntradasData; } catch(_){}
     try { globalThis.getSaidasData   = typeof getSaidasData   !== 'undefined' ? getSaidasData   : globalThis.getSaidasData;   } catch(_){}
+    try { globalThis.getSessionId    = typeof getSessionId    !== 'undefined' ? getSessionId    : globalThis.getSessionId;    } catch(_){}
+    try { globalThis.setSessionId    = typeof setSessionId    !== 'undefined' ? setSessionId    : globalThis.setSessionId;    } catch(_){}
+    try { globalThis.clearSessionId  = typeof clearSessionId  !== 'undefined' ? clearSessionId  : globalThis.clearSessionId;  } catch(_){}
   `;
   vm.runInThisContext(wrapper);
 }

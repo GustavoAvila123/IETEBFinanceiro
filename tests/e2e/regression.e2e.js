@@ -745,3 +745,350 @@ test.describe('Regressão #18 — Sidebar tablet/iPad: botão Sair full width', 
     expect(['auto', '2', '3']).toContain(result.gridColumnStart);
   });
 });
+
+test.describe('Regressão #22 — sessionConflictModal precisa ficar ACIMA do loginScreen', () => {
+  // Bug histórico: .ls (loginScreen) tinha z-index 9999 enquanto
+  // .modal-overlay tinha z-index 500. Modal abria atrás do login screen,
+  // invisível pro usuário, e o login travava esperando um clique que
+  // o usuário não conseguia dar. Esses testes garantem que isso não
+  // volte a acontecer.
+
+  test('z-index do #sessionConflictModal > z-index do #loginScreen', async ({ page }) => {
+    await page.goto('/');
+    const result = await page.evaluate(() => {
+      const conflict = document.getElementById('sessionConflictModal');
+      const login = document.getElementById('loginScreen');
+      if (!conflict || !login) return null;
+      // Força o modal visível pra que getComputedStyle retorne o z-index
+      // efetivo (em alguns navegadores, display:none zera computed values
+      // dependentes de stacking context — mas z-index sempre é serializado).
+      const conflictZ = parseInt(getComputedStyle(conflict).zIndex, 10) || 0;
+      const loginZ = parseInt(getComputedStyle(login).zIndex, 10) || 0;
+      return { conflictZ, loginZ };
+    });
+    expect(result, 'modais ou loginScreen não existem no DOM').not.toBeNull();
+    expect(result.conflictZ).toBeGreaterThan(result.loginZ);
+  });
+
+  test('z-index do #sessionEvictedModal > z-index do #loginScreen', async ({ page }) => {
+    await page.goto('/');
+    const result = await page.evaluate(() => {
+      const evicted = document.getElementById('sessionEvictedModal');
+      const login = document.getElementById('loginScreen');
+      if (!evicted || !login) return null;
+      const evictedZ = parseInt(getComputedStyle(evicted).zIndex, 10) || 0;
+      const loginZ = parseInt(getComputedStyle(login).zIndex, 10) || 0;
+      return { evictedZ, loginZ };
+    });
+    expect(result).not.toBeNull();
+    expect(result.evictedZ).toBeGreaterThan(result.loginZ);
+  });
+
+  test('forçar modal visível: realmente aparece em cima do login', async ({ page }) => {
+    await page.goto('/');
+    // Simula a chamada de _askSessionConflict (mostra o modal)
+    await page.evaluate(() => {
+      const m = document.getElementById('sessionConflictModal');
+      if (m) m.style.display = 'flex';
+    });
+    // Encontra o elemento topo no centro da tela — deve ser o modal
+    // ou descendente dele, NÃO o loginScreen.
+    const topElementId = await page.evaluate(() => {
+      const w = window.innerWidth / 2;
+      const h = window.innerHeight / 2;
+      let el = document.elementFromPoint(w, h);
+      while (el && !el.id) el = el.parentElement;
+      return el ? el.id : null;
+    });
+    // Pode ser sessionConflictModal direto ou um descendente que tem
+    // id (improvável). Validamos que NÃO é loginScreen no topo.
+    expect(topElementId).not.toBe('loginScreen');
+  });
+});
+
+test.describe('Regressão #23 — Helpers de sessionId redundância localStorage+sessionStorage', () => {
+  test('getSessionId/setSessionId/clearSessionId expostos globalmente', async ({ page }) => {
+    await page.goto('/');
+    const ok = await page.evaluate(() => {
+      return (
+        typeof getSessionId === 'function' &&
+        typeof setSessionId === 'function' &&
+        typeof clearSessionId === 'function'
+      );
+    });
+    expect(ok).toBe(true);
+  });
+
+  test('setSessionId grava em localStorage E sessionStorage', async ({ page }) => {
+    await page.goto('/');
+    const result = await page.evaluate(() => {
+      try {
+        localStorage.removeItem('ieteb_session_id');
+        sessionStorage.removeItem('ieteb_session_id');
+      } catch (_) {}
+      setSessionId('test-sid-123');
+      return {
+        local: localStorage.getItem('ieteb_session_id'),
+        session: sessionStorage.getItem('ieteb_session_id'),
+      };
+    });
+    expect(result.local).toBe('test-sid-123');
+    expect(result.session).toBe('test-sid-123');
+  });
+
+  test('getSessionId retorna do localStorage primeiro, fallback sessionStorage', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const result = await page.evaluate(() => {
+      // Limpa
+      localStorage.removeItem('ieteb_session_id');
+      sessionStorage.removeItem('ieteb_session_id');
+      const empty = getSessionId();
+
+      // Só sessionStorage
+      sessionStorage.setItem('ieteb_session_id', 'from-session');
+      const sessionOnly = getSessionId();
+
+      // localStorage também — deve ganhar
+      localStorage.setItem('ieteb_session_id', 'from-local');
+      const bothSet = getSessionId();
+
+      return { empty, sessionOnly, bothSet };
+    });
+    expect(result.empty).toBeNull();
+    expect(result.sessionOnly).toBe('from-session');
+    expect(result.bothSet).toBe('from-local');
+  });
+
+  test('clearSessionId limpa de ambos storages', async ({ page }) => {
+    await page.goto('/');
+    const result = await page.evaluate(() => {
+      setSessionId('to-be-cleared');
+      clearSessionId();
+      return {
+        local: localStorage.getItem('ieteb_session_id'),
+        session: sessionStorage.getItem('ieteb_session_id'),
+      };
+    });
+    expect(result.local).toBeNull();
+    expect(result.session).toBeNull();
+  });
+});
+
+test.describe('Regressão #24 — saveSession resiliente a /Users incompleto', () => {
+  // Bug: se /Users/{uid} estava sem name ou role, profile.name/role vinha
+  // undefined. saveSession passava isso pro Firestore.update(), que rejeita
+  // "Unsupported field value: undefined" → write não acontecia → boot
+  // detectava mismatch e evictava o usuário recém-logado.
+  // Fix: filtrar undefined → empty string.
+
+  test('saveSession aceita user com name=undefined sem lançar', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', {
+      timeout: 5000,
+    });
+    const result = await page.evaluate(async () => {
+      const fb = window._firebase;
+      // Hijack do _db pra capturar o que seria gravado
+      const origDb = fb._db;
+      let captured = null;
+      fb._db = {
+        collection: () => ({
+          doc: () => ({
+            get: async () => ({ exists: false }),
+            set: async (data) => {
+              captured = data;
+            },
+            update: async (data) => {
+              captured = data;
+            },
+          }),
+        }),
+      };
+      try {
+        await fb.saveSession(
+          { id: 'tester1', name: undefined, role: undefined },
+          'sid-x'
+        );
+      } finally {
+        fb._db = origDb;
+      }
+      return captured;
+    });
+    expect(result, 'saveSession deve ter capturado uma escrita').not.toBeNull();
+    // Os campos vieram saneados pra string vazia (não undefined)
+    expect(result.name).toBe('');
+    expect(result.role).toBe('');
+    // Mas userId, sessionId e device foram preservados
+    expect(result.userId).toBe('tester1');
+    expect(result.sessionId).toBe('sid-x');
+    expect(typeof result.device).toBe('string');
+  });
+
+  test('saveSession aceita user com name=null sem lançar', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', {
+      timeout: 5000,
+    });
+    const result = await page.evaluate(async () => {
+      const fb = window._firebase;
+      const origDb = fb._db;
+      let captured = null;
+      fb._db = {
+        collection: () => ({
+          doc: () => ({
+            get: async () => ({ exists: false }),
+            set: async (data) => {
+              captured = data;
+            },
+            update: async (data) => {
+              captured = data;
+            },
+          }),
+        }),
+      };
+      try {
+        await fb.saveSession({ id: 'tester1', name: null, role: null }, 'sid-y');
+      } finally {
+        fb._db = origDb;
+      }
+      return captured;
+    });
+    expect(result.name).toBe('');
+    expect(result.role).toBe('');
+  });
+
+  test('saveSession PRESERVA name/role válidos', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', {
+      timeout: 5000,
+    });
+    const result = await page.evaluate(async () => {
+      const fb = window._firebase;
+      const origDb = fb._db;
+      let captured = null;
+      fb._db = {
+        collection: () => ({
+          doc: () => ({
+            get: async () => ({ exists: false }),
+            set: async (data) => {
+              captured = data;
+            },
+            update: async (data) => {
+              captured = data;
+            },
+          }),
+        }),
+      };
+      try {
+        await fb.saveSession(
+          { id: 'avila', name: 'Gustavo Ávila', role: 'admin' },
+          'sid-z'
+        );
+      } finally {
+        fb._db = origDb;
+      }
+      return captured;
+    });
+    expect(result.name).toBe('Gustavo Ávila');
+    expect(result.role).toBe('admin');
+  });
+});
+
+test.describe('Regressão #25 — _subscribe usa .where() pra testers (rules)', () => {
+  // Bug: subscribing à collection inteira /Entradas falhava com
+  // "Missing or insufficient permissions" pra testers (rules só
+  // permitem ler docs próprios). Fix: aplicar .where('userId', '==',
+  // legacyId) automaticamente quando o user atual é tester.
+
+  test('_subscribe aplica where() quando user é tester', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', {
+      timeout: 5000,
+    });
+    const result = await page.evaluate(() => {
+      const fb = window._firebase;
+      // Stub _currentUser pra simular tester logado
+      fb._currentUser = { legacyId: 'tester1', name: 'X', role: 'tester' };
+      // Hijack _db pra capturar a query construída
+      const origDb = fb._db;
+      let whereCalled = false;
+      let whereArgs = null;
+      fb._db = {
+        collection: () => ({
+          where: (field, op, val) => {
+            whereCalled = true;
+            whereArgs = { field, op, val };
+            return { onSnapshot: () => () => {} };
+          },
+          onSnapshot: () => () => {},
+        }),
+      };
+      try {
+        fb._subscribe('Entradas', 'ieteb_lancamentos', () => {});
+      } finally {
+        fb._db = origDb;
+        fb._currentUser = null;
+      }
+      return { whereCalled, whereArgs };
+    });
+    expect(result.whereCalled).toBe(true);
+    expect(result.whereArgs).toEqual({ field: 'userId', op: '==', val: 'tester1' });
+  });
+
+  test('_subscribe NÃO aplica where() quando user é admin', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', {
+      timeout: 5000,
+    });
+    const result = await page.evaluate(() => {
+      const fb = window._firebase;
+      fb._currentUser = { legacyId: 'avila', name: 'Y', role: 'admin' };
+      const origDb = fb._db;
+      let whereCalled = false;
+      fb._db = {
+        collection: () => ({
+          where: () => {
+            whereCalled = true;
+            return { onSnapshot: () => () => {} };
+          },
+          onSnapshot: () => () => {},
+        }),
+      };
+      try {
+        fb._subscribe('Entradas', 'ieteb_lancamentos', () => {});
+      } finally {
+        fb._db = origDb;
+        fb._currentUser = null;
+      }
+      return whereCalled;
+    });
+    expect(result).toBe(false);
+  });
+});
+
+test.describe('Regressão #26 — Service Worker CACHE_VERSION atualizado', () => {
+  // Garante que o CACHE_VERSION no sw.js bumpou. Sem isso, devices
+  // com SW velho continuam servindo código antigo mesmo após deploy
+  // (foi o que causou "logou no desktop, não loga no mobile").
+
+  test('CACHE_VERSION é v6 ou superior, com data 2026-05-07 ou superior', async ({ page }) => {
+    const swText = await page.evaluate(async () => {
+      try {
+        const r = await fetch('/sw.js');
+        return r.ok ? await r.text() : null;
+      } catch (_) {
+        return null;
+      }
+    });
+    expect(swText).not.toBeNull();
+    // Procura linha tipo: const CACHE_VERSION = 'ieteb-vN-YYYYMMDD'
+    const match = swText.match(/CACHE_VERSION\s*=\s*['"]ieteb-v(\d+)-(\d{8})['"]/);
+    expect(match, 'CACHE_VERSION com formato esperado').not.toBeNull();
+    const version = parseInt(match[1], 10);
+    const date = match[2];
+    expect(version).toBeGreaterThanOrEqual(6);
+    expect(date >= '20260507').toBe(true);
+  });
+});

@@ -4951,6 +4951,28 @@ body:has(#loginScreen) {
   }
 }
 
+/* Em tablet/iPad e desktop o tema é icon-only (sem texto "Tema"),
+   visualmente igual ao botão do .topbar do celular. Só estilização —
+   layout do grid (Atualizar | Tema row 1, Sair full row 2) é
+   preservado. */
+@media (min-width: 769px) {
+  .sidebar-theme-btn {
+    background: transparent;
+    border-color: transparent;
+    color: var(--gold);
+    padding: 6px;
+    gap: 0;
+  }
+  .sidebar-theme-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: transparent;
+    color: var(--gold);
+  }
+  .sidebar-theme-btn span {
+    display: none;
+  }
+}
+
 .sidebar-refresh-btn {
   background: rgba(212, 175, 55, 0.07);
   border-color: rgba(212, 175, 55, 0.2);

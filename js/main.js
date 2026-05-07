@@ -506,14 +506,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Caso 3: outro device tomou a sessão enquanto estávamos offline
         bootEvicted = true;
       } else if (localSessionId && remoteSessionId && localSessionId !== remoteSessionId) {
-        // Caso 2: evictamos enquanto offline
-        bootEvicted = true;
+        // Caso 2: mismatch detectado. PODE ser eviction real (outro device
+        // logou) OU pode ser race (nossa saveSession do login não chegou
+        // ao servidor antes do reload). Tentamos RE-GRAVAR nosso sessionId
+        // e re-ler. Se o servidor aceitar, a gravação anterior simplesmente
+        // não chegou — não somos evictados. Se outro device escrever em
+        // cima depois, o listener em real-time pega.
+        try {
+          await firebase.saveSession(
+            { id: cu.id, name: cu.name, role: cu.role },
+            localSessionId
+          );
+          // Re-lê pra confirmar que nosso sessionId persistiu
+          const recheck = await firebase._db.collection('Sessoes').doc(cu.id).get();
+          if (recheck.exists && recheck.data().sessionId === localSessionId) {
+            // Re-write OK — não somos evictados, era race do save.
+          } else {
+            // Mesmo após re-write, remoto tem outro sessionId → eviction real
+            bootEvicted = true;
+          }
+        } catch (_) {
+          // Não conseguimos verificar; assumimos eviction pra não cair
+          // num estado ambíguo.
+          bootEvicted = true;
+        }
       } else if (localSessionId && !remoteSessionId) {
         // Caso 5: nosso sessionId existe localmente mas Firestore não
-        // tem (talvez o doc foi limpo externamente, ou heartbeat sem
-        // sessionId fez algum reset). Re-escreve pra evitar drift —
-        // sem isso, próximo login alheio veria "sem sessionId" e
-        // assumiria como sessão livre, evictando-nos depois.
+        // tem. Re-escreve pra evitar drift.
         try {
           await firebase.saveSession(
             { id: cu.id, name: cu.name, role: cu.role },

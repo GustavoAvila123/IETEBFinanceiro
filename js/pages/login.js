@@ -486,10 +486,10 @@ class LoginPage {
 
       this._populateLocalSession(profile);
 
-      // Salva a sessão com sessionId no Firestore. Tenta verificar
-      // que a gravação realmente "pegou" antes do reload — se não pegou
-      // em 8s, prossegue mesmo assim pra não bloquear o login. Isso
-      // tolera redes lentas SEM abortar o usuário.
+      // Salva a sessão (best-effort com 10s timeout). Login NÃO é
+      // bloqueado se a gravação falhar — apenas logamos e seguimos.
+      // Se realmente houve falha, o boot pós-reload trata via Caso 5
+      // (re-grava localSessionId) ou via eviction modal.
       try {
         await Promise.race([
           window._firebase.saveSession(
@@ -500,25 +500,11 @@ class LoginPage {
             },
             sessionId
           ),
-          new Promise((r) => setTimeout(r, 8000)),
+          new Promise((r) => setTimeout(r, 10000)),
         ]);
-      } catch (_) {}
-
-      // Verifica que o sessionId remoto foi atualizado pra evitar a
-      // race em que reload acontece antes da gravação completar.
-      // Se ainda não bateu, espera mais 2s e tenta de novo (best effort).
-      try {
-        let attempts = 0;
-        while (attempts < 2) {
-          const snap = await window._firebase._db
-            .collection('Sessoes')
-            .doc(profile.legacyId)
-            .get();
-          if (snap.exists && snap.data().sessionId === sessionId) break;
-          attempts++;
-          await new Promise((r) => setTimeout(r, 1500));
-        }
-      } catch (_) {}
+      } catch (e) {
+        console.warn('[login] saveSession problem (proceeding anyway):', e);
+      }
 
       this._startHeartbeat(profile.legacyId);
 

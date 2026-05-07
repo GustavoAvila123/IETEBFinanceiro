@@ -2661,10 +2661,12 @@ body.modal-open {
   }
 }
 
-/* ── ARQUITETURA RESPONSIVA: tablet/iPad também usa topbar+sidebar-overlay
-   (igual mobile). Sidebar fica fora da tela por default e abre como overlay
-   pelo botão de menu. Theme/refresh ficam no topbar (acessíveis sempre). ── */
-@media (max-width: 1024px) {
+/* ─── RESPONSIVO ─── */
+/* Apenas mobile (≤768px) usa sidebar-overlay arquitetura. Tablet/iPad
+   mantém o sidebar FIXO na lateral igual desktop — assim a UX do menu
+   é "cravada" e o rodapé fica naturalmente embaixo do nav, sem layout
+   instável de overlay. */
+@media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
   }
@@ -2684,10 +2686,7 @@ body.modal-open {
   .topbar {
     display: flex;
   }
-}
 
-/* ─── RESPONSIVO ─── */
-@media (max-width: 768px) {
   /* page-content padding agora vem dos tokens em BLOCO 4 */
 
   .tab-btn {
@@ -4942,55 +4941,13 @@ body:has(#loginScreen) {
   color: var(--gold);
 }
 
-/* Em mobile, tablet e iPad (≤1024px) o tema some do sidebar — o usuário
-   usa o #themeToggleBtn que já existe no .topbar (visível em ≤1024px após
-   a mudança de arquitetura). Mantém UX consistente entre celular/tablet:
-   theme btn sempre no topbar, nunca no menu lateral overlay.
-   Esta regra precisa estar DEPOIS da definição base "display: flex"
-   pra vencer por ordem. */
-@media (max-width: 1024px) {
+/* Apenas em mobile (≤768px) o tema some do sidebar — o usuário usa o
+   #themeToggleBtn que já existe no .topbar (visível em ≤768px).
+   Em tablet/iPad e desktop o sidebar é fixo, então o tema fica no
+   próprio sidebar (linha junto ao Atualizar). */
+@media (max-width: 768px) {
   .sidebar-theme-btn {
     display: none;
-  }
-}
-
-/* Tablet/iPad (769–1024): o sidebar é overlay e tem mais altura
-   disponível. Como Tema some, ficamos só com Atualizar+Sair — fica
-   melhor ambos full-width empilhados verticalmente do que Atualizar
-   meia-largura ao lado de uma célula vazia. Mobile (≤768) mantém
-   2-col porque a tela é estreita e empilhar gasta vertical demais. */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar-footer-actions {
-    grid-template-columns: 1fr;
-  }
-  .sidebar-refresh-btn,
-  .sidebar-logout-btn {
-    grid-column: 1 / -1;
-    padding: 12px 14px;
-    font-size: 0.84rem;
-  }
-}
-
-/* Footer mais polished no tablet/iPad — divisor edge-to-edge,
-   texto centralizado com mais respiro vertical. Permite 2 linhas
-   pra que "Centro Educacional Teológico" apareça INTEIRO (sem
-   cortar com ellipsis). */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar-footer {
-    padding: 12px 14px 18px;
-  }
-  .sidebar-footer-text {
-    font-size: 0.6rem;
-    color: rgba(255, 255, 255, 0.32);
-    letter-spacing: 0.06em;
-    line-height: 1.45;
-    margin-top: 10px;
-    padding: 10px 4px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    text-align: center;
-    /* Sem nowrap/ellipsis — texto inteiro, quebra natural se precisar */
-    white-space: normal;
-    overflow: visible;
   }
 }
 

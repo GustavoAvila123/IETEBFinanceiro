@@ -546,64 +546,69 @@ test.describe('Regressão #17 — FirebaseManager tem APIs de single-device', ()
   });
 });
 
-test.describe('Regressão #19 — iPad usa layout de celular (topbar visível, sidebar oculto)', () => {
-  test('em iPad portrait (820x1180), topbar é visível e sidebar fica oculto', async ({
-    page,
-  }) => {
+test.describe('Regressão #19 — iPad mantém sidebar FIXO (igual desktop), só mobile usa overlay', () => {
+  test('em iPad portrait (820x1180), sidebar fixo e topbar OCULTA', async ({ page }) => {
     await page.setViewportSize({ width: 820, height: 1180 });
     await page.goto('/');
-    const topbarVisible = await page.locator('.topbar').evaluate((el) => {
-      return getComputedStyle(el).display !== 'none';
-    });
-    expect(topbarVisible).toBe(true);
-
-    // Sidebar deve estar fora da tela (translateX -100%)
-    const sidebarTransform = await page.locator('.sidebar').evaluate((el) => {
-      return getComputedStyle(el).transform;
-    });
-    // Quando aplicado, transform vira matrix(...) — só validamos que NÃO é "none"
-    expect(sidebarTransform).not.toBe('none');
-  });
-
-  test('em iPad landscape (1024x768), topbar continua visível (igual celular)', async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1024, height: 768 });
-    await page.goto('/');
-    const topbarVisible = await page.locator('.topbar').evaluate((el) => {
-      return getComputedStyle(el).display !== 'none';
-    });
-    expect(topbarVisible).toBe(true);
-  });
-
-  test('em desktop (1366x800), topbar fica oculta e sidebar visível', async ({ page }) => {
-    await page.setViewportSize({ width: 1366, height: 800 });
-    await page.goto('/');
-    const topbarDisplay = await page.locator('.topbar').evaluate((el) => {
-      return getComputedStyle(el).display;
-    });
+    // topbar oculta (só aparece em mobile)
+    const topbarDisplay = await page.locator('.topbar').evaluate(
+      (el) => getComputedStyle(el).display
+    );
     expect(topbarDisplay).toBe('none');
-
-    const sidebarTransform = await page.locator('.sidebar').evaluate((el) => {
-      return getComputedStyle(el).transform;
-    });
-    // Em desktop, sidebar fica em posição natural (transform: none)
+    // sidebar em posição natural (transform: none)
+    const sidebarTransform = await page.locator('.sidebar').evaluate(
+      (el) => getComputedStyle(el).transform
+    );
     expect(sidebarTransform).toBe('none');
   });
 
-  test('em iPad, theme btn está no topbar (não no sidebar)', async ({ page }) => {
+  test('em iPad landscape (1024x768), sidebar fixo e topbar OCULTA', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto('/');
-    // topbar theme btn visível
-    const topbarThemeVisible = await page.locator('#themeToggleBtn').evaluate((el) => {
-      return getComputedStyle(el).display !== 'none';
-    });
-    expect(topbarThemeVisible).toBe(true);
+    const topbarDisplay = await page.locator('.topbar').evaluate(
+      (el) => getComputedStyle(el).display
+    );
+    expect(topbarDisplay).toBe('none');
+  });
 
-    // sidebar theme btn escondido
-    const sidebarThemeDisplay = await page.locator('#sidebarThemeBtn').evaluate((el) => {
-      return getComputedStyle(el).display;
-    });
+  test('em mobile (375), sidebar oculto (translateX -100%) e topbar VISÍVEL', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/');
+    const topbarVisible = await page.locator('.topbar').evaluate(
+      (el) => getComputedStyle(el).display !== 'none'
+    );
+    expect(topbarVisible).toBe(true);
+    // Sidebar fora da tela (translateX -100%)
+    const sidebarTransform = await page.locator('.sidebar').evaluate(
+      (el) => getComputedStyle(el).transform
+    );
+    expect(sidebarTransform).not.toBe('none');
+  });
+
+  test('em iPad, theme btn está no SIDEBAR (não no topbar — topbar oculta)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto('/');
+    // sidebar theme btn visível
+    const sidebarThemeVisible = await page.locator('#sidebarThemeBtn').evaluate(
+      (el) => getComputedStyle(el).display !== 'none'
+    );
+    expect(sidebarThemeVisible).toBe(true);
+  });
+
+  test('em mobile, theme btn está no TOPBAR (sidebar oculto)', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/');
+    const topbarThemeVisible = await page.locator('#themeToggleBtn').evaluate(
+      (el) => getComputedStyle(el).display !== 'none'
+    );
+    expect(topbarThemeVisible).toBe(true);
+    const sidebarThemeDisplay = await page.locator('#sidebarThemeBtn').evaluate(
+      (el) => getComputedStyle(el).display
+    );
     expect(sidebarThemeDisplay).toBe('none');
   });
 });

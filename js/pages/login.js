@@ -452,17 +452,50 @@ class LoginPage {
       if (!window._firebase) throw new Error('firebase-indisponivel');
       const profile = await window._firebase.signIn(user, pass);
 
+      // Antes de finalizar o login, verifica se já existe sessão ativa
+      // em outro device. Se houver, pede confirmação pra "tomar" a sessão
+      // (o que vai despejar o outro device automaticamente via listener).
+      let activeSession = null;
+      try {
+        activeSession = await window._firebase.checkActiveSession(profile.legacyId);
+      } catch (_) {}
+
+      if (activeSession) {
+        hideLoading();
+        const proceed = await this._askSessionConflict(activeSession.device || 'outro dispositivo');
+        if (!proceed) {
+          // Usuário cancelou: desloga e volta pra tela de login.
+          try {
+            await window._firebase.signOut();
+          } catch (_) {}
+          if (btn) btn.disabled = false;
+          return;
+        }
+        showLoading();
+      }
+
+      // Gera novo sessionId (UUID) — esse é o "token" que identifica
+      // ESTA sessão. Salvamos local e no Firestore. Outros devices que
+      // estavam logados vão ver o sessionId remoto mudar e auto-deslogar.
+      const sessionId = window._firebase._generateSessionId();
+      try {
+        sessionStorage.setItem('ieteb_session_id', sessionId);
+      } catch (_) {}
+
       this._populateLocalSession(profile);
 
       // Aguarda gravação da sessão no Firestore (com timeout de 4s)
       // antes do reload, senão em redes lentas o doc não é gravado.
       try {
         await Promise.race([
-          window._firebase.saveSession({
-            id: profile.legacyId,
-            name: profile.name,
-            role: profile.role,
-          }),
+          window._firebase.saveSession(
+            {
+              id: profile.legacyId,
+              name: profile.name,
+              role: profile.role,
+            },
+            sessionId
+          ),
           new Promise((r) => setTimeout(r, 4000)),
         ]);
       } catch (_) {}
@@ -509,6 +542,30 @@ class LoginPage {
     } finally {
       if (btn) btn.disabled = false;
     }
+  }
+
+  // Mostra o modal "Sessão ativa em outro dispositivo" e devolve uma
+  // Promise<bool> — true se o usuário confirmou continuar aqui (e
+  // despejar o outro device), false se cancelou.
+  _askSessionConflict(device) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('sessionConflictModal');
+      const deviceEl = document.getElementById('sessionConflictDevice');
+      if (!modal) {
+        resolve(true); // se modal não existe, deixa passar pra não travar login
+        return;
+      }
+      if (deviceEl) deviceEl.textContent = device;
+      window.confirmSessionConflict = () => {
+        modal.style.display = 'none';
+        resolve(true);
+      };
+      window.cancelSessionConflict = () => {
+        modal.style.display = 'none';
+        resolve(false);
+      };
+      modal.style.display = 'flex';
+    });
   }
 
   toggleLoginPw() {

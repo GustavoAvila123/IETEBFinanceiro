@@ -460,6 +460,71 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   nav.initAdminUI();
 
+  // ── SINGLE-DEVICE SESSION: monitora se outro device fez login ──
+  // O sessionId desta sessão fica em sessionStorage. Se o /Sessoes/{legacyId}
+  // remoto trocar pra um sessionId diferente do nosso → fomos despejados
+  // (outro device entrou). Mostra modal "sessão encerrada" + força logout.
+  try {
+    const cu = getCurrentUser();
+    let localSessionId = null;
+    try {
+      localSessionId = sessionStorage.getItem('ieteb_session_id');
+    } catch (_) {}
+
+    // Primeiro boot após login: o sessionId já está em sessionStorage.
+    // Reload em sessão restaurada (auth persistido no Firebase Auth):
+    // o sessionStorage pode estar vazio. Nesse caso, NÃO temos como
+    // saber qual era nosso sessionId — então puxamos o atual do Firestore
+    // como "ours" pra evitar auto-eviction logo no boot.
+    if (cu && cu.id && !localSessionId && firebase._db) {
+      try {
+        const snap = await firebase._db.collection('Sessoes').doc(cu.id).get();
+        if (snap.exists && snap.data().sessionId) {
+          localSessionId = snap.data().sessionId;
+          sessionStorage.setItem('ieteb_session_id', localSessionId);
+        }
+      } catch (_) {}
+    }
+
+    if (cu && cu.id && localSessionId) {
+      window._sessionEvictUnsub = firebase.listenSessionEvictor(
+        cu.id,
+        localSessionId,
+        ({ device }) => {
+          if (window._sessionEvicted) return; // idempotente
+          window._sessionEvicted = true;
+          // Para o heartbeat e o evictor pra evitar reentrada
+          if (window._sessionEvictUnsub) {
+            try {
+              window._sessionEvictUnsub();
+            } catch (_) {}
+          }
+          login._clearInactivityWatch();
+          // Limpa storage de auth
+          try {
+            ['ieteb_auth', 'ieteb_user', 'ieteb_session_id'].forEach((k) =>
+              sessionStorage.removeItem(k)
+            );
+          } catch (_) {}
+          try {
+            firebase.signOut();
+          } catch (_) {}
+          // Mostra modal "sessão encerrada"
+          const modal = document.getElementById('sessionEvictedModal');
+          const devEl = document.getElementById('sessionEvictedDevice');
+          if (devEl) devEl.textContent = device || 'outro dispositivo';
+          if (modal) modal.style.display = 'flex';
+          window.acknowledgeSessionEvicted = () => {
+            if (modal) modal.style.display = 'none';
+            window.location.reload();
+          };
+        }
+      );
+    }
+  } catch (e) {
+    console.warn('[boot] session evictor falhou:', e);
+  }
+
   // Banner "Instalar IETEB" — após autenticação, em mobile, se ainda não
   // dispensado/instalado. Aguarda 2s para não brigar com o splash.
   setTimeout(() => {

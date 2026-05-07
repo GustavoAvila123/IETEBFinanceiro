@@ -491,17 +491,102 @@ class FirebaseManager {
   // esteve offline (browser em background, sem rede etc).
   _HEARTBEAT_CAP_MS = 3 * 60 * 1000;
 
+  // Threshold para considerar uma sessão "ativa em outro device": se o
+  // último heartbeat foi há menos de 10 min, assumimos que ainda está
+  // online. Isso evita prompts de conflito quando a sessão antiga
+  // quedou silenciosamente (ex.: usuário fechou o browser sem logout).
+  _ACTIVE_SESSION_WINDOW_MS = 10 * 60 * 1000;
+
+  // Gera um ID único pra esta sessão (UUID v4 simplificado).
+  // Se crypto.randomUUID estiver disponível, usa ele. Caso contrário,
+  // gera um random suficientemente único pra fins de eviction.
+  _generateSessionId() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return (
+      Date.now().toString(36) +
+      '-' +
+      Math.random().toString(36).slice(2, 11) +
+      Math.random().toString(36).slice(2, 11)
+    );
+  }
+
+  // Detecta o tipo de device pra mostrar no modal de conflito de sessão.
+  _detectDevice() {
+    const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+    if (/iPad/i.test(ua)) return 'iPad';
+    if (/iPhone|iPod/i.test(ua)) return 'iPhone';
+    if (/Android.*Mobile/i.test(ua)) return 'celular Android';
+    if (/Android/i.test(ua)) return 'tablet Android';
+    if (/Mac/i.test(ua)) return 'Mac';
+    if (/Windows/i.test(ua)) return 'Windows';
+    if (/Linux/i.test(ua)) return 'Linux';
+    return 'outro dispositivo';
+  }
+
+  // Verifica se existe sessão ativa de OUTRO device. Retorna {sessionId, device}
+  // se sim, ou null se não houver sessão ativa recente.
+  // Usa lastHeartbeatMs como sinal de "online" (atualizado a cada 2 min
+  // pelo heartbeat).
+  async checkActiveSession(legacyId) {
+    if (!this._db || !legacyId) return null;
+    try {
+      const ref = this._db.collection('Sessoes').doc(legacyId);
+      const snap = await ref.get();
+      if (!snap.exists) return null;
+      const data = snap.data();
+      if (!data.sessionId) return null;
+      if (data.active === false) return null;
+      const lastHb = Number(data.lastHeartbeatMs) || 0;
+      const ageMs = Date.now() - lastHb;
+      if (ageMs > this._ACTIVE_SESSION_WINDOW_MS) return null;
+      return {
+        sessionId: data.sessionId,
+        device: data.device || 'outro dispositivo',
+        lastSeen: data.lastSeen,
+      };
+    } catch (e) {
+      console.warn('checkActiveSession falhou:', e);
+      return null;
+    }
+  }
+
+  // Monitora se OUTRO device tomou a sessão. Chama onEvict() se o
+  // sessionId remoto mudar pra algo diferente do nosso local.
+  // Retorna função de unsubscribe.
+  listenSessionEvictor(legacyId, localSessionId, onEvict) {
+    if (!this._db || !legacyId || !localSessionId) return () => {};
+    return this._db.collection('Sessoes').doc(legacyId).onSnapshot(
+      (snap) => {
+        if (!snap.exists) return;
+        const data = snap.data();
+        // Se o remoto tem um sessionId diferente do nosso, fomos despejados.
+        if (data.sessionId && data.sessionId !== localSessionId) {
+          try {
+            onEvict({ device: data.device, lastSeen: data.lastSeen });
+          } catch (_) {}
+        }
+      },
+      (e) => console.warn('listenSessionEvictor erro:', e)
+    );
+  }
+
   // Idempotente: cria a sessão se ainda não existir, ou apenas toca o
   // lastSeen/active=true se já está ativa (preserva currentSessionMs
   // entre reloads). Se estava encerrada (active=false), zera os contadores
   // para iniciar uma sessão nova.
-  async saveSession(user) {
+  //
+  // Se sessionId for passado, sobrescreve o sessionId no doc — usado pra
+  // forçar single-device login. Se não passar, mantém o existente.
+  async saveSession(user, sessionId) {
     if (!this._db || !user || !user.id) return;
     try {
       const ref = this._db.collection('Sessoes').doc(user.id);
       const snap = await ref.get();
       const now = Date.now();
       const iso = new Date(now).toISOString();
+      const device = this._detectDevice();
 
       if (!snap.exists) {
         await ref.set({
@@ -514,6 +599,8 @@ class FirebaseManager {
           lastHeartbeatMs: now,
           active: true,
           currentSessionMs: 0,
+          sessionId: sessionId || this._generateSessionId(),
+          device,
         });
         return;
       }
@@ -526,6 +613,11 @@ class FirebaseManager {
         lastSeen: iso,
         active: true,
       };
+      // Atualiza sessionId apenas quando explicitamente passado (login)
+      if (sessionId) {
+        updates.sessionId = sessionId;
+        updates.device = device;
+      }
       // Se a sessão anterior estava encerrada, inicia uma nova
       if (data.active === false) {
         updates.loginAt = iso;

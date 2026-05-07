@@ -484,3 +484,100 @@ test.describe('Regressão #15 — Aurora background do login tem 25 estrelas', (
     expect(count).toBe(5);
   });
 });
+
+test.describe('Regressão #16 — Single-device session: modais existem no DOM', () => {
+  test('#sessionConflictModal está no DOM com placeholder de device', async ({ page }) => {
+    await page.goto('/');
+    const modal = page.locator('#sessionConflictModal');
+    expect(await modal.count()).toBe(1);
+    // Tem placeholder pra preencher o device
+    const devEl = page.locator('#sessionConflictDevice');
+    expect(await devEl.count()).toBe(1);
+    // Tem botões Cancelar + Continuar
+    const cancel = modal.locator('button', { hasText: /cancelar/i });
+    const ok = modal.locator('button', { hasText: /continuar/i });
+    expect(await cancel.count()).toBe(1);
+    expect(await ok.count()).toBe(1);
+  });
+
+  test('#sessionEvictedModal está no DOM com placeholder de device', async ({ page }) => {
+    await page.goto('/');
+    const modal = page.locator('#sessionEvictedModal');
+    expect(await modal.count()).toBe(1);
+    const devEl = page.locator('#sessionEvictedDevice');
+    expect(await devEl.count()).toBe(1);
+    const ok = modal.locator('button', { hasText: /entendi/i });
+    expect(await ok.count()).toBe(1);
+  });
+});
+
+test.describe('Regressão #17 — FirebaseManager tem APIs de single-device', () => {
+  test('_generateSessionId retorna string única', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', { timeout: 5000 });
+    const result = await page.evaluate(() => {
+      const a = window._firebase._generateSessionId();
+      const b = window._firebase._generateSessionId();
+      return { a, b, equal: a === b, lenA: a.length, lenB: b.length };
+    });
+    expect(result.equal).toBe(false);
+    expect(result.lenA).toBeGreaterThanOrEqual(16);
+    expect(result.lenB).toBeGreaterThanOrEqual(16);
+  });
+
+  test('_detectDevice retorna string descritiva', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', { timeout: 5000 });
+    const dev = await page.evaluate(() => window._firebase._detectDevice());
+    expect(typeof dev).toBe('string');
+    expect(dev.length).toBeGreaterThan(0);
+  });
+
+  test('checkActiveSession e listenSessionEvictor estão expostos', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', { timeout: 5000 });
+    const ok = await page.evaluate(() => {
+      return (
+        typeof window._firebase.checkActiveSession === 'function' &&
+        typeof window._firebase.listenSessionEvictor === 'function'
+      );
+    });
+    expect(ok).toBe(true);
+  });
+});
+
+test.describe('Regressão #18 — Sidebar tablet/iPad: botão Sair full width', () => {
+  test('em tablet portrait (768) Sair tem grid-column 1 / -1', async ({ page }) => {
+    // No exact 768 a topbar está visível, mas o sidebar permanece pra
+    // contextos onde o user abre o menu. Testamos o layout do sidebar.
+    await page.setViewportSize({ width: 820, height: 1180 }); // iPad portrait moderno
+    await page.goto('/');
+    const result = await page.evaluate(() => {
+      const btn = document.querySelector('.sidebar-logout-btn');
+      if (!btn) return null;
+      const cs = getComputedStyle(btn);
+      return { gridColumnStart: cs.gridColumnStart, gridColumnEnd: cs.gridColumnEnd };
+    });
+    expect(result).not.toBeNull();
+    // Sair deve ocupar a linha inteira (start=1, end=-1 ou 3 dependendo do parser)
+    expect(result.gridColumnStart).toBe('1');
+  });
+
+  test('em mobile (375) Sair fica em col individual (Tema escondida)', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/');
+    const result = await page.evaluate(() => {
+      const btn = document.querySelector('.sidebar-logout-btn');
+      if (!btn) return null;
+      const cs = getComputedStyle(btn);
+      return { gridColumnStart: cs.gridColumnStart };
+    });
+    expect(result).not.toBeNull();
+    // Em mobile NÃO tem o override — Sair fica no lugar default do grid
+    // (pode ser 'auto' ou um número específico). Só validamos que NÃO
+    // está spanando full width via grid-column 1.
+    // Se o teste falhar aqui, é porque a regra @media (min-width: 769px)
+    // foi mudada de novo.
+    expect(['auto', '2', '3']).toContain(result.gridColumnStart);
+  });
+});

@@ -47,12 +47,12 @@
       rel="stylesheet"
       referrerpolicy="no-referrer"
     />
-    <link rel="stylesheet" href="lancamento.css?v=20260507a" />
+    <link rel="stylesheet" href="lancamento.css?v=20260507b" />
     <!-- CSS modular extraído (admin pages, onboarding, utils) — carrega
          em paralelo após o principal. Ver MIGRATION.md item #5 do roadmap. -->
-    <link rel="stylesheet" href="css/admin.css?v=20260507a" />
-    <link rel="stylesheet" href="css/onboarding.css?v=20260507a" />
-    <link rel="stylesheet" href="css/utils.css?v=20260507a" />
+    <link rel="stylesheet" href="css/admin.css?v=20260507b" />
+    <link rel="stylesheet" href="css/onboarding.css?v=20260507b" />
+    <link rel="stylesheet" href="css/utils.css?v=20260507b" />
     <!-- Anti-FOUC: aplica o tema ANTES do CSS render. Sem isso, o user
          em dark mode veria flash branco enquanto o JS tradicional
          carrega. Roda sincronamente, lê localStorage e seta data-theme. -->
@@ -2700,6 +2700,88 @@
       </div>
     </div>
 
+    <!-- MODAL — SESSÃO ATIVA EM OUTRO DEVICE (login) -->
+    <div class="modal-overlay" id="sessionConflictModal" style="display: none">
+      <div class="logout-modal-wrap" onclick="event.stopPropagation()">
+        <div class="logout-modal-icon-wrap">
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <rect x="2" y="6" width="20" height="12" rx="2" />
+            <line x1="6" y1="18" x2="6" y2="22" />
+            <line x1="18" y1="18" x2="18" y2="22" />
+            <line x1="2" y1="22" x2="22" y2="22" />
+          </svg>
+        </div>
+        <h2 class="logout-modal-title">Sessão ativa em outro dispositivo</h2>
+        <p class="logout-modal-desc">
+          Sua conta já está conectada em
+          <strong id="sessionConflictDevice">outro dispositivo</strong>.
+          Continuar aqui vai desconectar a outra sessão automaticamente.
+        </p>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" onclick="cancelSessionConflict()">
+            Cancelar
+          </button>
+          <button class="logout-btn-confirm logout-btn-confirm--gold" onclick="confirmSessionConflict()">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Continuar aqui
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL — SESSÃO ENCERRADA (este device foi despejado por outro login) -->
+    <div class="modal-overlay" id="sessionEvictedModal" style="display: none">
+      <div class="logout-modal-wrap" onclick="event.stopPropagation()">
+        <div class="logout-modal-icon-wrap logout-modal-icon-wrap--warning">
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+        <h2 class="logout-modal-title">Sessão encerrada</h2>
+        <p class="logout-modal-desc">
+          Você foi desconectado porque um login foi feito em outro
+          dispositivo (<strong id="sessionEvictedDevice">outro dispositivo</strong>).
+          Por segurança, a sessão atual foi encerrada.
+        </p>
+        <div class="logout-modal-actions">
+          <button
+            class="logout-btn-confirm logout-btn-confirm--gold"
+            onclick="acknowledgeSessionEvicted()"
+            style="margin-left: auto"
+          >
+            Entendi
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL LOGOUT -->
     <div class="modal-overlay" id="logoutModal" style="display: none">
       <div class="logout-modal-wrap" onclick="event.stopPropagation()">
@@ -3119,52 +3201,52 @@
     ></script>
 
     <!-- Constantes globais -->
-    <script src="js/config.js?v=20260507a"></script>
+    <script src="js/config.js?v=20260507b"></script>
 
     <!-- i18n (deve vir antes dos demais para t() estar disponível) -->
-    <script src="js/i18n/strings.js?v=20260507a"></script>
-    <script src="js/i18n/i18n.js?v=20260507a"></script>
+    <script src="js/i18n/strings.js?v=20260507b"></script>
+    <script src="js/i18n/i18n.js?v=20260507b"></script>
 
     <!-- Utilitários -->
-    <script src="js/utils/helpers.js?v=20260507a"></script>
-    <script src="js/utils/format.js?v=20260507a"></script>
-    <script src="js/utils/tooltip.js?v=20260507a"></script>
-    <script src="js/utils/a11y.js?v=20260507a"></script>
-    <script src="js/utils/shortcuts.js?v=20260507a"></script>
-    <script src="js/utils/theme.js?v=20260507a"></script>
-    <script src="js/utils/onboarding.js?v=20260507a"></script>
-    <script src="js/utils/form-persist.js?v=20260507a"></script>
+    <script src="js/utils/helpers.js?v=20260507b"></script>
+    <script src="js/utils/format.js?v=20260507b"></script>
+    <script src="js/utils/tooltip.js?v=20260507b"></script>
+    <script src="js/utils/a11y.js?v=20260507b"></script>
+    <script src="js/utils/shortcuts.js?v=20260507b"></script>
+    <script src="js/utils/theme.js?v=20260507b"></script>
+    <script src="js/utils/onboarding.js?v=20260507b"></script>
+    <script src="js/utils/form-persist.js?v=20260507b"></script>
 
     <!-- Domínio -->
-    <script src="js/domain/financeiro.js?v=20260507a"></script>
+    <script src="js/domain/financeiro.js?v=20260507b"></script>
 
     <!-- Componentes -->
-    <script src="js/components/picklist.js?v=20260507a"></script>
-    <script src="js/components/igreja-dropdown.js?v=20260507a"></script>
-    <script src="js/components/alunos-manager.js?v=20260507a"></script>
+    <script src="js/components/picklist.js?v=20260507b"></script>
+    <script src="js/components/igreja-dropdown.js?v=20260507b"></script>
+    <script src="js/components/alunos-manager.js?v=20260507b"></script>
 
     <!-- Core -->
-    <script src="js/core/modal.js?v=20260507a"></script>
-    <script src="js/core/firebase.js?v=20260507a"></script>
+    <script src="js/core/modal.js?v=20260507b"></script>
+    <script src="js/core/firebase.js?v=20260507b"></script>
 
     <!-- OCR -->
-    <script src="js/ocr/entradas.js?v=20260507a"></script>
-    <script src="js/ocr/saidas.js?v=20260507a"></script>
+    <script src="js/ocr/entradas.js?v=20260507b"></script>
+    <script src="js/ocr/saidas.js?v=20260507b"></script>
 
     <!-- Pages -->
-    <script src="js/pages/login.js?v=20260507a"></script>
-    <script src="js/pages/entradas.js?v=20260507a"></script>
-    <script src="js/pages/saidas.js?v=20260507a"></script>
-    <script src="js/pages/relatorios.js?v=20260507a"></script>
-    <script src="js/pages/tesouraria.js?v=20260507a"></script>
-    <script src="js/pages/dashboard.js?v=20260507a"></script>
-    <script src="js/pages/auditoria.js?v=20260507a"></script>
-    <script src="js/pages/backup.js?v=20260507a"></script>
+    <script src="js/pages/login.js?v=20260507b"></script>
+    <script src="js/pages/entradas.js?v=20260507b"></script>
+    <script src="js/pages/saidas.js?v=20260507b"></script>
+    <script src="js/pages/relatorios.js?v=20260507b"></script>
+    <script src="js/pages/tesouraria.js?v=20260507b"></script>
+    <script src="js/pages/dashboard.js?v=20260507b"></script>
+    <script src="js/pages/auditoria.js?v=20260507b"></script>
+    <script src="js/pages/backup.js?v=20260507b"></script>
 
     <!-- Navegação (depende das pages) -->
-    <script src="js/core/navigation.js?v=20260507a"></script>
+    <script src="js/core/navigation.js?v=20260507b"></script>
 
     <!-- Entry point -->
-    <script src="js/main.js?v=20260507a"></script>
+    <script src="js/main.js?v=20260507b"></script>
   </body>
 </html>

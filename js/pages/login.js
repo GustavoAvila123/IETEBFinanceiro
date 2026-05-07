@@ -389,10 +389,8 @@ class LoginPage {
         </form>
         <div class="ls-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Todos os direitos reservados</div>
         <div class="ls-loading" id="lsLoading" aria-hidden="true">
-          <div class="ls-loading-spinner">
-            <div class="ls-loading-ring ls-loading-ring--1"></div>
-            <div class="ls-loading-ring ls-loading-ring--2"></div>
-            <div class="ls-loading-ring ls-loading-ring--3"></div>
+          <div class="ls-loading-coin">
+            <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" />
           </div>
           <div class="ls-loading-text">
             Autenticando<span class="ls-loading-dots"><span>.</span><span>.</span><span>.</span></span>

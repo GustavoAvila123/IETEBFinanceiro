@@ -4447,57 +4447,60 @@ body:has(#loginScreen) {
   pointer-events: auto;
 }
 
-.ls-loading-spinner {
-  position: relative;
-  width: 90px;
-  height: 90px;
-}
-
-.ls-loading-ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  border-radius: 50%;
-  border: 2px solid transparent;
+/* Logo IETEB como moeda 3D — gira no eixo Y (efeito "moeda no ar")
+   com leve flutuação vertical. Halo dourado intenso reforça a vibe
+   premium, especialmente no momento da edge-on (90°/270°) onde o
+   próprio logo fica invisível e só o glow permanece. */
+.ls-loading-coin {
+  width: 88px;
+  height: 88px;
+  perspective: 800px;
+  margin-bottom: 4px;
+  animation: lsCoinFloat 3.2s ease-in-out infinite;
   will-change: transform;
 }
 
-/* Anel externo: maior, gira devagar (2.4s), gold sólido no topo + soft no lado */
-.ls-loading-ring--1 {
-  width: 90px;
-  height: 90px;
-  margin: -45px 0 0 -45px;
-  border-top-color: var(--gold);
-  border-right-color: rgba(212, 175, 55, 0.35);
-  animation: lsLoadingRot 2.4s linear infinite;
+.ls-loading-coin img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2.5px solid rgba(212, 175, 55, 0.7);
   box-shadow:
-    0 0 24px rgba(212, 175, 55, 0.18),
-    inset 0 0 12px rgba(212, 175, 55, 0.08);
+    0 0 18px rgba(212, 175, 55, 0.55),
+    0 0 36px rgba(212, 175, 55, 0.3),
+    inset 0 0 10px rgba(212, 175, 55, 0.18);
+  /* backface-visibility:hidden evita "imagem espelhada" quando vira a costas
+     — o usuário só vê o logo de frente, edge-on, e depois logo de novo. */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  animation: lsCoinSpin 2.6s ease-in-out infinite;
+  will-change: transform;
 }
 
-/* Anel médio: gira em sentido oposto, mais rápido (1.8s) */
-.ls-loading-ring--2 {
-  width: 64px;
-  height: 64px;
-  margin: -32px 0 0 -32px;
-  border-top-color: #f4d36a;
-  border-left-color: rgba(244, 211, 106, 0.3);
-  animation: lsLoadingRot 1.8s linear infinite reverse;
+/* Rotação 3D contínua no eixo Y (vertical) — "girando para lá e para cá"
+   é a sensação natural quando o eixo de rotação é vertical: a moeda
+   parece sair de frente, virar pro lado, sumir na borda, virar pro
+   outro lado, voltar de frente. */
+@keyframes lsCoinSpin {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
 }
 
-/* Anel interno: pequeno, brilhoso, gira rápido (1.2s) */
-.ls-loading-ring--3 {
-  width: 38px;
-  height: 38px;
-  margin: -19px 0 0 -19px;
-  border-top-color: #fff3b8;
-  animation: lsLoadingRot 1.2s linear infinite;
-  box-shadow: 0 0 14px rgba(255, 243, 184, 0.55);
-}
-
-@keyframes lsLoadingRot {
-  to {
-    transform: rotate(360deg);
+/* Flutuação vertical sutil — adiciona "vida" e separa visualmente a
+   moeda do texto abaixo. */
+@keyframes lsCoinFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
   }
 }
 
@@ -4545,7 +4548,8 @@ body:has(#loginScreen) {
 
 /* Acessibilidade: sem animação se o usuário pediu */
 @media (prefers-reduced-motion: reduce) {
-  .ls-loading-ring,
+  .ls-loading-coin,
+  .ls-loading-coin img,
   .ls-loading-dots span {
     animation: none !important;
   }

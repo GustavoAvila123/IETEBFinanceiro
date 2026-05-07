@@ -456,14 +456,18 @@ test.describe('Regressão #13 — Tela de login mobile sem scroll', () => {
 });
 
 test.describe('Regressão #14 — Tela de login tem loading premium ao entrar', () => {
-  test('overlay #lsLoading existe no DOM com 3 anéis e texto', async ({ page }) => {
+  test('overlay #lsLoading existe no DOM com moeda IETEB 3D e texto', async ({ page }) => {
     await page.goto('/');
     const overlay = page.locator('#lsLoading');
     expect(await overlay.count()).toBe(1);
 
-    // 3 anéis dourados
-    const rings = await page.locator('#lsLoading .ls-loading-ring').count();
-    expect(rings).toBe(3);
+    // Moeda 3D = container .ls-loading-coin com <img> do logo IETEB
+    const coinContainer = await page.locator('#lsLoading .ls-loading-coin').count();
+    expect(coinContainer).toBe(1);
+    const coinImg = page.locator('#lsLoading .ls-loading-coin img');
+    expect(await coinImg.count()).toBe(1);
+    const src = await coinImg.getAttribute('src');
+    expect(src).toMatch(/logo-ieteb/i);
 
     // Texto "Autenticando" + 3 dots — usa textContent porque innerText
     // retorna vazio em elemento com display:none (overlay default).

@@ -486,12 +486,10 @@ class LoginPage {
 
       this._populateLocalSession(profile);
 
-      // CRÍTICO: aguarda gravação no Firestore COMPLETAR antes do reload.
-      // Se usássemos Promise.race com timeout curto, o reload poderia
-      // acontecer com o Firestore ainda tendo o sessionId ANTIGO de outro
-      // device. Aí o boot pós-reload veria mismatch (Caso 2) e evictaria
-      // o usuário que acabou de logar. Timeout estendido pra 12s pra
-      // tolerar redes lentas (3G).
+      // Salva a sessão com sessionId no Firestore. Tenta verificar
+      // que a gravação realmente "pegou" antes do reload — se não pegou
+      // em 8s, prossegue mesmo assim pra não bloquear o login. Isso
+      // tolera redes lentas SEM abortar o usuário.
       try {
         await Promise.race([
           window._firebase.saveSession(
@@ -502,25 +500,25 @@ class LoginPage {
             },
             sessionId
           ),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('save-timeout')), 12000)
-          ),
+          new Promise((r) => setTimeout(r, 8000)),
         ]);
-      } catch (e) {
-        // Se realmente travou >12s, abortamos o login pra não cair
-        // em estado inconsistente. Usuário tenta de novo quando tiver rede.
-        console.error('[login] saveSession falhou:', e);
-        clearSessionId();
-        try {
-          await window._firebase.signOut();
-        } catch (_) {}
-        await ensureMinElapsed();
-        hideLoading();
-        errEl.textContent =
-          'Não foi possível salvar a sessão. Verifique sua conexão e tente novamente.';
-        if (btn) btn.disabled = false;
-        return;
-      }
+      } catch (_) {}
+
+      // Verifica que o sessionId remoto foi atualizado pra evitar a
+      // race em que reload acontece antes da gravação completar.
+      // Se ainda não bateu, espera mais 2s e tenta de novo (best effort).
+      try {
+        let attempts = 0;
+        while (attempts < 2) {
+          const snap = await window._firebase._db
+            .collection('Sessoes')
+            .doc(profile.legacyId)
+            .get();
+          if (snap.exists && snap.data().sessionId === sessionId) break;
+          attempts++;
+          await new Promise((r) => setTimeout(r, 1500));
+        }
+      } catch (_) {}
 
       this._startHeartbeat(profile.legacyId);
 

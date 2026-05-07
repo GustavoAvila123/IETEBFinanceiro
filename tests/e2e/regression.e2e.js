@@ -465,8 +465,11 @@ test.describe('Regressão #14 — Tela de login tem loading premium ao entrar', 
     const rings = await page.locator('#lsLoading .ls-loading-ring').count();
     expect(rings).toBe(3);
 
-    // Texto "Autenticando" + 3 dots
-    const text = await page.locator('#lsLoading .ls-loading-text').innerText();
+    // Texto "Autenticando" + 3 dots — usa textContent porque innerText
+    // retorna vazio em elemento com display:none (overlay default).
+    const text = await page.locator('#lsLoading .ls-loading-text').evaluate(
+      (el) => el.textContent || ''
+    );
     expect(text.toLowerCase()).toContain('autenticando');
   });
 });
@@ -680,10 +683,14 @@ test.describe('Regressão #20 — Single-device: visibilitychange revalida sess�
 
 test.describe('Regressão #21 — Navigation sempre faz scroll-to-top', () => {
   test('showPage rola scroll pra 0 mesmo após page scrollada', async ({ page }) => {
-    // Adiciona altura artificial pra criar scroll possível
     await page.goto('/');
     await page.evaluate(() => {
-      // Torna a Home longa o suficiente pra scroll
+      // Remove o #loginScreen — sem isso, o seletor :has() em body
+      // mantém overflow:hidden e window.scrollTo não rola.
+      const ls = document.getElementById('loginScreen');
+      if (ls) ls.remove();
+
+      // Torna a Home longa o suficiente pra scroll real acontecer
       const home = document.getElementById('pageHome');
       if (home) {
         home.classList.remove('page-content--hidden');
@@ -1073,16 +1080,18 @@ test.describe('Regressão #26 — Service Worker CACHE_VERSION atualizado', () =
   // com SW velho continuam servindo código antigo mesmo após deploy
   // (foi o que causou "logou no desktop, não loga no mobile").
 
-  test('CACHE_VERSION é v6 ou superior, com data 2026-05-07 ou superior', async ({ page }) => {
-    const swText = await page.evaluate(async () => {
-      try {
-        const r = await fetch('/sw.js');
-        return r.ok ? await r.text() : null;
-      } catch (_) {
-        return null;
-      }
-    });
-    expect(swText).not.toBeNull();
+  test('CACHE_VERSION é v6 ou superior, com data 2026-05-07 ou superior', async ({
+    page,
+    request,
+  }) => {
+    // Usa o request fixture do Playwright (fetch direto do contexto do
+    // navegador), não fetch dentro de evaluate — alguns servers locais
+    // bloqueiam fetch SW resources via window.fetch por CSP/CORS.
+    await page.goto('/');
+    const baseURL = page.url().replace(/[#?].*$/, '').replace(/\/$/, '');
+    const r = await request.get(baseURL + '/sw.js');
+    expect(r.ok(), 'sw.js deve ser servido pelo http server').toBe(true);
+    const swText = await r.text();
     // Procura linha tipo: const CACHE_VERSION = 'ieteb-vN-YYYYMMDD'
     const match = swText.match(/CACHE_VERSION\s*=\s*['"]ieteb-v(\d+)-(\d{8})['"]/);
     expect(match, 'CACHE_VERSION com formato esperado').not.toBeNull();

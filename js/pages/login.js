@@ -451,8 +451,14 @@ class LoginPage {
     showLoading();
     if (btn) btn.disabled = true;
     try {
+      console.info('[login] iniciando signIn pra', user);
       if (!window._firebase) throw new Error('firebase-indisponivel');
       const profile = await window._firebase.signIn(user, pass);
+      console.info('[login] signIn OK. profile=', {
+        legacyId: profile.legacyId,
+        name: profile.name,
+        role: profile.role,
+      });
 
       // Antes de finalizar o login, verifica se já existe sessão ativa
       // em outro device. Se houver, pede confirmação pra "tomar" a sessão
@@ -460,7 +466,10 @@ class LoginPage {
       let activeSession = null;
       try {
         activeSession = await window._firebase.checkActiveSession(profile.legacyId);
-      } catch (_) {}
+        console.info('[login] checkActiveSession =', activeSession);
+      } catch (e) {
+        console.warn('[login] checkActiveSession falhou:', e);
+      }
 
       if (activeSession) {
         hideLoading();
@@ -483,6 +492,7 @@ class LoginPage {
       // e auto-deslogar via listener.
       const sessionId = window._firebase._generateSessionId();
       setSessionId(sessionId);
+      console.info('[login] sessionId gerado:', sessionId);
 
       this._populateLocalSession(profile);
 
@@ -502,6 +512,7 @@ class LoginPage {
           ),
           new Promise((r) => setTimeout(r, 10000)),
         ]);
+        console.info('[login] saveSession completou');
       } catch (e) {
         console.warn('[login] saveSession problem (proceeding anyway):', e);
       }

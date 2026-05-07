@@ -47,12 +47,12 @@
       rel="stylesheet"
       referrerpolicy="no-referrer"
     />
-    <link rel="stylesheet" href="lancamento.css?v=20260506l" />
+    <link rel="stylesheet" href="lancamento.css?v=20260507a" />
     <!-- CSS modular extraído (admin pages, onboarding, utils) — carrega
          em paralelo após o principal. Ver MIGRATION.md item #5 do roadmap. -->
-    <link rel="stylesheet" href="css/admin.css?v=20260506l" />
-    <link rel="stylesheet" href="css/onboarding.css?v=20260506l" />
-    <link rel="stylesheet" href="css/utils.css?v=20260506l" />
+    <link rel="stylesheet" href="css/admin.css?v=20260507a" />
+    <link rel="stylesheet" href="css/onboarding.css?v=20260507a" />
+    <link rel="stylesheet" href="css/utils.css?v=20260507a" />
     <!-- Anti-FOUC: aplica o tema ANTES do CSS render. Sem isso, o user
          em dark mode veria flash branco enquanto o JS tradicional
          carrega. Roda sincronamente, lê localStorage e seta data-theme. -->
@@ -1218,8 +1218,11 @@
                     id="dataDeposito"
                     placeholder="DD/MM/AAAA"
                     maxlength="10"
+                    inputmode="numeric"
+                    pattern="[0-9/]*"
                     oninput="onDateInput(this)"
                     onblur="onDateBlur(this)"
+                    onfocus="this.select()"
                   />
                   <span class="field-error" id="dataError"></span>
                 </div>
@@ -1655,8 +1658,11 @@
                     id="saidaData"
                     placeholder="DD/MM/AAAA"
                     maxlength="10"
+                    inputmode="numeric"
+                    pattern="[0-9/]*"
                     oninput="onDateInput(this)"
                     onblur="onDateBlur(this)"
+                    onfocus="this.select()"
                   />
                   <span class="field-error" id="saidaDataError"></span>
                 </div>
@@ -1801,8 +1807,11 @@
               id="filtroDataDe"
               placeholder="DD/MM/AAAA"
               maxlength="10"
+              inputmode="numeric"
+              pattern="[0-9/]*"
               oninput="onDateInput(this)"
               onblur="onDateBlur(this, 'onFiltroDeChange', true)"
+              onfocus="this.select()"
             />
           </div>
           <div class="filter-group">
@@ -1813,8 +1822,11 @@
               id="filtroDataAte"
               placeholder="DD/MM/AAAA"
               maxlength="10"
+              inputmode="numeric"
+              pattern="[0-9/]*"
               oninput="onDateInput(this)"
               onblur="onDateBlur(this, 'onFiltroAteChange', true)"
+              onfocus="this.select()"
             />
           </div>
           <div class="filter-group" id="filtroAlunoGrupo">
@@ -1878,20 +1890,35 @@
               <option value="Dinheiro">Dinheiro</option>
             </select>
           </div>
-          <button class="btn-ghost" onclick="limparFiltros()">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <polyline points="1 4 1 10 7 10" />
-              <path d="M3.51 15a9 9 0 1 0 .49-3.96" />
-            </svg>
-            Limpar filtros
-          </button>
+          <div class="filter-actions">
+            <button class="btn-primary btn-filter" onclick="aplicarFiltros()">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              </svg>
+              Filtrar
+            </button>
+            <button class="btn-ghost" onclick="limparFiltros()">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 .49-3.96" />
+              </svg>
+              Limpar filtros
+            </button>
+          </div>
         </div>
 
         <!-- AÇÕES DE EXPORTAÇÃO -->
@@ -2040,8 +2067,11 @@
                 id="caixaDiaFiltroDE"
                 placeholder="DD/MM/AAAA"
                 maxlength="10"
+                inputmode="numeric"
+                pattern="[0-9/]*"
                 oninput="onDateInput(this)"
                 onblur="onDateBlur(this, 'onCaixaFiltroDeBlur', true)"
+                onfocus="this.select()"
               />
             </div>
             <div class="filter-group" style="margin: 0">
@@ -2052,8 +2082,11 @@
                 id="caixaDiaFiltroATE"
                 placeholder="DD/MM/AAAA"
                 maxlength="10"
+                inputmode="numeric"
+                pattern="[0-9/]*"
                 oninput="onDateInput(this)"
                 onblur="onDateBlur(this, 'onCaixaFiltroAteBlur', true)"
+                onfocus="this.select()"
               />
             </div>
             <div class="caixa-day-filter-actions">
@@ -2275,8 +2308,11 @@
                 id="dashDiaFiltroDE"
                 placeholder="DD/MM/AAAA"
                 maxlength="10"
+                inputmode="numeric"
+                pattern="[0-9/]*"
                 oninput="onDateInput(this)"
                 onblur="onDateBlur(this, 'onDashFiltroDeBlur', true)"
+                onfocus="this.select()"
               />
             </div>
             <div class="filter-group" style="margin: 0">
@@ -2287,8 +2323,11 @@
                 id="dashDiaFiltroATE"
                 placeholder="DD/MM/AAAA"
                 maxlength="10"
+                inputmode="numeric"
+                pattern="[0-9/]*"
                 oninput="onDateInput(this)"
                 onblur="onDateBlur(this, 'onDashFiltroAteBlur', true)"
+                onfocus="this.select()"
               />
             </div>
             <div class="caixa-day-filter-actions">
@@ -3080,52 +3119,52 @@
     ></script>
 
     <!-- Constantes globais -->
-    <script src="js/config.js?v=20260506l"></script>
+    <script src="js/config.js?v=20260507a"></script>
 
     <!-- i18n (deve vir antes dos demais para t() estar disponível) -->
-    <script src="js/i18n/strings.js?v=20260506l"></script>
-    <script src="js/i18n/i18n.js?v=20260506l"></script>
+    <script src="js/i18n/strings.js?v=20260507a"></script>
+    <script src="js/i18n/i18n.js?v=20260507a"></script>
 
     <!-- Utilitários -->
-    <script src="js/utils/helpers.js?v=20260506l"></script>
-    <script src="js/utils/format.js?v=20260506l"></script>
-    <script src="js/utils/tooltip.js?v=20260506l"></script>
-    <script src="js/utils/a11y.js?v=20260506l"></script>
-    <script src="js/utils/shortcuts.js?v=20260506l"></script>
-    <script src="js/utils/theme.js?v=20260506l"></script>
-    <script src="js/utils/onboarding.js?v=20260506l"></script>
-    <script src="js/utils/form-persist.js?v=20260506l"></script>
+    <script src="js/utils/helpers.js?v=20260507a"></script>
+    <script src="js/utils/format.js?v=20260507a"></script>
+    <script src="js/utils/tooltip.js?v=20260507a"></script>
+    <script src="js/utils/a11y.js?v=20260507a"></script>
+    <script src="js/utils/shortcuts.js?v=20260507a"></script>
+    <script src="js/utils/theme.js?v=20260507a"></script>
+    <script src="js/utils/onboarding.js?v=20260507a"></script>
+    <script src="js/utils/form-persist.js?v=20260507a"></script>
 
     <!-- Domínio -->
-    <script src="js/domain/financeiro.js?v=20260506l"></script>
+    <script src="js/domain/financeiro.js?v=20260507a"></script>
 
     <!-- Componentes -->
-    <script src="js/components/picklist.js?v=20260506l"></script>
-    <script src="js/components/igreja-dropdown.js?v=20260506l"></script>
-    <script src="js/components/alunos-manager.js?v=20260506l"></script>
+    <script src="js/components/picklist.js?v=20260507a"></script>
+    <script src="js/components/igreja-dropdown.js?v=20260507a"></script>
+    <script src="js/components/alunos-manager.js?v=20260507a"></script>
 
     <!-- Core -->
-    <script src="js/core/modal.js?v=20260506l"></script>
-    <script src="js/core/firebase.js?v=20260506l"></script>
+    <script src="js/core/modal.js?v=20260507a"></script>
+    <script src="js/core/firebase.js?v=20260507a"></script>
 
     <!-- OCR -->
-    <script src="js/ocr/entradas.js?v=20260506l"></script>
-    <script src="js/ocr/saidas.js?v=20260506l"></script>
+    <script src="js/ocr/entradas.js?v=20260507a"></script>
+    <script src="js/ocr/saidas.js?v=20260507a"></script>
 
     <!-- Pages -->
-    <script src="js/pages/login.js?v=20260506l"></script>
-    <script src="js/pages/entradas.js?v=20260506l"></script>
-    <script src="js/pages/saidas.js?v=20260506l"></script>
-    <script src="js/pages/relatorios.js?v=20260506l"></script>
-    <script src="js/pages/tesouraria.js?v=20260506l"></script>
-    <script src="js/pages/dashboard.js?v=20260506l"></script>
-    <script src="js/pages/auditoria.js?v=20260506l"></script>
-    <script src="js/pages/backup.js?v=20260506l"></script>
+    <script src="js/pages/login.js?v=20260507a"></script>
+    <script src="js/pages/entradas.js?v=20260507a"></script>
+    <script src="js/pages/saidas.js?v=20260507a"></script>
+    <script src="js/pages/relatorios.js?v=20260507a"></script>
+    <script src="js/pages/tesouraria.js?v=20260507a"></script>
+    <script src="js/pages/dashboard.js?v=20260507a"></script>
+    <script src="js/pages/auditoria.js?v=20260507a"></script>
+    <script src="js/pages/backup.js?v=20260507a"></script>
 
     <!-- Navegação (depende das pages) -->
-    <script src="js/core/navigation.js?v=20260506l"></script>
+    <script src="js/core/navigation.js?v=20260507a"></script>
 
     <!-- Entry point -->
-    <script src="js/main.js?v=20260506l"></script>
+    <script src="js/main.js?v=20260507a"></script>
   </body>
 </html>

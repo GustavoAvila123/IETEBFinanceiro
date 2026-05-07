@@ -238,9 +238,16 @@ class RelatorioPage {
 
   limparFiltros() {
     const { de, ate } = this._monthRange();
+    // Dispara input+change em cada campo pra que o PickList (e qualquer
+    // outro listener) sincronize. Sem o dispatch, value programático é
+    // silencioso e o trigger do PickList continua mostrando o filtro
+    // anterior — bug "limpar filtros não funciona".
     const setVal = (id, v) => {
       const el = document.getElementById(id);
-      if (el) el.value = v;
+      if (!el) return;
+      el.value = v;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
     };
     setVal('filtroDataDe', isoToDateInput(de));
     setVal('filtroDataAte', isoToDateInput(ate));

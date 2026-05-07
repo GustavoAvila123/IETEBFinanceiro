@@ -1700,11 +1700,49 @@ html[data-theme='dark'] .theme-icon-moon {
   overflow: visible; /* dropdown do combobox precisa "vazar" */
 }
 
-/* O botão "Limpar filtros" ocupa a célula final do grid e alinha à direita */
-.report-filters .btn-ghost {
+/* Wrapper dos 2 botões de ação dos filtros (Filtrar + Limpar).
+   Ocupa a última célula do grid e alinha o conteúdo à direita. */
+.report-filters .filter-actions {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 10px;
   align-self: end;
-  justify-self: end;
+}
+
+.report-filters .btn-ghost,
+.report-filters .btn-filter {
   height: 42px;
+  white-space: nowrap;
+}
+
+/* Botão "Filtrar" gold primário no contexto do filtro de relatórios */
+.report-filters .btn-filter {
+  padding: 0 18px;
+  background: linear-gradient(135deg, var(--gold) 0%, #b8971e 100%);
+  color: #050d27;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+  font-weight: 700;
+}
+
+.report-filters .btn-filter:hover {
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+  transform: translateY(-1px);
+}
+
+/* Mobile: ações ocupam linha cheia, botões com flex-1 pra ficarem
+   bem distribuídos (Filtrar prominente à esquerda, Limpar à direita). */
+@media (max-width: 768px) {
+  .report-filters .filter-actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+    flex-wrap: wrap;
+  }
+  .report-filters .filter-actions .btn-filter,
+  .report-filters .filter-actions .btn-ghost {
+    flex: 1 1 0;
+    justify-content: center;
+  }
 }
 
 .report-filters::before {
@@ -4897,11 +4935,13 @@ body:has(#loginScreen) {
   color: var(--gold);
 }
 
-/* Em mobile/tablet/iPad o tema some do sidebar — usuário usa o
-   #themeToggleBtn que já existe no .topbar. Esta regra precisa
-   estar DEPOIS da definição base "display: flex" (linha 4562)
-   pra vencer por ordem. */
-@media (max-width: 1024px) {
+/* Em mobile o tema some do sidebar — usuário usa o #themeToggleBtn
+   que já existe no .topbar (visível só em ≤768px).
+   Em tablet/iPad (769–1024px) o sidebar É visível e a topbar NÃO,
+   então o tema PRECISA aparecer no sidebar pra ser acessível.
+   Esta regra precisa estar DEPOIS da definição base "display: flex"
+   (linha 4562) pra vencer por ordem. */
+@media (max-width: 768px) {
   .sidebar-theme-btn {
     display: none;
   }

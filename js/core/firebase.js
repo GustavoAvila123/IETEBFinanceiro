@@ -601,6 +601,11 @@ class FirebaseManager {
   }
 
   // Reconecta silenciosamente (sem overlay) ao voltar ao foco.
+  // IMPORTANTE: o primeiro snapshot da nova subscription pode trazer
+  // dados criados em OUTROS devices enquanto este estava em background.
+  // Sem chamar _onDataUpdate no first-fire, a página ativa não sabe que
+  // tem dado novo e fica desatualizada — bug de "lançou no celular não
+  // aparece no desktop". Corrigido notificando explicitamente.
   silentRefresh() {
     if (!this._db) return;
     if (this._unsubEnt) {
@@ -611,8 +616,11 @@ class FirebaseManager {
       this._unsubSai();
       this._unsubSai = null;
     }
-    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', () => {});
-    this._unsubSai = this._subscribe('Saidas', 'ieteb_saidas', () => {});
+    const notifyActivePage = () => {
+      if (this._onDataUpdate) this._onDataUpdate();
+    };
+    this._unsubEnt = this._subscribe('Entradas', 'ieteb_lancamentos', notifyActivePage);
+    this._unsubSai = this._subscribe('Saidas', 'ieteb_saidas', notifyActivePage);
   }
 
   // Reconecta os listeners para buscar dados frescos do servidor.

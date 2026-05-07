@@ -402,9 +402,17 @@ class FirebaseManager {
   }
 
   // Assina onSnapshot; chama onFirst(ok, docs) na primeira entrega.
+  // Pra testers, aplica .where('userId', '==', legacyId) automaticamente
+  // — sem isso, o Firestore rejeita a subscription da collection inteira
+  // porque rules só permitem ler docs próprios (não Avila/Jader).
   _subscribe(colName, localKey, onFirst) {
     let firstFired = false;
-    return this._db.collection(colName).onSnapshot(
+    let query = this._db.collection(colName);
+    const cu = this._currentUser;
+    if (cu && cu.role !== 'admin' && cu.legacyId) {
+      query = query.where('userId', '==', cu.legacyId);
+    }
+    return query.onSnapshot(
       (snap) => {
         try {
           this._mergeAndStore(localKey, snap.docs);
@@ -583,6 +591,13 @@ class FirebaseManager {
   //
   // Se sessionId for passado, sobrescreve o sessionId no doc — usado pra
   // forçar single-device login. Se não passar, mantém o existente.
+  //
+  // CRÍTICO: filtra valores undefined antes de passar pra Firestore.
+  // Se o doc /Users/{uid} estiver incompleto (faltando name ou role),
+  // user.name ou user.role podem vir undefined. Firestore REJEITA
+  // updates com undefined ("Function DocumentReference.update() called
+  // with invalid data. Unsupported field value: undefined"). Filtrar
+  // converte undefined em string vazia, que Firestore aceita.
   async saveSession(user, sessionId) {
     if (!this._db || !user || !user.id) return;
     try {
@@ -591,12 +606,16 @@ class FirebaseManager {
       const now = Date.now();
       const iso = new Date(now).toISOString();
       const device = this._detectDevice();
+      // Defensivo: name/role podem ser undefined se /Users doc estiver
+      // incompleto. Empty string é aceitável pelo Firestore.
+      const safeName = typeof user.name === 'string' ? user.name : '';
+      const safeRole = typeof user.role === 'string' ? user.role : '';
 
       if (!snap.exists) {
         await ref.set({
           userId: user.id,
-          name: user.name,
-          role: user.role,
+          name: safeName,
+          role: safeRole,
           loginAt: iso,
           loginAtMs: now,
           lastSeen: iso,
@@ -612,8 +631,8 @@ class FirebaseManager {
       const data = snap.data();
       const updates = {
         userId: user.id,
-        name: user.name,
-        role: user.role,
+        name: safeName,
+        role: safeRole,
         lastSeen: iso,
         active: true,
       };
@@ -630,7 +649,11 @@ class FirebaseManager {
         updates.currentSessionMs = 0;
       }
       await ref.update(updates);
-    } catch (_) {}
+    } catch (e) {
+      // Loga pra debug em vez de silenciar 100% — ajuda a diagnosticar
+      // problemas de rules / network sem precisar inspecionar SDK interno.
+      console.warn('[firebase] saveSession falhou:', e && e.message);
+    }
   }
 
   async clearSession(userId) {

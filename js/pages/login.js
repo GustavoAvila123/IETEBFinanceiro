@@ -390,7 +390,14 @@ class LoginPage {
         <div class="ls-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Todos os direitos reservados</div>
         <div class="ls-loading" id="lsLoading" aria-hidden="true">
           <div class="ls-loading-coin">
-            <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" />
+            <div class="ls-coin-halo"></div>
+            <div class="ls-coin-sonar ls-coin-sonar--1"></div>
+            <div class="ls-coin-sonar ls-coin-sonar--2"></div>
+            <div class="ls-coin-sonar ls-coin-sonar--3"></div>
+            <div class="ls-coin-orbit ls-coin-orbit--1"></div>
+            <div class="ls-coin-orbit ls-coin-orbit--2"></div>
+            <div class="ls-coin-orbit ls-coin-orbit--3"></div>
+            <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="ls-coin-logo" />
           </div>
           <div class="ls-loading-text">
             Autenticando<span class="ls-loading-dots"><span>.</span><span>.</span><span>.</span></span>

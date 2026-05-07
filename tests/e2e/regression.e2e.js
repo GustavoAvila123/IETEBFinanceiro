@@ -456,18 +456,30 @@ test.describe('Regressão #13 — Tela de login mobile sem scroll', () => {
 });
 
 test.describe('Regressão #14 — Tela de login tem loading premium ao entrar', () => {
-  test('overlay #lsLoading existe no DOM com moeda IETEB 3D e texto', async ({ page }) => {
+  test('overlay #lsLoading existe com mandala IETEB (logo + halo + sonar + 3 órbitas)', async ({
+    page,
+  }) => {
     await page.goto('/');
     const overlay = page.locator('#lsLoading');
     expect(await overlay.count()).toBe(1);
 
-    // Moeda 3D = container .ls-loading-coin com <img> do logo IETEB
-    const coinContainer = await page.locator('#lsLoading .ls-loading-coin').count();
-    expect(coinContainer).toBe(1);
-    const coinImg = page.locator('#lsLoading .ls-loading-coin img');
+    // Mandala = container .ls-loading-coin
+    expect(await page.locator('#lsLoading .ls-loading-coin').count()).toBe(1);
+
+    // Logo IETEB no centro (.ls-coin-logo)
+    const coinImg = page.locator('#lsLoading .ls-coin-logo');
     expect(await coinImg.count()).toBe(1);
     const src = await coinImg.getAttribute('src');
     expect(src).toMatch(/logo-ieteb/i);
+
+    // Halo dourado pulsante
+    expect(await page.locator('#lsLoading .ls-coin-halo').count()).toBe(1);
+
+    // 3 ondas sonoras
+    expect(await page.locator('#lsLoading .ls-coin-sonar').count()).toBe(3);
+
+    // 3 órbitas 3D com partículas
+    expect(await page.locator('#lsLoading .ls-coin-orbit').count()).toBe(3);
 
     // Texto "Autenticando" + 3 dots — usa textContent porque innerText
     // retorna vazio em elemento com display:none (overlay default).

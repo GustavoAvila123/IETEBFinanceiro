@@ -47,12 +47,12 @@
       rel="stylesheet"
       referrerpolicy="no-referrer"
     />
-    <link rel="stylesheet" href="lancamento.css?v=20260507s" />
+    <link rel="stylesheet" href="lancamento.css?v=20260507t" />
     <!-- CSS modular extraído (admin pages, onboarding, utils) — carrega
          em paralelo após o principal. Ver MIGRATION.md item #5 do roadmap. -->
-    <link rel="stylesheet" href="css/admin.css?v=20260507s" />
-    <link rel="stylesheet" href="css/onboarding.css?v=20260507s" />
-    <link rel="stylesheet" href="css/utils.css?v=20260507s" />
+    <link rel="stylesheet" href="css/admin.css?v=20260507t" />
+    <link rel="stylesheet" href="css/onboarding.css?v=20260507t" />
+    <link rel="stylesheet" href="css/utils.css?v=20260507t" />
     <!-- Anti-FOUC: aplica o tema ANTES do CSS render. Sem isso, o user
          em dark mode veria flash branco enquanto o JS tradicional
          carrega. Roda sincronamente, lê localStorage e seta data-theme. -->
@@ -230,10 +230,19 @@
 
         <div class="ls-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Todos os direitos reservados</div>
 
-        <!-- Overlay de loading durante autenticação — logo IETEB como moeda 3D girando -->
+        <!-- Overlay de loading: mandala atômica IETEB — halo pulsante,
+             ondas sonoras emanando, 3 órbitas 3D com partículas, logo
+             central pulsando. Efeito surreal premium estilo sci-fi. -->
         <div class="ls-loading" id="lsLoading" aria-hidden="true">
           <div class="ls-loading-coin">
-            <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" />
+            <div class="ls-coin-halo"></div>
+            <div class="ls-coin-sonar ls-coin-sonar--1"></div>
+            <div class="ls-coin-sonar ls-coin-sonar--2"></div>
+            <div class="ls-coin-sonar ls-coin-sonar--3"></div>
+            <div class="ls-coin-orbit ls-coin-orbit--1"></div>
+            <div class="ls-coin-orbit ls-coin-orbit--2"></div>
+            <div class="ls-coin-orbit ls-coin-orbit--3"></div>
+            <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="ls-coin-logo" />
           </div>
           <div class="ls-loading-text">
             Autenticando<span class="ls-loading-dots"><span>.</span><span>.</span><span>.</span></span>
@@ -3199,52 +3208,52 @@
     ></script>
 
     <!-- Constantes globais -->
-    <script src="js/config.js?v=20260507s"></script>
+    <script src="js/config.js?v=20260507t"></script>
 
     <!-- i18n (deve vir antes dos demais para t() estar disponível) -->
-    <script src="js/i18n/strings.js?v=20260507s"></script>
-    <script src="js/i18n/i18n.js?v=20260507s"></script>
+    <script src="js/i18n/strings.js?v=20260507t"></script>
+    <script src="js/i18n/i18n.js?v=20260507t"></script>
 
     <!-- Utilitários -->
-    <script src="js/utils/helpers.js?v=20260507s"></script>
-    <script src="js/utils/format.js?v=20260507s"></script>
-    <script src="js/utils/tooltip.js?v=20260507s"></script>
-    <script src="js/utils/a11y.js?v=20260507s"></script>
-    <script src="js/utils/shortcuts.js?v=20260507s"></script>
-    <script src="js/utils/theme.js?v=20260507s"></script>
-    <script src="js/utils/onboarding.js?v=20260507s"></script>
-    <script src="js/utils/form-persist.js?v=20260507s"></script>
+    <script src="js/utils/helpers.js?v=20260507t"></script>
+    <script src="js/utils/format.js?v=20260507t"></script>
+    <script src="js/utils/tooltip.js?v=20260507t"></script>
+    <script src="js/utils/a11y.js?v=20260507t"></script>
+    <script src="js/utils/shortcuts.js?v=20260507t"></script>
+    <script src="js/utils/theme.js?v=20260507t"></script>
+    <script src="js/utils/onboarding.js?v=20260507t"></script>
+    <script src="js/utils/form-persist.js?v=20260507t"></script>
 
     <!-- Domínio -->
-    <script src="js/domain/financeiro.js?v=20260507s"></script>
+    <script src="js/domain/financeiro.js?v=20260507t"></script>
 
     <!-- Componentes -->
-    <script src="js/components/picklist.js?v=20260507s"></script>
-    <script src="js/components/igreja-dropdown.js?v=20260507s"></script>
-    <script src="js/components/alunos-manager.js?v=20260507s"></script>
+    <script src="js/components/picklist.js?v=20260507t"></script>
+    <script src="js/components/igreja-dropdown.js?v=20260507t"></script>
+    <script src="js/components/alunos-manager.js?v=20260507t"></script>
 
     <!-- Core -->
-    <script src="js/core/modal.js?v=20260507s"></script>
-    <script src="js/core/firebase.js?v=20260507s"></script>
+    <script src="js/core/modal.js?v=20260507t"></script>
+    <script src="js/core/firebase.js?v=20260507t"></script>
 
     <!-- OCR -->
-    <script src="js/ocr/entradas.js?v=20260507s"></script>
-    <script src="js/ocr/saidas.js?v=20260507s"></script>
+    <script src="js/ocr/entradas.js?v=20260507t"></script>
+    <script src="js/ocr/saidas.js?v=20260507t"></script>
 
     <!-- Pages -->
-    <script src="js/pages/login.js?v=20260507s"></script>
-    <script src="js/pages/entradas.js?v=20260507s"></script>
-    <script src="js/pages/saidas.js?v=20260507s"></script>
-    <script src="js/pages/relatorios.js?v=20260507s"></script>
-    <script src="js/pages/tesouraria.js?v=20260507s"></script>
-    <script src="js/pages/dashboard.js?v=20260507s"></script>
-    <script src="js/pages/auditoria.js?v=20260507s"></script>
-    <script src="js/pages/backup.js?v=20260507s"></script>
+    <script src="js/pages/login.js?v=20260507t"></script>
+    <script src="js/pages/entradas.js?v=20260507t"></script>
+    <script src="js/pages/saidas.js?v=20260507t"></script>
+    <script src="js/pages/relatorios.js?v=20260507t"></script>
+    <script src="js/pages/tesouraria.js?v=20260507t"></script>
+    <script src="js/pages/dashboard.js?v=20260507t"></script>
+    <script src="js/pages/auditoria.js?v=20260507t"></script>
+    <script src="js/pages/backup.js?v=20260507t"></script>
 
     <!-- Navegação (depende das pages) -->
-    <script src="js/core/navigation.js?v=20260507s"></script>
+    <script src="js/core/navigation.js?v=20260507t"></script>
 
     <!-- Entry point -->
-    <script src="js/main.js?v=20260507s"></script>
+    <script src="js/main.js?v=20260507t"></script>
   </body>
 </html>

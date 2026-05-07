@@ -236,8 +236,8 @@ class LoginPage {
         'ieteb_deleted_ids',
         'ieteb_saldo_abertura',
         'ieteb_user',
-        'ieteb_session_id',
       ].forEach((k) => localStorage.removeItem(k));
+      clearSessionId();
     } catch (_) {}
 
     // Marca para o próximo render do login screen mostrar o aviso premium.
@@ -312,8 +312,8 @@ class LoginPage {
         'ieteb_deleted_ids',
         'ieteb_saldo_abertura',
         'ieteb_user',
-        'ieteb_session_id',
       ].forEach((k) => localStorage.removeItem(k));
+      clearSessionId();
     } catch (_) {}
 
     this.modal.close('logoutModal');
@@ -477,18 +477,21 @@ class LoginPage {
       }
 
       // Gera novo sessionId (UUID) — esse é o "token" que identifica
-      // ESTA sessão. Salvamos em localStorage (persiste entre abas/reloads,
-      // só limpa em logout) e no Firestore. Outros devices que estavam
-      // logados vão ver o sessionId remoto mudar e auto-deslogar.
+      // ESTA sessão. Salvamos em localStorage E sessionStorage (helper
+      // setSessionId faz redundância pra robustez em iOS Safari Private
+      // Mode). Outros devices ativos vão ver o sessionId remoto mudar
+      // e auto-deslogar via listener.
       const sessionId = window._firebase._generateSessionId();
-      try {
-        localStorage.setItem('ieteb_session_id', sessionId);
-      } catch (_) {}
+      setSessionId(sessionId);
 
       this._populateLocalSession(profile);
 
-      // Aguarda gravação da sessão no Firestore (com timeout de 4s)
-      // antes do reload, senão em redes lentas o doc não é gravado.
+      // CRÍTICO: aguarda gravação no Firestore COMPLETAR antes do reload.
+      // Se usássemos Promise.race com timeout curto, o reload poderia
+      // acontecer com o Firestore ainda tendo o sessionId ANTIGO de outro
+      // device. Aí o boot pós-reload veria mismatch (Caso 2) e evictaria
+      // o usuário que acabou de logar. Timeout estendido pra 12s pra
+      // tolerar redes lentas (3G).
       try {
         await Promise.race([
           window._firebase.saveSession(
@@ -499,9 +502,25 @@ class LoginPage {
             },
             sessionId
           ),
-          new Promise((r) => setTimeout(r, 4000)),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('save-timeout')), 12000)
+          ),
         ]);
-      } catch (_) {}
+      } catch (e) {
+        // Se realmente travou >12s, abortamos o login pra não cair
+        // em estado inconsistente. Usuário tenta de novo quando tiver rede.
+        console.error('[login] saveSession falhou:', e);
+        clearSessionId();
+        try {
+          await window._firebase.signOut();
+        } catch (_) {}
+        await ensureMinElapsed();
+        hideLoading();
+        errEl.textContent =
+          'Não foi possível salvar a sessão. Verifique sua conexão e tente novamente.';
+        if (btn) btn.disabled = false;
+        return;
+      }
 
       this._startHeartbeat(profile.legacyId);
 

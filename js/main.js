@@ -479,10 +479,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   //             vai colocar de volta).
   try {
     const cu = getCurrentUser();
-    let localSessionId = null;
-    try {
-      localSessionId = localStorage.getItem('ieteb_session_id');
-    } catch (_) {}
+    let localSessionId = getSessionId();
 
     let remoteSessionId = null;
     if (cu && cu.id && firebase._db) {
@@ -498,9 +495,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Caso 4: migração legacy — claima
         const newSid = firebase._generateSessionId();
         localSessionId = newSid;
-        try {
-          localStorage.setItem('ieteb_session_id', newSid);
-        } catch (_) {}
+        setSessionId(newSid);
         try {
           await firebase.saveSession(
             { id: cu.id, name: cu.name, role: cu.role },
@@ -513,8 +508,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else if (localSessionId && remoteSessionId && localSessionId !== remoteSessionId) {
         // Caso 2: evictamos enquanto offline
         bootEvicted = true;
+      } else if (localSessionId && !remoteSessionId) {
+        // Caso 5: nosso sessionId existe localmente mas Firestore não
+        // tem (talvez o doc foi limpo externamente, ou heartbeat sem
+        // sessionId fez algum reset). Re-escreve pra evitar drift —
+        // sem isso, próximo login alheio veria "sem sessionId" e
+        // assumiria como sessão livre, evictando-nos depois.
+        try {
+          await firebase.saveSession(
+            { id: cu.id, name: cu.name, role: cu.role },
+            localSessionId
+          );
+        } catch (_) {}
       }
-      // Casos 1 e 5: tudo OK, segue com localSessionId existente
+      // Caso 1: tudo OK, segue com localSessionId existente
     }
 
     if (cu && cu.id && (localSessionId || bootEvicted)) {
@@ -536,8 +543,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           ['ieteb_auth', 'ieteb_user'].forEach((k) =>
             sessionStorage.removeItem(k)
           );
-          localStorage.removeItem('ieteb_session_id');
         } catch (_) {}
+        clearSessionId();
         try {
           firebase.signOut();
         } catch (_) {}

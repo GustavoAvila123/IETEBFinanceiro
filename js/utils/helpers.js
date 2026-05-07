@@ -15,6 +15,50 @@ function truncate(str, max) {
   return str.length > max ? str.slice(0, max) + '…' : str;
 }
 
+/**
+ * sessionId helpers — redundância localStorage + sessionStorage.
+ *
+ * Por que ambos?
+ * - localStorage: persiste entre abas e reloads (até logout). Bom pro
+ *   caso normal: usuário fecha tab e reabre, mantém sessão.
+ * - sessionStorage: per-tab, mas mais robusto em iOS Safari Private
+ *   Mode onde localStorage pode silenciosamente falhar (quota 0) ou
+ *   não persistir corretamente.
+ *
+ * Estratégia: sempre WRITE em ambos, READ do primeiro que tiver valor.
+ * Se um falhar, o outro ainda funciona.
+ */
+function getSessionId() {
+  try {
+    const ls = localStorage.getItem('ieteb_session_id');
+    if (ls) return ls;
+  } catch (_) {}
+  try {
+    return sessionStorage.getItem('ieteb_session_id') || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function setSessionId(sid) {
+  if (!sid) return;
+  try {
+    localStorage.setItem('ieteb_session_id', sid);
+  } catch (_) {}
+  try {
+    sessionStorage.setItem('ieteb_session_id', sid);
+  } catch (_) {}
+}
+
+function clearSessionId() {
+  try {
+    localStorage.removeItem('ieteb_session_id');
+  } catch (_) {}
+  try {
+    sessionStorage.removeItem('ieteb_session_id');
+  } catch (_) {}
+}
+
 function setInput(id, val) {
   const el = document.getElementById(id);
   if (!el) return;

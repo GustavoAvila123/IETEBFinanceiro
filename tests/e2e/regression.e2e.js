@@ -546,6 +546,165 @@ test.describe('Regressão #17 — FirebaseManager tem APIs de single-device', ()
   });
 });
 
+test.describe('Regressão #19 — iPad usa layout de celular (topbar visível, sidebar oculto)', () => {
+  test('em iPad portrait (820x1180), topbar é visível e sidebar fica oculto', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await page.goto('/');
+    const topbarVisible = await page.locator('.topbar').evaluate((el) => {
+      return getComputedStyle(el).display !== 'none';
+    });
+    expect(topbarVisible).toBe(true);
+
+    // Sidebar deve estar fora da tela (translateX -100%)
+    const sidebarTransform = await page.locator('.sidebar').evaluate((el) => {
+      return getComputedStyle(el).transform;
+    });
+    // Quando aplicado, transform vira matrix(...) — só validamos que NÃO é "none"
+    expect(sidebarTransform).not.toBe('none');
+  });
+
+  test('em iPad landscape (1024x768), topbar continua visível (igual celular)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto('/');
+    const topbarVisible = await page.locator('.topbar').evaluate((el) => {
+      return getComputedStyle(el).display !== 'none';
+    });
+    expect(topbarVisible).toBe(true);
+  });
+
+  test('em desktop (1366x800), topbar fica oculta e sidebar visível', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 800 });
+    await page.goto('/');
+    const topbarDisplay = await page.locator('.topbar').evaluate((el) => {
+      return getComputedStyle(el).display;
+    });
+    expect(topbarDisplay).toBe('none');
+
+    const sidebarTransform = await page.locator('.sidebar').evaluate((el) => {
+      return getComputedStyle(el).transform;
+    });
+    // Em desktop, sidebar fica em posição natural (transform: none)
+    expect(sidebarTransform).toBe('none');
+  });
+
+  test('em iPad, theme btn está no topbar (não no sidebar)', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto('/');
+    // topbar theme btn visível
+    const topbarThemeVisible = await page.locator('#themeToggleBtn').evaluate((el) => {
+      return getComputedStyle(el).display !== 'none';
+    });
+    expect(topbarThemeVisible).toBe(true);
+
+    // sidebar theme btn escondido
+    const sidebarThemeDisplay = await page.locator('#sidebarThemeBtn').evaluate((el) => {
+      return getComputedStyle(el).display;
+    });
+    expect(sidebarThemeDisplay).toBe('none');
+  });
+});
+
+test.describe('Regressão #20 — Single-device: visibilitychange revalida sessão', () => {
+  test('listenSessionEvictor pode ser anexado e desanexado sem erro', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', { timeout: 5000 });
+    const ok = await page.evaluate(() => {
+      try {
+        const unsub = window._firebase.listenSessionEvictor(
+          '__test_legacy',
+          'sid-x',
+          () => {}
+        );
+        if (typeof unsub !== 'function') return false;
+        unsub();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    });
+    expect(ok).toBe(true);
+  });
+
+  test('checkActiveSession aceita sessão legacy (sem sessionId)', async ({ page }) => {
+    // Valida que NÃO existe mais o `if (!data.sessionId) return null` que
+    // fazia sessões pré-feature serem ignoradas. Testamos o método
+    // fazendo proxy via mock — não precisa de Firestore real.
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window._firebase !== 'undefined', { timeout: 5000 });
+    const result = await page.evaluate(() => {
+      const fb = window._firebase;
+      // Simula um doc legacy: active=true, lastHb recente, sem sessionId
+      const fakeSnap = {
+        exists: true,
+        data: () => ({
+          active: true,
+          lastHeartbeatMs: Date.now() - 60000, // 1min atrás
+          device: 'iPad',
+          lastSeen: new Date().toISOString(),
+          // sem sessionId!
+        }),
+      };
+      // Hijack do _db.collection().doc().get() pra retornar nosso fake
+      const origDb = fb._db;
+      fb._db = {
+        collection: () => ({
+          doc: () => ({ get: async () => fakeSnap }),
+        }),
+      };
+      return fb
+        .checkActiveSession('any-legacy')
+        .then((res) => {
+          fb._db = origDb;
+          return res;
+        })
+        .catch((e) => {
+          fb._db = origDb;
+          throw e;
+        });
+    });
+    // Sessão legacy DEVE ser detectada (não retornar null)
+    expect(result).not.toBeNull();
+    expect(result.device).toBe('iPad');
+    expect(result.sessionId).toBeNull();
+  });
+});
+
+test.describe('Regressão #21 — Navigation sempre faz scroll-to-top', () => {
+  test('showPage rola scroll pra 0 mesmo após page scrollada', async ({ page }) => {
+    // Adiciona altura artificial pra criar scroll possível
+    await page.goto('/');
+    await page.evaluate(() => {
+      // Torna a Home longa o suficiente pra scroll
+      const home = document.getElementById('pageHome');
+      if (home) {
+        home.classList.remove('page-content--hidden');
+        home.style.minHeight = '3000px';
+      }
+      const entradas = document.getElementById('pageEntradas');
+      if (entradas) entradas.classList.remove('page-content--hidden');
+      // Scrolla pra meio da página
+      window.scrollTo(0, 1500);
+    });
+
+    const before = await page.evaluate(() => window.scrollY);
+    expect(before).toBeGreaterThan(0);
+
+    await page.evaluate(() => {
+      if (typeof window.showPage === 'function') {
+        window.showPage('entradas');
+      }
+    });
+
+    const after = await page.evaluate(() => window.scrollY);
+    // Após showPage, scroll DEVE estar em 0
+    expect(after).toBe(0);
+  });
+});
+
 test.describe('Regressão #18 — Sidebar tablet/iPad: botão Sair full width', () => {
   test('em tablet portrait (768) Sair tem grid-column 1 / -1', async ({ page }) => {
     // No exact 768 a topbar está visível, mas o sidebar permanece pra

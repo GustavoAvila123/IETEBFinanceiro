@@ -61,12 +61,23 @@ class NavigationManager {
       backup: 'Backup & Restauração',
     };
     document.getElementById('topbarTitle').textContent = titles[page] || 'IETEB';
-    window.scrollTo(0, 0);
 
     // Fecha o menu ANTES dos resets de página — assim, mesmo se algum
     // resetPage lançar (DOM stale entre versões cacheadas, etc.), o
     // sidebar do PWA não fica preso aberto sobre a tela nova.
+    // IMPORTANTE: closeSidebar() pode RESTAURAR o scroll position antigo
+    // (quando o sidebar travou o body via modal-open). Então o scrollTo(0,0)
+    // PRECISA vir DEPOIS dele, senão a navegação cai numa página já
+    // scrolada pra baixo (bug "menu não abre no topo").
     this.closeSidebar();
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    // Página recém-mostrada também vai pro topo (caso tenha scroll interno)
+    const activePage = document.getElementById(
+      'page' + page.charAt(0).toUpperCase() + page.slice(1)
+    );
+    if (activePage) activePage.scrollTop = 0;
 
     try {
       if (page === 'home') this.initHome();

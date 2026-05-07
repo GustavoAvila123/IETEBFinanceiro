@@ -502,39 +502,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (cu && cu.id && localSessionId) {
+      // Handler centralizado de eviction — usado tanto pelo listener
+      // em real-time quanto pelo polling em visibilitychange.
+      const onEvict = ({ device }) => {
+        if (window._sessionEvicted) return; // idempotente
+        window._sessionEvicted = true;
+        // Para o heartbeat e o evictor pra evitar reentrada
+        if (window._sessionEvictUnsub) {
+          try {
+            window._sessionEvictUnsub();
+          } catch (_) {}
+        }
+        login._clearInactivityWatch();
+        // Limpa storage de auth
+        try {
+          ['ieteb_auth', 'ieteb_user', 'ieteb_session_id'].forEach((k) =>
+            sessionStorage.removeItem(k)
+          );
+        } catch (_) {}
+        try {
+          firebase.signOut();
+        } catch (_) {}
+        // Mostra modal "sessão encerrada"
+        const modal = document.getElementById('sessionEvictedModal');
+        const devEl = document.getElementById('sessionEvictedDevice');
+        if (devEl) devEl.textContent = device || 'outro dispositivo';
+        if (modal) modal.style.display = 'flex';
+        window.acknowledgeSessionEvicted = () => {
+          if (modal) modal.style.display = 'none';
+          window.location.reload();
+        };
+      };
+
       window._sessionEvictUnsub = firebase.listenSessionEvictor(
         cu.id,
         localSessionId,
-        ({ device }) => {
-          if (window._sessionEvicted) return; // idempotente
-          window._sessionEvicted = true;
-          // Para o heartbeat e o evictor pra evitar reentrada
-          if (window._sessionEvictUnsub) {
-            try {
-              window._sessionEvictUnsub();
-            } catch (_) {}
-          }
-          login._clearInactivityWatch();
-          // Limpa storage de auth
-          try {
-            ['ieteb_auth', 'ieteb_user', 'ieteb_session_id'].forEach((k) =>
-              sessionStorage.removeItem(k)
-            );
-          } catch (_) {}
-          try {
-            firebase.signOut();
-          } catch (_) {}
-          // Mostra modal "sessão encerrada"
-          const modal = document.getElementById('sessionEvictedModal');
-          const devEl = document.getElementById('sessionEvictedDevice');
-          if (devEl) devEl.textContent = device || 'outro dispositivo';
-          if (modal) modal.style.display = 'flex';
-          window.acknowledgeSessionEvicted = () => {
-            if (modal) modal.style.display = 'none';
-            window.location.reload();
-          };
-        }
+        onEvict
       );
+
+      // FALLBACK pra iPad/PWA: quando o app é suspenso (background) por
+      // muito tempo, o websocket do Firestore pode cair e o listener
+      // perder o evento de eviction. Toda vez que voltamos pra foreground,
+      // refaz uma checagem one-shot do /Sessoes/{legacyId} e dispara o
+      // onEvict se o sessionId remoto não bater com o nosso.
+      const recheckSession = async () => {
+        if (window._sessionEvicted) return;
+        if (document.visibilityState !== 'visible') return;
+        try {
+          const snap = await firebase._db.collection('Sessoes').doc(cu.id).get();
+          if (!snap.exists) return;
+          const data = snap.data();
+          if (data.sessionId && data.sessionId !== localSessionId) {
+            onEvict({ device: data.device });
+          }
+        } catch (_) {}
+      };
+      document.addEventListener('visibilitychange', recheckSession);
+      window.addEventListener('focus', recheckSession);
+      window.addEventListener('pageshow', recheckSession);
     }
   } catch (e) {
     console.warn('[boot] session evictor falhou:', e);

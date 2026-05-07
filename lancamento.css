@@ -2661,8 +2661,10 @@ body.modal-open {
   }
 }
 
-/* ─── RESPONSIVO ─── */
-@media (max-width: 768px) {
+/* ── ARQUITETURA RESPONSIVA: tablet/iPad também usa topbar+sidebar-overlay
+   (igual mobile). Sidebar fica fora da tela por default e abre como overlay
+   pelo botão de menu. Theme/refresh ficam no topbar (acessíveis sempre). ── */
+@media (max-width: 1024px) {
   .sidebar {
     transform: translateX(-100%);
   }
@@ -2682,7 +2684,10 @@ body.modal-open {
   .topbar {
     display: flex;
   }
+}
 
+/* ─── RESPONSIVO ─── */
+@media (max-width: 768px) {
   /* page-content padding agora vem dos tokens em BLOCO 4 */
 
   .tab-btn {
@@ -4937,13 +4942,13 @@ body:has(#loginScreen) {
   color: var(--gold);
 }
 
-/* Em mobile o tema some do sidebar — usuário usa o #themeToggleBtn
-   que já existe no .topbar (visível só em ≤768px).
-   Em tablet/iPad (769–1024px) o sidebar É visível e a topbar NÃO,
-   então o tema PRECISA aparecer no sidebar pra ser acessível.
+/* Em mobile, tablet e iPad (≤1024px) o tema some do sidebar — o usuário
+   usa o #themeToggleBtn que já existe no .topbar (visível em ≤1024px após
+   a mudança de arquitetura). Mantém UX consistente entre celular/tablet:
+   theme btn sempre no topbar, nunca no menu lateral overlay.
    Esta regra precisa estar DEPOIS da definição base "display: flex"
-   (linha 4562) pra vencer por ordem. */
-@media (max-width: 768px) {
+   pra vencer por ordem. */
+@media (max-width: 1024px) {
   .sidebar-theme-btn {
     display: none;
   }

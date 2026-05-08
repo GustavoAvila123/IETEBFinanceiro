@@ -248,58 +248,121 @@ class DashboardPage {
     this._renderChartSaidas(porCategoria);
   }
 
+  /**
+   * Renderiza o gráfico de entradas como FUNIL (em vez de doughnut Chart.js).
+   * O curso com maior valor fica no topo (estágio mais largo), os demais
+   * descem ordenados — se outro curso ultrapassar em valor depois de um
+   * lançamento, ele migra automaticamente pro topo na próxima atualização
+   * (que já é disparada por setDataUpdateCallback / ietebDataChanged).
+   *
+   * Aceita até 4 cursos no funil (limite visual prático). Se houver mais,
+   * mostra os 4 maiores e o restante fica fora — o doughnut antigo
+   * mostrava todos juntos numa pizza, mas o funil prioriza ranking visual.
+   */
   _renderChartEntradas(porCurso) {
     const wrap = document.getElementById('wrapEntradasCurso');
     const legendEl = document.getElementById('legendEntradasCurso');
+    // Limpa instância anterior do Chart.js (se houver — ex.: deploy
+    // antigo que ainda criou um doughnut na primeira render)
     if (this.dashCharts.entradas) {
-      this.dashCharts.entradas.destroy();
+      try {
+        this.dashCharts.entradas.destroy();
+      } catch (_) {}
       delete this.dashCharts.entradas;
     }
 
-    const labels = Object.keys(porCurso);
-    const values = Object.values(porCurso);
+    const items = Object.entries(porCurso || {})
+      .map(([label, value]) => ({ label, value: Number(value) || 0 }))
+      .filter((it) => it.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 4);
 
-    if (!labels.length) {
+    if (!items.length) {
       wrap.innerHTML = '<div class="dash-empty">Nenhuma entrada neste mês</div>';
-      if (legendEl) legendEl.innerHTML = '';
+      if (legendEl) {
+        legendEl.innerHTML = '';
+        legendEl.classList.remove('dash-chart-legend--funnel');
+      }
       return;
     }
-    if (!wrap.querySelector('canvas')) {
-      wrap.innerHTML = '<canvas id="chartEntradasCurso"></canvas>';
+
+    const total = items.reduce((s, it) => s + it.value, 0);
+    wrap.innerHTML = this._buildFunnelEntradasSVG(items);
+    if (legendEl) {
+      legendEl.classList.add('dash-chart-legend--funnel');
+      legendEl.innerHTML = this._buildFunnelEntradasMetrics(items, total);
     }
+  }
 
-    const ctx = document.getElementById('chartEntradasCurso').getContext('2d');
-    const colors = labels.map((_, i) => DASH_COLORS[i % DASH_COLORS.length]);
+  _buildFunnelEntradasSVG(items) {
+    const W = 320;
+    const H = 280;
+    const stageH = H / items.length;
+    const maxW = W - 24;
+    // Cada estágio fica progressivamente mais estreito. O ratio aqui
+    // controla o "afunilamento": ratio menor → bocal mais reto;
+    // ratio maior → funil mais agressivo.
+    const shrinkPerStage = items.length > 1 ? maxW * 0.16 : 0;
+    const cx = W / 2;
 
-    this.dashCharts.entradas = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels,
-        datasets: [
-          {
-            data: values,
-            backgroundColor: colors.slice(),
-            borderWidth: 2,
-            borderColor: '#fff',
-            hoverOffset: 14,
-            offset: labels.map(() => 0),
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '62%',
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => ` R$ ${formatBRL(ctx.parsed)}` } },
-        },
-        onClick: (_e, els, chart) => this._onChartSliceClick('entradas', chart, els),
-      },
-    });
-    this.dashCharts.entradas._origColors = colors.slice();
+    const stages = items
+      .map((item, i) => {
+        const y0 = i * stageH;
+        const y1 = (i + 1) * stageH;
+        const w0 = maxW - i * shrinkPerStage;
+        const w1 = maxW - (i + 1) * shrinkPerStage;
+        const path = [
+          `M${cx - w0 / 2},${y0}`,
+          `L${cx + w0 / 2},${y0}`,
+          `L${cx + w1 / 2},${y1}`,
+          `L${cx - w1 / 2},${y1}`,
+          'Z',
+        ].join(' ');
+        // Opacidade decrescente — dá efeito de profundidade nos estágios
+        const opacity = (1 - i * 0.12).toFixed(2);
+        const labelY = y0 + stageH / 2 - 8;
+        const valueY = y0 + stageH / 2 + 12;
+        return `
+          <path d="${path}" fill="url(#funilGrad)" opacity="${opacity}"
+                stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
+          <text x="${cx}" y="${labelY}" class="funnel-label">${escHtml(item.label)}</text>
+          <text x="${cx}" y="${valueY}" class="funnel-value">R$ ${formatBRL(item.value)}</text>
+        `;
+      })
+      .join('');
 
-    this._buildLegend('entradas', legendEl, labels, values, colors);
+    return `
+      <svg class="funnel-svg" viewBox="0 0 ${W} ${H}"
+           xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"
+           role="img" aria-label="Funil de entradas por curso (maior valor no topo)">
+        <defs>
+          <linearGradient id="funilGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"  stop-color="#5fa1ff" />
+            <stop offset="50%" stop-color="#2563eb" />
+            <stop offset="100%" stop-color="#1e3a8a" />
+          </linearGradient>
+        </defs>
+        ${stages}
+      </svg>
+    `;
+  }
+
+  _buildFunnelEntradasMetrics(items, total) {
+    return items
+      .map((item, i) => {
+        const pct = total > 0 ? (item.value / total) * 100 : 0;
+        const rank = i + 1;
+        return `
+          <li class="funnel-metric-item">
+            <span class="funnel-metric-rank">#${rank}</span>
+            <div class="funnel-metric-body">
+              <span class="funnel-metric-label">${escHtml(item.label)}</span>
+              <span class="funnel-metric-value">${pct.toFixed(2)}% do total</span>
+            </div>
+          </li>
+        `;
+      })
+      .join('');
   }
 
   _renderChartSaidas(porCategoria) {

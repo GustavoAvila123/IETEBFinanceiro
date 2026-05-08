@@ -365,90 +365,126 @@ class DashboardPage {
   }
 
   /**
-   * Funil 3D com afunilamento real (top ~280, bottom ~70) + ellipses
-   * de "rim" no topo e nas bordas internas pra simular profundidade.
-   * Cada estágio fica num <g class="funnel-stage" data-idx="N"> pra
-   * que a click handler possa fazer ele "saltar" via animação CSS.
+   * Funil 3D com laterais CURVAS (não retas): a silhueta usa easing
+   * cubic-in-out, criando um perfil de "vaso/garrafa" estilo o print
+   * de referência (top largo → afina rápido no meio → base estreita).
+   *
+   * Cada estágio é um <g class="funnel-stage" data-idx="N">. As bordas
+   * laterais são amostradas em vários pontos (pra parecerem curvas) e
+   * a base de cada estágio é um arco elíptico (rim 3D).
    */
   _buildFunnelEntradasSVG(items) {
     const W = 360;
-    const H = 320;
+    const H = 340;
     const cx = W / 2;
-    const topW = 300;          // largura do topo (boca do funil)
-    const bottomW = 80;        // largura da base (saída do funil)
-    const padTop = 18;         // espaço pro rim/lip do topo
-    const padBottom = 18;      // espaço pra base
+    const topW = 320;          // largura do topo (boca do funil) — bem larga
+    const bottomW = 70;        // base estreita (saída do funil)
+    const padTop = 22;         // espaço pro rim/lip do topo
+    const padBottom = 26;      // espaço pra sombra do chão
     const bodyH = H - padTop - padBottom;
     const stageH = bodyH / items.length;
-    const ellipseRyTop = 14;   // achatamento da elipse-rim (perspectiva)
+    const ellipseRyTop = 18;   // achatamento da elipse-rim (perspectiva)
+    const SAMPLES = 18;        // pontos por lado por estágio (curva suave)
 
-    // Largura na altura y (interpolação linear entre top e bottom)
-    const widthAt = (y) => {
-      const t = (y - padTop) / bodyH; // 0 no topo, 1 na base
-      return topW - (topW - bottomW) * Math.max(0, Math.min(1, t));
+    // Easing cubic-in-out: começa devagar, acelera no meio, desacelera no fim.
+    // É o que dá a "barriga" curvada do funil estilo vaso.
+    const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+    // Largura no parâmetro t∈[0,1] (0 = topo, 1 = base)
+    const widthAtT = (t) => {
+      const tc = Math.max(0, Math.min(1, t));
+      return topW - (topW - bottomW) * ease(tc);
+    };
+    const ryAtT = (t) => (widthAtT(t) / topW) * ellipseRyTop;
+
+    // Constrói o path de um estágio amostrando N pontos por lado.
+    const stagePath = (t0, t1) => {
+      const yAt = (t) => padTop + t * bodyH;
+      const parts = [];
+      // Lado direito: do topo (t0) até a base (t1) — descendo
+      for (let i = 0; i <= SAMPLES; i++) {
+        const t = t0 + (t1 - t0) * (i / SAMPLES);
+        const x = cx + widthAtT(t) / 2;
+        const y = yAt(t);
+        parts.push(i === 0 ? `M${x},${y}` : `L${x},${y}`);
+      }
+      // Arco elíptico na base (rim de baixo)
+      const wB = widthAtT(t1);
+      const ryB = ryAtT(t1);
+      parts.push(`A${wB / 2},${ryB} 0 0 1 ${cx - wB / 2},${yAt(t1)}`);
+      // Lado esquerdo: subindo da base até o topo
+      for (let i = SAMPLES - 1; i >= 0; i--) {
+        const t = t0 + (t1 - t0) * (i / SAMPLES);
+        const x = cx - widthAtT(t) / 2;
+        const y = yAt(t);
+        parts.push(`L${x},${y}`);
+      }
+      parts.push('Z');
+      return parts.join(' ');
+    };
+
+    // Highlight curvo na lateral esquerda (luz vinda de cima-esquerda):
+    // segue a curva do estágio, mas deslocado pra dentro.
+    const highlightPath = (t0, t1, side, inset, opening, closing) => {
+      const yAt = (t) => padTop + t * bodyH;
+      const parts = [];
+      const sign = side === 'left' ? -1 : 1;
+      const startT = t0 + (t1 - t0) * opening;
+      const endT = t1 - (t1 - t0) * closing;
+      for (let i = 0; i <= SAMPLES; i++) {
+        const t = startT + (endT - startT) * (i / SAMPLES);
+        const x = cx + sign * (widthAtT(t) / 2 - inset);
+        const y = yAt(t);
+        parts.push(i === 0 ? `M${x},${y}` : `L${x},${y}`);
+      }
+      return parts.join(' ');
     };
 
     const stages = items
       .map((item, i) => {
-        const y0 = padTop + i * stageH;
-        const y1 = padTop + (i + 1) * stageH;
-        const w0 = widthAt(y0);
-        const w1 = widthAt(y1);
-        const ry0 = (w0 / topW) * ellipseRyTop;
-        const ry1 = (w1 / topW) * ellipseRyTop;
+        const t0 = i / items.length;
+        const t1 = (i + 1) / items.length;
+        const y0 = padTop + t0 * bodyH;
+        const y1 = padTop + t1 * bodyH;
+        const w0 = widthAtT(t0);
+        const w1 = widthAtT(t1);
+        const ry0 = ryAtT(t0);
+        const ry1 = ryAtT(t1);
 
-        // Path do corpo: trapezoidal mas com borda inferior em "elipse"
-        // (um arco) pra simular a perspectiva de um anel visto de cima.
-        const path = [
-          `M${cx - w0 / 2},${y0}`,
-          `L${cx + w0 / 2},${y0}`,
-          `L${cx + w1 / 2},${y1}`,
-          // Arco da base do estágio (visualmente é o "rim de baixo")
-          `A${w1 / 2},${ry1} 0 0 1 ${cx - w1 / 2},${y1}`,
-          'Z',
-        ].join(' ');
+        const path = stagePath(t0, t1);
 
-        const labelY = y0 + stageH / 2 - 10;
-        const valueY = y0 + stageH / 2 + 12;
-
-        // Faixa de brilho horizontal no terço superior do estágio (efeito
-        // "vidro/plástico polido"). Vai do x esquerdo ao x direito naquela
-        // altura, com curva inferior leve seguindo a perspectiva.
-        const yShine = y0 + stageH * 0.18;
-        const wShine = widthAt(yShine);
-        const ryShine = (wShine / topW) * ellipseRyTop * 0.55;
-        const shinePath = [
-          `M${cx - wShine / 2 + 6},${y0 + 2}`,
-          `L${cx + wShine / 2 - 6},${y0 + 2}`,
-          `L${cx + wShine / 2 - 8},${yShine}`,
-          `A${wShine / 2 - 8},${ryShine} 0 0 1 ${cx - wShine / 2 + 8},${yShine}`,
-          'Z',
-        ].join(' ');
+        const labelY = y0 + (y1 - y0) / 2 - 10;
+        const valueY = y0 + (y1 - y0) / 2 + 12;
 
         const topRim =
           i === 0
             ? `<ellipse cx="${cx}" cy="${y0}" rx="${w0 / 2}" ry="${ry0}"
                        fill="url(#funilTopRim)" />
                <!-- Brilho fino no topo do rim (boca do funil) -->
-               <ellipse cx="${cx}" cy="${y0 - ry0 * 0.45}" rx="${w0 / 2 - 6}" ry="${ry0 * 0.35}"
-                        fill="url(#funilRimGloss)" opacity="0.85" />`
+               <ellipse cx="${cx}" cy="${y0 - ry0 * 0.45}"
+                        rx="${w0 / 2 - 8}" ry="${ry0 * 0.32}"
+                        fill="url(#funilRimGloss)" opacity="0.9" />`
             : '';
+
+        // Highlight da lateral esquerda (acompanha a curva)
+        const hlLeft = highlightPath(t0, t1, 'left', 5, 0.06, 0.08);
+        // Sombra sutil da lateral direita (luz cai do esquerdo)
+        const hlRight = highlightPath(t0, t1, 'right', 5, 0.06, 0.08);
 
         return `
           <g class="funnel-stage" data-idx="${i}" style="transform-origin: ${cx}px ${(y0 + y1) / 2}px;">
             <path d="${path}" fill="url(#funilBody${i % 4})"
                   stroke="rgba(255,255,255,0.14)" stroke-width="0.7" />
-            <!-- Camada vertical de iluminação (clara no topo, escura na base do estágio) -->
-            <path d="${path}" fill="url(#funilBodyVertical)" opacity="0.6" />
-            <!-- Faixa de brilho horizontal (gloss) no terço superior -->
-            <path d="${shinePath}" fill="url(#funilGloss)" opacity="0.55" />
-            <!-- Highlight curvo nas laterais (luz vinda do alto-esquerda) -->
-            <path d="M${cx - w0 / 2 + 5},${y0 + 3} L${cx - w1 / 2 + 5},${y1 - 3}"
-                  stroke="rgba(255,255,255,0.28)" stroke-width="2.2"
+            <!-- Camada vertical de iluminação (clara no topo, escura na base) -->
+            <path d="${path}" fill="url(#funilBodyVertical)" opacity="0.55" />
+            <!-- Reflexo de luz especular acompanhando a curva esquerda -->
+            <path d="${hlLeft}" stroke="rgba(255,255,255,0.55)" stroke-width="3"
+                  stroke-linecap="round" fill="none" opacity="0.65" />
+            <path d="${hlLeft}" stroke="rgba(255,255,255,0.85)" stroke-width="1"
                   stroke-linecap="round" fill="none" opacity="0.7" />
-            <path d="M${cx + w0 / 2 - 5},${y0 + 3} L${cx + w1 / 2 - 5},${y1 - 3}"
-                  stroke="rgba(0,0,0,0.22)" stroke-width="1.6"
-                  stroke-linecap="round" fill="none" opacity="0.55" />
+            <!-- Sombra na lateral direita (lado oposto à luz) -->
+            <path d="${hlRight}" stroke="rgba(0,0,0,0.32)" stroke-width="2.2"
+                  stroke-linecap="round" fill="none" opacity="0.65" />
             ${topRim}
             <!-- Sombra interna no rim de baixo pra dar profundidade -->
             <ellipse cx="${cx}" cy="${y1}" rx="${w1 / 2}" ry="${ry1}"
@@ -460,13 +496,13 @@ class DashboardPage {
       })
       .join('');
 
-    // Sombra do "chão" (elipse borrada sob a base do funil) — dá a
-    // sensação de que o funil está apoiado em uma superfície
-    const floorY = padTop + bodyH + 6;
-    const floorRx = bottomW * 1.6;
+    // Sombra do "chão" — elipse borrada sob a base, mostra que o funil
+    // está apoiado em uma superfície
+    const floorY = padTop + bodyH + 8;
+    const floorRx = bottomW * 1.8;
     const floorShadow = `
       <ellipse class="funnel-floor-shadow" cx="${cx}" cy="${floorY}"
-               rx="${floorRx}" ry="6" fill="url(#funilFloorShadow)"
+               rx="${floorRx}" ry="7" fill="url(#funilFloorShadow)"
                filter="url(#funilFloorBlur)" />
     `;
 

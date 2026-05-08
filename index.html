@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -6,12 +6,12 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
-    <title>IETEB â€” LanÃ§amento de Entradas</title>
+    <title>IETEB — Lançamento de Entradas</title>
 
-    <!-- â”€â”€ SeguranÃ§a â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-       CSP relaxada: 'unsafe-inline' nos scripts Ã© necessÃ¡rio enquanto
+    <!-- ── Segurança ─────────────────────────────────────────────────────
+       CSP relaxada: 'unsafe-inline' nos scripts é necessário enquanto
        existirem onclick="..." inline no HTML. Bloqueia carregamento de
-       scripts/iframes externos nÃ£o-autorizados. -->
+       scripts/iframes externos não-autorizados. -->
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self';
@@ -29,8 +29,8 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
-    <!-- â”€â”€ PWA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-       Manifest, theme color, Ã­cones e meta tags Apple. -->
+    <!-- ── PWA ───────────────────────────────────────────────────────────
+       Manifest, theme color, ícones e meta tags Apple. -->
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#0b1f5c" />
     <link rel="icon" type="image/jpeg" href="assets/images/logo-ieteb-moderno.jpg" />
@@ -48,14 +48,14 @@
       referrerpolicy="no-referrer"
     />
     <link rel="stylesheet" href="lancamento.css?v=20260508c" />
-    <!-- CSS modular extraÃ­do (admin pages, onboarding, utils) â€” carrega
-         em paralelo apÃ³s o principal. Ver MIGRATION.md item #5 do roadmap. -->
+    <!-- CSS modular extraído (admin pages, onboarding, utils) — carrega
+         em paralelo após o principal. Ver MIGRATION.md item #5 do roadmap. -->
     <link rel="stylesheet" href="css/admin.css?v=20260508c" />
     <link rel="stylesheet" href="css/onboarding.css?v=20260508c" />
     <link rel="stylesheet" href="css/utils.css?v=20260508c" />
     <!-- Anti-FOUC: aplica o tema ANTES do CSS render. Sem isso, o user
          em dark mode veria flash branco enquanto o JS tradicional
-         carrega. Roda sincronamente, lÃª localStorage e seta data-theme. -->
+         carrega. Roda sincronamente, lê localStorage e seta data-theme. -->
     <script>
       (function () {
         try {
@@ -75,14 +75,14 @@
     </script>
   </head>
   <body>
-    <!-- Skip link: pressionando Tab logo apÃ³s o login, vai pro conteÃºdo
-         direto, sem precisar tabular pelo menu inteiro. VisÃ­vel sÃ³ com foco. -->
-    <a class="skip-link" href="#pageHome">Pular para o conteÃºdo</a>
+    <!-- Skip link: pressionando Tab logo após o login, vai pro conteúdo
+         direto, sem precisar tabular pelo menu inteiro. Visível só com foco. -->
+    <a class="skip-link" href="#pageHome">Pular para o conteúdo</a>
 
-    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-       SPLASH DE BOOT â€” esconde a tela de login enquanto a sessÃ£o
-       persistida do Firebase Auth estÃ¡ sendo restaurada.
-  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+    <!-- ══════════════════════════════════════════════════════════════════
+       SPLASH DE BOOT — esconde a tela de login enquanto a sessão
+       persistida do Firebase Auth está sendo restaurada.
+  ══════════════════════════════════════════════════════════════════ -->
     <div id="appBootSplash" class="boot-splash" aria-hidden="true">
       <div class="boot-splash-bg">
         <div class="boot-splash-orb boot-splash-orb--1"></div>
@@ -94,14 +94,14 @@
           <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="boot-splash-logo" />
         </div>
         <div class="boot-splash-title">IETEB</div>
-        <div class="boot-splash-subtitle">Sistema de GestÃ£o Financeira</div>
+        <div class="boot-splash-subtitle">Sistema de Gestão Financeira</div>
         <div class="boot-splash-spinner" aria-hidden="true"></div>
       </div>
     </div>
 
-    <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    <!-- ══════════════════════════════════════════════════════════════════
        TELA DE LOGIN
-  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+  ══════════════════════════════════════════════════════════════════ -->
     <div id="loginScreen" class="ls">
       <!-- Fundo animado: aurora mesh + grid + spotlight + estrelas + grain + vignette -->
       <div class="ls-bg">
@@ -132,16 +132,16 @@
           <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="ls-logo" />
         </div>
 
-        <!-- CabeÃ§alho -->
+        <!-- Cabeçalho -->
         <div class="ls-header">
           <h1 class="ls-title" data-i18n="login.welcome">Bem-vindo</h1>
-          <p class="ls-subtitle" data-i18n="app.tagline">Sistema de GestÃ£o Financeira</p>
+          <p class="ls-subtitle" data-i18n="app.tagline">Sistema de Gestão Financeira</p>
         </div>
 
-        <!-- FormulÃ¡rio -->
+        <!-- Formulário -->
         <form class="ls-form" onsubmit="handleLogin(event)" novalidate>
           <div class="ls-field">
-            <label class="ls-label">UsuÃ¡rio</label>
+            <label class="ls-label">Usuário</label>
             <div class="ls-input-wrap">
               <svg
                 class="ls-icon"
@@ -157,7 +157,7 @@
                 type="text"
                 id="loginUsuario"
                 class="ls-input"
-                placeholder="Digite seu usuÃ¡rio"
+                placeholder="Digite seu usuário"
                 autocomplete="username"
                 spellcheck="false"
                 oninput="document.getElementById('loginUsuarioError').textContent = ''"
@@ -228,10 +228,10 @@
           </button>
         </form>
 
-        <div class="ls-footer">IETEB &copy; 2026 &nbsp;Â·&nbsp; Todos os direitos reservados</div>
+        <div class="ls-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Todos os direitos reservados</div>
 
-        <!-- Overlay de loading: mandala atÃ´mica IETEB â€” halo pulsante,
-             ondas sonoras emanando, 3 Ã³rbitas 3D com partÃ­culas, logo
+        <!-- Overlay de loading: mandala atômica IETEB — halo pulsante,
+             ondas sonoras emanando, 3 órbitas 3D com partículas, logo
              central pulsando. Efeito surreal premium estilo sci-fi. -->
         <div class="ls-loading" id="lsLoading" aria-hidden="true">
           <div class="ls-loading-coin">
@@ -251,10 +251,10 @@
       </div>
     </div>
 
-    <!-- â”€â”€ OVERLAY MOBILE â”€â”€ -->
+    <!-- ── OVERLAY MOBILE ── -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- â”€â”€ SIDEBAR â”€â”€ -->
+    <!-- ── SIDEBAR ── -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
         <div class="sidebar-logo-wrap">
@@ -308,10 +308,10 @@
             <line x1="12" y1="5" x2="12" y2="19" />
             <polyline points="19 12 12 19 5 12" />
           </svg>
-          <span>SaÃ­das</span>
+          <span>Saídas</span>
         </button>
 
-        <span class="sidebar-nav-label">AnÃ¡lise</span>
+        <span class="sidebar-nav-label">Análise</span>
 
         <button class="nav-item" id="navRelatorios" onclick="showPage('relatorios')">
           <svg
@@ -327,7 +327,7 @@
             <line x1="16" y1="17" x2="8" y2="17" />
             <polyline points="10 9 9 9 8 9" />
           </svg>
-          <span>RelatÃ³rios</span>
+          <span>Relatórios</span>
         </button>
 
         <button class="nav-item" id="navCaixa" onclick="showPage('caixa')">
@@ -360,9 +360,9 @@
           <span>Dashboard</span>
         </button>
 
-        <!-- SeÃ§Ã£o exclusiva do Admin -->
+        <!-- Seção exclusiva do Admin -->
         <span class="sidebar-nav-label" id="sidebarAdminSection" style="display: none"
-          >AdministraÃ§Ã£o</span
+          >Administração</span
         >
         <button
           class="nav-item"
@@ -437,13 +437,13 @@
             title="Mudar tema"
             aria-label="Mudar tema"
           >
-            <!-- Sol (visÃ­vel em dark mode) -->
+            <!-- Sol (visível em dark mode) -->
             <svg class="theme-icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="4"/>
               <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
             </svg>
-            <!-- Lua (visÃ­vel em light mode) -->
+            <!-- Lua (visível em light mode) -->
             <svg class="theme-icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -466,13 +466,13 @@
             <span>Sair</span>
           </button>
         </div>
-        <span class="sidebar-footer-text">Centro Educacional TeolÃ³gico</span>
+        <span class="sidebar-footer-text">Centro Educacional Teológico</span>
       </div>
     </aside>
 
-    <!-- â”€â”€ WRAPPER PRINCIPAL â”€â”€ -->
+    <!-- ── WRAPPER PRINCIPAL ── -->
     <div class="page-wrapper">
-      <!-- â”€â”€ TOPBAR MOBILE â”€â”€ -->
+      <!-- ── TOPBAR MOBILE ── -->
       <header class="topbar">
         <button class="topbar-menu-btn" onclick="openSidebar()" aria-label="Abrir menu">
           <svg
@@ -500,13 +500,13 @@
             aria-label="Mudar tema"
             title="Mudar tema"
           >
-            <!-- Ãcone Sol (visÃ­vel em dark mode â†’ click vai pra light) -->
+            <!-- Ícone Sol (visível em dark mode → click vai pra light) -->
             <svg class="theme-icon-sun" width="19" height="19" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="4"/>
               <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
             </svg>
-            <!-- Ãcone Lua (visÃ­vel em light mode â†’ click vai pra dark) -->
+            <!-- Ícone Lua (visível em light mode → click vai pra dark) -->
             <svg class="theme-icon-moon" width="19" height="19" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -538,9 +538,9 @@
         </div>
       </header>
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         PÃGINA: HOME
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: HOME
+    ════════════════════════════════════════════════════════════════════════ -->
       <main class="page-content" id="pageHome" tabindex="-1">
         <!-- Hero -->
         <div class="home-hero">
@@ -550,18 +550,18 @@
               <img src="assets/images/logo-ieteb-moderno.jpg" alt="IETEB" class="home-hero-logo" />
             </div>
             <div class="home-hero-text">
-              <span class="home-hero-subtitle">Sistema de GestÃ£o Financeira</span>
-              <h1 class="home-greeting" id="homeGreeting">OlÃ¡!</h1>
-              <p class="home-date" id="homeDate">â€”</p>
+              <span class="home-hero-subtitle">Sistema de Gestão Financeira</span>
+              <h1 class="home-greeting" id="homeGreeting">Olá!</h1>
+              <p class="home-date" id="homeDate">—</p>
             </div>
           </div>
         </div>
 
-        <!-- Stats do mÃªs -->
+        <!-- Stats do mês -->
         <div class="home-stats">
           <div class="home-stat home-stat--entrada">
             <div class="home-stat-header">
-              <span class="home-stat-label">Entradas do MÃªs</span>
+              <span class="home-stat-label">Entradas do Mês</span>
               <div class="home-stat-icon">
                 <svg
                   width="20"
@@ -580,7 +580,7 @@
           </div>
           <div class="home-stat home-stat--saida">
             <div class="home-stat-header">
-              <span class="home-stat-label">SaÃ­das do MÃªs</span>
+              <span class="home-stat-label">Saídas do Mês</span>
               <div class="home-stat-icon">
                 <svg
                   width="20"
@@ -599,7 +599,7 @@
           </div>
           <div class="home-stat home-stat--saldo">
             <div class="home-stat-header">
-              <span class="home-stat-label">Saldo do MÃªs</span>
+              <span class="home-stat-label">Saldo do Mês</span>
               <div class="home-stat-icon">
                 <svg
                   width="20"
@@ -618,8 +618,8 @@
           </div>
         </div>
 
-        <!-- MÃ³dulos -->
-        <h2 class="home-section-title">MÃ³dulos do Sistema</h2>
+        <!-- Módulos -->
+        <h2 class="home-section-title">Módulos do Sistema</h2>
         <div class="home-modules">
           <div class="home-module-card" onclick="showPage('lancamentos')">
             <div class="home-module-icon home-module-icon--entrada">
@@ -668,7 +668,7 @@
               </svg>
             </div>
             <div class="home-module-body">
-              <h3 class="home-module-title">SaÃ­das</h3>
+              <h3 class="home-module-title">Saídas</h3>
               <p class="home-module-desc">Lance despesas, NF de fornecedores e professores</p>
             </div>
             <div class="home-module-arrow">
@@ -702,8 +702,8 @@
               </svg>
             </div>
             <div class="home-module-body">
-              <h3 class="home-module-title">RelatÃ³rios</h3>
-              <p class="home-module-desc">Consulte e exporte relatÃ³rios de entradas e saÃ­das</p>
+              <h3 class="home-module-title">Relatórios</h3>
+              <p class="home-module-desc">Consulte e exporte relatórios de entradas e saídas</p>
             </div>
             <div class="home-module-arrow">
               <svg
@@ -736,7 +736,7 @@
             <div class="home-module-body">
               <h3 class="home-module-title">Tesouraria</h3>
               <p class="home-module-desc">
-                Controle o saldo mensal em dinheiro fÃ­sico e conta corrente
+                Controle o saldo mensal em dinheiro físico e conta corrente
               </p>
             </div>
             <div class="home-module-arrow">
@@ -771,7 +771,7 @@
             </div>
             <div class="home-module-body">
               <h3 class="home-module-title">Dashboard</h3>
-              <p class="home-module-desc">Visualize grÃ¡ficos de entradas por curso e despesas</p>
+              <p class="home-module-desc">Visualize gráficos de entradas por curso e despesas</p>
             </div>
             <div class="home-module-arrow">
               <svg
@@ -789,13 +789,13 @@
         </div>
         <!-- /home-modules -->
 
-        <div class="home-footer">IETEB &copy; 2026 &nbsp;Â·&nbsp; Centro Educacional TeolÃ³gico</div>
+        <div class="home-footer">IETEB &copy; 2026 &nbsp;·&nbsp; Centro Educacional Teológico</div>
       </main>
       <!-- /pageHome -->
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         PÃGINA: LANÃ‡AMENTOS
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: LANÇAMENTOS
+    ════════════════════════════════════════════════════════════════════════ -->
       <main class="page-content page-content--hidden" id="pageLancamentos">
         <div class="content-header">
           <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
@@ -812,10 +812,10 @@
               <path d="M3 12L12 3l9 9" />
               <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10" />
             </svg>
-            <span class="btn-back-home-desktop">InÃ­cio</span>
+            <span class="btn-back-home-desktop">Início</span>
             <span class="btn-back-home-mobile">Ir para Home</span>
           </button>
-          <h1 class="page-title">LanÃ§amento de Entradas</h1>
+          <h1 class="page-title">Lançamento de Entradas</h1>
           <p class="page-desc">Registre manualmente ou envie o comprovante de pagamento.</p>
         </div>
 
@@ -841,7 +841,7 @@
                 <path d="M12 20h9" />
                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
               </svg>
-              LanÃ§amento de Entradas
+              Lançamento de Entradas
             </button>
             <button
               class="tab-btn"
@@ -867,7 +867,7 @@
             </button>
           </div>
 
-          <!-- â”€â”€ PAINEL UPLOAD â”€â”€ -->
+          <!-- ── PAINEL UPLOAD ── -->
           <div id="panelUpload" class="tab-panel tab-panel--hidden" role="tabpanel">
             <div
               class="upload-area"
@@ -893,7 +893,7 @@
               </div>
               <p class="upload-title">Arraste o comprovante aqui</p>
               <p class="upload-hint">ou clique para selecionar</p>
-              <p class="upload-formats">PIX Â· DepÃ³sito Â· DÃ©bito Â· CrÃ©dito Â· PDF ou Imagem</p>
+              <p class="upload-formats">PIX · Depósito · Débito · Crédito · PDF ou Imagem</p>
               <input
                 type="file"
                 id="fileInput"
@@ -959,11 +959,11 @@
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              Ler e Preencher FormulÃ¡rio
+              Ler e Preencher Formulário
             </button>
           </div>
 
-          <!-- â”€â”€ PAINEL MANUAL â”€â”€ -->
+          <!-- ── PAINEL MANUAL ── -->
           <div id="panelManual" class="tab-panel" role="tabpanel">
             <div class="form-section">
               <div class="form-section-title">
@@ -989,9 +989,9 @@
                   <select class="form-select" id="curso" data-picklist required>
                     <option value="">Selecione o curso</option>
                     <option value="CFAM">CFAM</option>
-                    <option value="BÃ¡sico Teologia">BÃ¡sico em Teologia</option>
+                    <option value="Básico Teologia">Básico em Teologia</option>
                     <option value="Bacharel em Teologia">Bacharel em Teologia</option>
-                    <option value="CapacitaÃ§Ã£o de Professor">CapacitaÃ§Ã£o de Professor</option>
+                    <option value="Capacitação de Professor">Capacitação de Professor</option>
                   </select>
                   <span class="field-error" id="cursoError"></span>
                 </div>
@@ -1059,7 +1059,7 @@
                 <button
                   type="button"
                   class="payment-btn"
-                  data-value="DÃ©bito"
+                  data-value="Débito"
                   onclick="selectPayment(this)"
                 >
                   <span class="payment-icon">
@@ -1075,12 +1075,12 @@
                       <line x1="1" y1="10" x2="23" y2="10" />
                     </svg>
                   </span>
-                  <span>DÃ©bito</span>
+                  <span>Débito</span>
                 </button>
                 <button
                   type="button"
                   class="payment-btn"
-                  data-value="CrÃ©dito"
+                  data-value="Crédito"
                   onclick="selectPayment(this)"
                 >
                   <span class="payment-icon">
@@ -1097,7 +1097,7 @@
                       <line x1="5" y1="15" x2="9" y2="15" />
                     </svg>
                   </span>
-                  <span>CrÃ©dito</span>
+                  <span>Crédito</span>
                 </button>
                 <button
                   type="button"
@@ -1140,10 +1140,10 @@
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
-                Dados da TransaÃ§Ã£o
+                Dados da Transação
               </div>
 
-              <!-- ALUNOS DINÃ‚MICOS -->
+              <!-- ALUNOS DINÂMICOS -->
               <div id="alunosContainer" class="alunos-container"></div>
               <span class="field-error" id="alunosError"></span>
 
@@ -1183,7 +1183,7 @@
                     type="text"
                     class="form-input"
                     id="bancoDepositante"
-                    placeholder="Ex: Nubank, ItaÃº, Bradesco..."
+                    placeholder="Ex: Nubank, Itaú, Bradesco..."
                   />
                   <span class="field-error" id="bancoDepositanteError"></span>
                 </div>
@@ -1217,7 +1217,7 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="dataDeposito" id="labelDataDeposito"
-                    >Data do DepÃ³sito <span class="required">*</span></label
+                    >Data do Depósito <span class="required">*</span></label
                   >
                   <input
                     type="text"
@@ -1235,27 +1235,27 @@
                 </div>
                 <div class="form-group">
                   <label class="form-label" id="labelHoraDeposito" for="horaDeposito"
-                    >HorÃ¡rio do Recebimento</label
+                    >Horário do Recebimento</label
                   >
                   <input type="time" class="form-input" id="horaDeposito" />
                 </div>
               </div>
 
               <div class="form-group" style="margin-top: 8px">
-                <label class="form-label" for="observacao">ObservaÃ§Ã£o</label>
+                <label class="form-label" for="observacao">Observação</label>
                 <textarea
                   class="form-input form-textarea"
                   id="observacao"
-                  placeholder="InformaÃ§Ãµes adicionais (opcional)"
+                  placeholder="Informações adicionais (opcional)"
                   rows="3"
                 ></textarea>
               </div>
             </div>
-            <!-- /form-section TransaÃ§Ã£o -->
+            <!-- /form-section Transação -->
           </div>
           <!-- /panelManual -->
 
-          <!-- RODAPÃ‰ -->
+          <!-- RODAPÉ -->
           <div class="form-footer">
             <button class="btn-secondary" id="btnLimpar" type="button" onclick="limparFormulario()">
               <svg
@@ -1284,16 +1284,16 @@
                 <polyline points="17 21 17 13 7 13 7 21" />
                 <polyline points="7 3 7 8 15 8" />
               </svg>
-              Salvar LanÃ§amento
+              Salvar Lançamento
             </button>
           </div>
         </div>
         <!-- /form-card -->
       </main>
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         PÃGINA: SAÃDAS
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: SAÍDAS
+    ════════════════════════════════════════════════════════════════════════ -->
       <main class="page-content page-content--hidden" id="pageSaidas">
         <div class="content-header">
           <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
@@ -1310,10 +1310,10 @@
               <path d="M3 12L12 3l9 9" />
               <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10" />
             </svg>
-            <span class="btn-back-home-desktop">InÃ­cio</span>
+            <span class="btn-back-home-desktop">Início</span>
             <span class="btn-back-home-mobile">Ir para Home</span>
           </button>
-          <h1 class="page-title">LanÃ§amento de SaÃ­das</h1>
+          <h1 class="page-title">Lançamento de Saídas</h1>
           <p class="page-desc">
             Registre pagamentos a professores, compras de material e demais despesas.
           </p>
@@ -1341,7 +1341,7 @@
                 <path d="M12 20h9" />
                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
               </svg>
-              LanÃ§amento Manual
+              Lançamento Manual
             </button>
             <button
               class="tab-btn"
@@ -1367,7 +1367,7 @@
             </button>
           </div>
 
-          <!-- â”€â”€ PAINEL UPLOAD NF â”€â”€ -->
+          <!-- ── PAINEL UPLOAD NF ── -->
           <div id="panelSaidaUpload" class="tab-panel tab-panel--hidden" role="tabpanel">
             <div
               class="upload-area"
@@ -1464,11 +1464,11 @@
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              Ler e Preencher FormulÃ¡rio
+              Ler e Preencher Formulário
             </button>
           </div>
 
-          <!-- â”€â”€ PAINEL MANUAL â”€â”€ -->
+          <!-- ── PAINEL MANUAL ── -->
           <div id="panelSaidaManual" class="tab-panel" role="tabpanel">
             <div class="form-section">
               <div class="form-section-title">
@@ -1484,7 +1484,7 @@
                   <circle cx="20" cy="21" r="1" />
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
-                Dados da SaÃ­da
+                Dados da Saída
               </div>
 
               <div class="form-row">
@@ -1495,15 +1495,15 @@
                   <select class="form-select" id="saidaCategoria" data-picklist>
                     <option value="">Selecione a categoria</option>
                     <option value="Pagamento de Professor">Pagamento de Professor</option>
-                    <option value="Material de EscritÃ³rio">Material de EscritÃ³rio</option>
-                    <option value="ServiÃ§os">ServiÃ§os</option>
+                    <option value="Material de Escritório">Material de Escritório</option>
+                    <option value="Serviços">Serviços</option>
                     <option value="Outros">Outros</option>
                   </select>
                   <span class="field-error" id="saidaCategoriaError"></span>
                 </div>
                 <div class="form-group">
                   <label class="form-label" for="saidaFornecedor"
-                    >Fornecedor / BeneficiÃ¡rio <span class="required">*</span></label
+                    >Fornecedor / Beneficiário <span class="required">*</span></label
                   >
                   <input
                     type="text"
@@ -1515,7 +1515,7 @@
                 </div>
               </div>
             </div>
-            <!-- /form-section Dados da SaÃ­da -->
+            <!-- /form-section Dados da Saída -->
 
             <div class="form-section">
               <div class="form-section-title">
@@ -1579,7 +1579,7 @@
                 <button
                   type="button"
                   class="payment-btn"
-                  data-value="DÃ©bito"
+                  data-value="Débito"
                   onclick="selectPaymentSaida(this)"
                 >
                   <span class="payment-icon">
@@ -1595,12 +1595,12 @@
                       <line x1="1" y1="10" x2="23" y2="10" />
                     </svg>
                   </span>
-                  <span>DÃ©bito</span>
+                  <span>Débito</span>
                 </button>
                 <button
                   type="button"
                   class="payment-btn"
-                  data-value="CrÃ©dito"
+                  data-value="Crédito"
                   onclick="selectPaymentSaida(this)"
                 >
                   <span class="payment-icon">
@@ -1617,7 +1617,7 @@
                       <line x1="5" y1="15" x2="9" y2="15" />
                     </svg>
                   </span>
-                  <span>CrÃ©dito</span>
+                  <span>Crédito</span>
                 </button>
               </div>
               <input type="hidden" id="saidaFormaPagamento" />
@@ -1638,7 +1638,7 @@
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
-                Dados da TransaÃ§Ã£o
+                Dados da Transação
               </div>
 
               <div class="form-row form-row--3">
@@ -1680,20 +1680,20 @@
               </div>
 
               <div class="form-group" style="margin-top: 8px">
-                <label class="form-label" for="saidaObservacao">ObservaÃ§Ã£o</label>
+                <label class="form-label" for="saidaObservacao">Observação</label>
                 <textarea
                   class="form-input form-textarea"
                   id="saidaObservacao"
-                  placeholder="InformaÃ§Ãµes adicionais (opcional)"
+                  placeholder="Informações adicionais (opcional)"
                   rows="3"
                 ></textarea>
               </div>
             </div>
-            <!-- /form-section TransaÃ§Ã£o -->
+            <!-- /form-section Transação -->
           </div>
           <!-- /panelSaidaManual -->
 
-          <!-- RODAPÃ‰ -->
+          <!-- RODAPÉ -->
           <div class="form-footer">
             <button class="btn-secondary" id="btnLimparSaida" type="button" onclick="limparSaida()">
               <svg
@@ -1722,7 +1722,7 @@
                 <polyline points="17 21 17 13 7 13 7 21" />
                 <polyline points="7 3 7 8 15 8" />
               </svg>
-              Salvar SaÃ­da
+              Salvar Saída
             </button>
           </div>
         </div>
@@ -1730,9 +1730,9 @@
       </main>
       <!-- /pageSaidas -->
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         PÃGINA: RELATÃ“RIOS
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: RELATÓRIOS
+    ════════════════════════════════════════════════════════════════════════ -->
       <main class="page-content page-content--hidden" id="pageRelatorios">
         <div class="content-header">
           <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
@@ -1749,14 +1749,14 @@
               <path d="M3 12L12 3l9 9" />
               <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10" />
             </svg>
-            <span class="btn-back-home-desktop">InÃ­cio</span>
+            <span class="btn-back-home-desktop">Início</span>
             <span class="btn-back-home-mobile">Ir para Home</span>
           </button>
-          <h1 class="page-title">RelatÃ³rios</h1>
-          <p class="page-desc">Consulte, filtre e exporte todos os lanÃ§amentos registrados.</p>
+          <h1 class="page-title">Relatórios</h1>
+          <p class="page-desc">Consulte, filtre e exporte todos os lançamentos registrados.</p>
         </div>
 
-        <!-- TIPO DE RELATÃ“RIO -->
+        <!-- TIPO DE RELATÓRIO -->
         <div class="report-tipo-selector">
           <button class="tipo-btn" id="tipoBtnEntradas" onclick="onTipoRelatorioChange('entradas')">
             <svg
@@ -1784,7 +1784,7 @@
               <line x1="12" y1="5" x2="12" y2="19" />
               <polyline points="19 12 12 19 5 12" />
             </svg>
-            SaÃ­das
+            Saídas
           </button>
         </div>
 
@@ -1801,7 +1801,7 @@
             <line x1="3" y1="9" x2="21" y2="9" />
             <line x1="9" y1="21" x2="9" y2="9" />
           </svg>
-          <span>Selecione o tipo de relatÃ³rio acima para visualizar os dados.</span>
+          <span>Selecione o tipo de relatório acima para visualizar os dados.</span>
         </div>
 
         <!-- FILTROS -->
@@ -1822,7 +1822,7 @@
             />
           </div>
           <div class="filter-group">
-            <label class="form-label" for="filtroDataAte">AtÃ©</label>
+            <label class="form-label" for="filtroDataAte">Até</label>
             <input
               type="text"
               class="form-input filter-input"
@@ -1877,9 +1877,9 @@
             <select class="form-select filter-input" id="filtroCurso" data-picklist onchange="aplicarFiltros()">
               <option value="">Todos</option>
               <option value="CFAM">CFAM</option>
-              <option value="BÃ¡sico Teologia">BÃ¡sico em Teologia</option>
+              <option value="Básico Teologia">Básico em Teologia</option>
               <option value="Bacharel em Teologia">Bacharel em Teologia</option>
-              <option value="CapacitaÃ§Ã£o de Professor">CapacitaÃ§Ã£o de Professor</option>
+              <option value="Capacitação de Professor">Capacitação de Professor</option>
             </select>
           </div>
           <div class="filter-group">
@@ -1892,8 +1892,8 @@
             >
               <option value="">Todos</option>
               <option value="Pix">PIX</option>
-              <option value="DÃ©bito">DÃ©bito</option>
-              <option value="CrÃ©dito">CrÃ©dito</option>
+              <option value="Débito">Débito</option>
+              <option value="Crédito">Crédito</option>
               <option value="Dinheiro">Dinheiro</option>
             </select>
           </div>
@@ -1928,7 +1928,7 @@
           </div>
         </div>
 
-        <!-- AÃ‡Ã•ES DE EXPORTAÃ‡ÃƒO -->
+        <!-- AÇÕES DE EXPORTAÇÃO -->
         <div class="report-actions" id="reportActions" style="display: none">
           <span class="report-count" id="reportCount">0 registros</span>
           <div class="report-export-btns">
@@ -2001,18 +2001,18 @@
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <span>Nenhum lanÃ§amento encontrado</span>
+            <span>Nenhum lançamento encontrado</span>
           </div>
         </div>
 
-        <!-- PAGINAÃ‡ÃƒO -->
+        <!-- PAGINAÇÃO -->
         <div class="pagination" id="pagination" style="display: none"></div>
       </main>
       <!-- /pageRelatorios -->
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         PÃGINA: CAIXA
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: CAIXA
+    ════════════════════════════════════════════════════════════════════════ -->
       <main class="page-content page-content--hidden" id="pageCaixa">
         <div class="content-header">
           <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
@@ -2029,17 +2029,17 @@
               <path d="M3 12L12 3l9 9" />
               <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10" />
             </svg>
-            <span class="btn-back-home-desktop">InÃ­cio</span>
+            <span class="btn-back-home-desktop">Início</span>
             <span class="btn-back-home-mobile">Ir para Home</span>
           </button>
           <h1 class="page-title">Tesouraria</h1>
-          <p class="page-desc">Controle financeiro mensal â€” entradas, saÃ­das e saldo disponÃ­vel.</p>
+          <p class="page-desc">Controle financeiro mensal — entradas, saídas e saldo disponível.</p>
         </div>
 
-        <!-- NavegaÃ§Ã£o de mÃªs + filtro de dia -->
+        <!-- Navegação de mês + filtro de dia -->
         <div class="caixa-month-nav">
           <div class="caixa-month-controls">
-            <button class="caixa-month-btn" onclick="caixaMesNavegar(-1)" title="MÃªs anterior">
+            <button class="caixa-month-btn" onclick="caixaMesNavegar(-1)" title="Mês anterior">
               <svg
                 width="18"
                 height="18"
@@ -2051,8 +2051,8 @@
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
-            <div class="caixa-month-label" id="caixaMesLabel">â€”</div>
-            <button class="caixa-month-btn" onclick="caixaMesNavegar(1)" title="PrÃ³ximo mÃªs">
+            <div class="caixa-month-label" id="caixaMesLabel">—</div>
+            <button class="caixa-month-btn" onclick="caixaMesNavegar(1)" title="Próximo mês">
               <svg
                 width="18"
                 height="18"
@@ -2082,7 +2082,7 @@
               />
             </div>
             <div class="filter-group" style="margin: 0">
-              <label class="form-label" for="caixaDiaFiltroATE">AtÃ©</label>
+              <label class="form-label" for="caixaDiaFiltroATE">Até</label>
               <input
                 type="text"
                 class="form-input filter-input"
@@ -2135,7 +2135,7 @@
           </div>
         </div>
 
-        <!-- Saldo do MÃªs Anterior (calculado automaticamente) -->
+        <!-- Saldo do Mês Anterior (calculado automaticamente) -->
         <div class="caixa-card caixa-card--anterior" style="margin-bottom: 16px">
           <div class="caixa-card-header">
             <svg
@@ -2171,12 +2171,12 @@
                 <line x1="12" y1="19" x2="12" y2="5" />
                 <polyline points="5 12 12 5 19 12" />
               </svg>
-              Entradas do MÃªs
+              Entradas do Mês
             </div>
             <div class="caixa-card-body" id="caixaEntradas"></div>
           </div>
 
-          <!-- SaÃ­das -->
+          <!-- Saídas -->
           <div class="caixa-card caixa-card--saida">
             <div class="caixa-card-header" id="caixaSaidasHeader">
               <svg
@@ -2190,7 +2190,7 @@
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <polyline points="19 12 12 19 5 12" />
               </svg>
-              SaÃ­das do MÃªs
+              Saídas do Mês
             </div>
             <div class="caixa-card-body" id="caixaSaidas"></div>
           </div>
@@ -2218,9 +2218,9 @@
       </main>
       <!-- /pageCaixa -->
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         PÃGINA: DASHBOARD
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: DASHBOARD
+    ════════════════════════════════════════════════════════════════════════ -->
       <main class="page-content page-content--hidden" id="pageDashboard">
         <div class="content-header">
           <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
@@ -2237,17 +2237,17 @@
               <path d="M3 12L12 3l9 9" />
               <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10" />
             </svg>
-            <span class="btn-back-home-desktop">InÃ­cio</span>
+            <span class="btn-back-home-desktop">Início</span>
             <span class="btn-back-home-mobile">Ir para Home</span>
           </button>
           <h1 class="page-title">Dashboard</h1>
-          <p class="page-desc">VisualizaÃ§Ã£o grÃ¡fica das entradas e despesas do mÃªs.</p>
+          <p class="page-desc">Visualização gráfica das entradas e despesas do mês.</p>
         </div>
 
-        <!-- NavegaÃ§Ã£o de mÃªs + filtro de datas -->
+        <!-- Navegação de mês + filtro de datas -->
         <div class="caixa-month-nav">
           <div class="caixa-month-controls dash-month-controls">
-            <button class="caixa-month-btn" onclick="dashMesNavegar(-1)" title="MÃªs anterior">
+            <button class="caixa-month-btn" onclick="dashMesNavegar(-1)" title="Mês anterior">
               <svg
                 width="18"
                 height="18"
@@ -2267,7 +2267,7 @@
               aria-haspopup="true"
               aria-expanded="false"
             >
-              <span id="dashMesLabelText">â€”</span>
+              <span id="dashMesLabelText">—</span>
               <svg
                 class="dash-month-chevron"
                 width="14"
@@ -2280,7 +2280,7 @@
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </button>
-            <button class="caixa-month-btn" onclick="dashMesNavegar(1)" title="PrÃ³ximo mÃªs">
+            <button class="caixa-month-btn" onclick="dashMesNavegar(1)" title="Próximo mês">
               <svg
                 width="18"
                 height="18"
@@ -2293,14 +2293,14 @@
               </svg>
             </button>
 
-            <!-- Picker mÃªs/ano -->
+            <!-- Picker mês/ano -->
             <div class="dash-month-picker" id="dashMonthPicker" hidden>
               <div class="dash-picker-section">
                 <div class="dash-picker-section-label">Ano</div>
                 <div class="dash-picker-grid dash-picker-grid--anos" id="dashPickerAnos"></div>
               </div>
               <div class="dash-picker-section">
-                <div class="dash-picker-section-label">MÃªs</div>
+                <div class="dash-picker-section-label">Mês</div>
                 <div class="dash-picker-grid dash-picker-grid--meses" id="dashPickerMeses"></div>
               </div>
             </div>
@@ -2323,7 +2323,7 @@
               />
             </div>
             <div class="filter-group" style="margin: 0">
-              <label class="form-label" for="dashDiaFiltroATE">AtÃ©</label>
+              <label class="form-label" for="dashDiaFiltroATE">Até</label>
               <input
                 type="text"
                 class="form-input filter-input"
@@ -2418,7 +2418,7 @@
           </div>
           <div class="dash-summary-card dash-summary-card--saldo">
             <div class="dash-summary-header">
-              <span class="dash-summary-label">Saldo do MÃªs</span>
+              <span class="dash-summary-label">Saldo do Mês</span>
               <div class="dash-summary-icon dash-summary-icon--saldo">
                 <svg
                   width="18"
@@ -2437,7 +2437,7 @@
           </div>
         </div>
 
-        <!-- GrÃ¡ficos -->
+        <!-- Gráficos -->
         <div class="dash-charts">
           <!-- Entradas por Curso -->
           <div class="dash-chart-card">
@@ -2492,9 +2492,9 @@
       </main>
       <!-- /pageDashboard -->
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         PÃGINA: AUDITORIA (admin only)
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: AUDITORIA (admin only)
+    ════════════════════════════════════════════════════════════════════════ -->
       <main class="page-content page-content--hidden" id="pageAuditoria">
         <div class="content-header">
           <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
@@ -2512,24 +2512,24 @@
               <path d="M5 10v10h14V10" />
               <path d="M9 21V13h6v8" />
             </svg>
-            <span>InÃ­cio</span>
+            <span>Início</span>
           </button>
           <h1 class="page-title">Auditoria</h1>
           <p class="page-subtitle">
-            HistÃ³rico completo de criaÃ§Ãµes, alteraÃ§Ãµes e exclusÃµes â€” apenas admin.
+            Histórico completo de criações, alterações e exclusões — apenas admin.
           </p>
         </div>
 
         <div class="auditoria-toolbar">
           <div class="auditoria-filters">
             <div class="filter-group">
-              <label class="form-label" for="auditoriaFiltroAcao">AÃ§Ã£o</label>
+              <label class="form-label" for="auditoriaFiltroAcao">Ação</label>
               <select class="form-select filter-input" id="auditoriaFiltroAcao" data-picklist
                       onchange="aplicarAuditoriaFiltros()">
                 <option value="">Todas</option>
-                <option value="create">CriaÃ§Ã£o</option>
-                <option value="update">AlteraÃ§Ã£o</option>
-                <option value="delete">ExclusÃ£o</option>
+                <option value="create">Criação</option>
+                <option value="update">Alteração</option>
+                <option value="delete">Exclusão</option>
               </select>
             </div>
             <div class="filter-group">
@@ -2538,11 +2538,11 @@
                       onchange="aplicarAuditoriaFiltros()">
                 <option value="">Todos</option>
                 <option value="Entradas">Entradas</option>
-                <option value="SaÃ­das">SaÃ­das</option>
+                <option value="Saídas">Saídas</option>
               </select>
             </div>
             <div class="filter-group">
-              <label class="form-label" for="auditoriaFiltroUser">UsuÃ¡rio</label>
+              <label class="form-label" for="auditoriaFiltroUser">Usuário</label>
               <input
                 type="text"
                 class="form-input filter-input"
@@ -2579,9 +2579,9 @@
       </main>
       <!-- /pageAuditoria -->
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         PÃGINA: BACKUP (admin only)
-    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════════════════════════════════════════════════════════════
+         PÁGINA: BACKUP (admin only)
+    ════════════════════════════════════════════════════════════════════════ -->
       <main class="page-content page-content--hidden" id="pageBackup">
         <div class="content-header">
           <button class="btn-back-home" onclick="showPage('home')" title="Voltar para a Home">
@@ -2591,11 +2591,11 @@
               <path d="M5 10v10h14V10" />
               <path d="M9 21V13h6v8" />
             </svg>
-            <span>InÃ­cio</span>
+            <span>Início</span>
           </button>
-          <h1 class="page-title">Backup &amp; RestauraÃ§Ã£o</h1>
+          <h1 class="page-title">Backup &amp; Restauração</h1>
           <p class="page-subtitle">
-            Exporte um JSON completo do banco ou restaure um backup anterior â€” apenas admin.
+            Exporte um JSON completo do banco ou restaure um backup anterior — apenas admin.
           </p>
         </div>
 
@@ -2611,9 +2611,9 @@
               <h2>Backup completo</h2>
             </div>
             <p class="backup-desc">
-              LÃª todas as coleÃ§Ãµes (Entradas, SaÃ­das, Users, SessÃµes, Auditoria) e
-              gera um arquivo JSON pra vocÃª guardar localmente. Inclui metadados
-              (quem exportou, quando, totais por coleÃ§Ã£o).
+              Lê todas as coleções (Entradas, Saídas, Users, Sessões, Auditoria) e
+              gera um arquivo JSON pra você guardar localmente. Inclui metadados
+              (quem exportou, quando, totais por coleção).
             </p>
             <button class="btn-primary" id="btnBackupExport" onclick="exportarBackup()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -2636,9 +2636,9 @@
               <h2>Restaurar backup</h2>
             </div>
             <p class="backup-desc">
-              <strong>AÃ§Ã£o destrutiva.</strong> Sobrescreve os documentos atuais
-              com os do arquivo selecionado. Documentos novos (nÃ£o presentes no
-              backup) sÃ£o preservados.
+              <strong>Ação destrutiva.</strong> Sobrescreve os documentos atuais
+              com os do arquivo selecionado. Documentos novos (não presentes no
+              backup) são preservados.
             </p>
             <input type="file" id="backupFileInput" accept=".json" style="display:none"
                    onchange="onBackupFileSelected(this)" />
@@ -2661,14 +2661,14 @@
     </div>
     <!-- /page-wrapper -->
 
-    <!-- MODAL FILTRO DATA INVÃLIDA -->
+    <!-- MODAL FILTRO DATA INVÁLIDA -->
     <div class="modal-overlay" id="filtroDataModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
         <div class="modal-header">
-          <h2 class="modal-title">Data invÃ¡lida</h2>
+          <h2 class="modal-title">Data inválida</h2>
         </div>
         <div style="padding: 22px 26px; font-size: 0.9rem; color: var(--text); line-height: 1.55">
-          O campo <strong>Data AtÃ©</strong> deve ser igual ou maior que o campo
+          O campo <strong>Data Até</strong> deve ser igual ou maior que o campo
           <strong>Data De</strong>.
         </div>
         <div class="modal-footer">
@@ -2680,10 +2680,10 @@
     <div class="modal-overlay" id="caixaDataModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
         <div class="modal-header">
-          <h2 class="modal-title">Data invÃ¡lida</h2>
+          <h2 class="modal-title">Data inválida</h2>
         </div>
         <div style="padding: 22px 26px; font-size: 0.9rem; color: var(--text); line-height: 1.55">
-          O campo <strong>Data AtÃ©</strong> deve ser igual ou maior que o campo
+          O campo <strong>Data Até</strong> deve ser igual ou maior que o campo
           <strong>Data De</strong>.
         </div>
         <div class="modal-footer">
@@ -2695,10 +2695,10 @@
     <div class="modal-overlay" id="dashDataModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
         <div class="modal-header">
-          <h2 class="modal-title">Data invÃ¡lida</h2>
+          <h2 class="modal-title">Data inválida</h2>
         </div>
         <div style="padding: 22px 26px; font-size: 0.9rem; color: var(--text); line-height: 1.55">
-          O campo <strong>Data AtÃ©</strong> deve ser igual ou maior que o campo
+          O campo <strong>Data Até</strong> deve ser igual ou maior que o campo
           <strong>Data De</strong>.
         </div>
         <div class="modal-footer">
@@ -2707,7 +2707,7 @@
       </div>
     </div>
 
-    <!-- MODAL â€” SESSÃƒO ATIVA EM OUTRO DEVICE (login) -->
+    <!-- MODAL — SESSÃO ATIVA EM OUTRO DEVICE (login) -->
     <div class="modal-overlay" id="sessionConflictModal" style="display: none">
       <div class="logout-modal-wrap" onclick="event.stopPropagation()">
         <div class="logout-modal-icon-wrap">
@@ -2725,11 +2725,11 @@
             <line x1="2" y1="22" x2="22" y2="22" />
           </svg>
         </div>
-        <h2 class="logout-modal-title">SessÃ£o ativa em outro dispositivo</h2>
+        <h2 class="logout-modal-title">Sessão ativa em outro dispositivo</h2>
         <p class="logout-modal-desc">
-          Sua conta jÃ¡ estÃ¡ conectada em
+          Sua conta já está conectada em
           <strong id="sessionConflictDevice">outro dispositivo</strong>.
-          Continuar aqui vai desconectar a outra sessÃ£o automaticamente.
+          Continuar aqui vai desconectar a outra sessão automaticamente.
         </p>
         <div class="logout-modal-actions">
           <button class="logout-btn-cancel" onclick="cancelSessionConflict()">
@@ -2754,7 +2754,7 @@
       </div>
     </div>
 
-    <!-- MODAL â€” SESSÃƒO ENCERRADA (este device foi despejado por outro login) -->
+    <!-- MODAL — SESSÃO ENCERRADA (este device foi despejado por outro login) -->
     <div class="modal-overlay" id="sessionEvictedModal" style="display: none">
       <div class="logout-modal-wrap" onclick="event.stopPropagation()">
         <div class="logout-modal-icon-wrap logout-modal-icon-wrap--warning">
@@ -2771,11 +2771,11 @@
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
         </div>
-        <h2 class="logout-modal-title">SessÃ£o encerrada</h2>
+        <h2 class="logout-modal-title">Sessão encerrada</h2>
         <p class="logout-modal-desc">
-          VocÃª foi desconectado porque um login foi feito em outro
+          Você foi desconectado porque um login foi feito em outro
           dispositivo (<strong id="sessionEvictedDevice">outro dispositivo</strong>).
-          Por seguranÃ§a, a sessÃ£o atual foi encerrada.
+          Por segurança, a sessão atual foi encerrada.
         </p>
         <div class="logout-modal-actions">
           <button
@@ -2807,7 +2807,7 @@
           </svg>
         </div>
         <h2 class="logout-modal-title">Deseja realmente sair?</h2>
-        <p class="logout-modal-desc">VocÃª serÃ¡ redirecionado para a tela de login.</p>
+        <p class="logout-modal-desc">Você será redirecionado para a tela de login.</p>
         <div class="logout-modal-actions">
           <button class="logout-btn-cancel" onclick="closeLogoutModal()">Cancelar</button>
           <button class="logout-btn-confirm" onclick="confirmarLogout()">
@@ -2829,7 +2829,7 @@
       </div>
     </div>
 
-    <!-- MODAL â€” PROCESSANDO/SUCESSO (PDF/Excel) -->
+    <!-- MODAL — PROCESSANDO/SUCESSO (PDF/Excel) -->
     <div class="modal-overlay" id="processModal" style="display: none">
       <div class="process-modal-wrap" onclick="event.stopPropagation()">
         <div class="process-modal-icon-wrap">
@@ -2854,7 +2854,7 @@
       </div>
     </div>
 
-    <!-- MODAL â€” REVISAR CAMPOS OBRIGATÃ“RIOS (Entradas/SaÃ­das) -->
+    <!-- MODAL — REVISAR CAMPOS OBRIGATÓRIOS (Entradas/Saídas) -->
     <div class="modal-overlay" id="reviewFormModal" style="display: none">
       <div class="review-modal-wrap" onclick="event.stopPropagation()">
         <div class="review-modal-icon-wrap">
@@ -2873,9 +2873,9 @@
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
         </div>
-        <h2 class="review-modal-title">Revise os campos obrigatÃ³rios</h2>
+        <h2 class="review-modal-title">Revise os campos obrigatórios</h2>
         <p class="review-modal-desc">
-          Existem campos nÃ£o preenchidos. Verifique os campos destacados.
+          Existem campos não preenchidos. Verifique os campos destacados.
         </p>
         <div class="review-modal-actions">
           <button class="review-modal-btn" onclick="revisarFormulario()">
@@ -2890,7 +2890,7 @@
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
-            Revisar formulÃ¡rio
+            Revisar formulário
           </button>
         </div>
       </div>
@@ -2899,7 +2899,7 @@
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
-    <!-- MODAL OCR SAÃDAS -->
+    <!-- MODAL OCR SAÍDAS -->
     <div class="modal-overlay" id="ocrModalSaida" style="display: none">
       <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -2920,7 +2920,7 @@
             <h2 class="modal-title">Confirmar dados da Nota Fiscal</h2>
           </div>
           <p class="modal-desc">
-            Verifique as informaÃ§Ãµes extraÃ­das antes de preencher o formulÃ¡rio.
+            Verifique as informações extraídas antes de preencher o formulário.
           </p>
         </div>
         <div id="ocrSummarySaida" class="ocr-summary"></div>
@@ -2931,7 +2931,7 @@
       </div>
     </div>
 
-    <!-- MODAL PÃ“S-OCR: dados preenchidos -->
+    <!-- MODAL PÓS-OCR: dados preenchidos -->
     <div class="modal-overlay" id="ocrDadosModal" style="display: none">
       <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header ocr-dados-header">
@@ -2948,9 +2948,9 @@
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
           </div>
-          <h2 class="modal-title" style="color: #fff">Tudo certo com seu formulÃ¡rio</h2>
+          <h2 class="modal-title" style="color: #fff">Tudo certo com seu formulário</h2>
           <p class="modal-desc" style="color: rgba(255, 255, 255, 0.72)">
-            Revise as informaÃ§Ãµes antes de finalizar o envio.
+            Revise as informações antes de finalizar o envio.
           </p>
         </div>
         <div id="ocrDadosSummary" class="ocr-summary"></div>
@@ -2966,7 +2966,7 @@
         <div class="modal-header">
           <h2 class="modal-title">Confirmar dados lidos</h2>
           <p class="modal-desc">
-            Verifique as informaÃ§Ãµes extraÃ­das antes de preencher o formulÃ¡rio.
+            Verifique as informações extraídas antes de preencher o formulário.
           </p>
         </div>
         <div id="ocrSummary" class="ocr-summary"></div>
@@ -2983,10 +2983,10 @@
         <div class="modal-img-header">
           <span class="modal-img-title">Comprovante</span>
           <div class="modal-img-zoom-controls" id="imgModalZoomCtrls">
-            <button class="modal-img-zoom-btn" onclick="zoomImg(-1)" title="Diminuir zoom" aria-label="Diminuir zoom">âˆ’</button>
+            <button class="modal-img-zoom-btn" onclick="zoomImg(-1)" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
             <span class="modal-img-zoom-level" id="imgModalZoomLevel">100%</span>
             <button class="modal-img-zoom-btn" onclick="zoomImg(+1)" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
-            <button class="modal-img-zoom-btn modal-img-zoom-btn--reset" onclick="zoomImg(0)" title="Restaurar zoom (100%)" aria-label="Restaurar zoom">â¤º</button>
+            <button class="modal-img-zoom-btn modal-img-zoom-btn--reset" onclick="zoomImg(0)" title="Restaurar zoom (100%)" aria-label="Restaurar zoom">⤺</button>
           </div>
           <button class="modal-img-close" onclick="closeImgModal()" title="Fechar">
             <svg
@@ -3008,21 +3008,21 @@
           </div>
           <iframe id="imgModalPdf" src="" style="display: none" width="100%" height="500"></iframe>
           <div id="imgModalEmpty" style="display: none" class="img-modal-empty">
-            Comprovante nÃ£o disponÃ­vel
+            Comprovante não disponível
           </div>
         </div>
       </div>
     </div>
 
-    <!-- MODAL CONFIRMAÃ‡ÃƒO EXCLUSÃƒO -->
+    <!-- MODAL CONFIRMAÇÃO EXCLUSÃO -->
     <div class="modal-overlay" id="deleteModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
         <div class="modal-header modal-header--danger">
-          <h2 class="modal-title">Excluir lanÃ§amento</h2>
-          <p class="modal-desc">Esta aÃ§Ã£o nÃ£o pode ser desfeita.</p>
+          <h2 class="modal-title">Excluir lançamento</h2>
+          <p class="modal-desc">Esta ação não pode ser desfeita.</p>
         </div>
         <div style="padding: 22px 26px; font-size: 0.9rem; color: #4a5470">
-          Tem certeza que deseja excluir este lanÃ§amento?
+          Tem certeza que deseja excluir este lançamento?
         </div>
         <div class="modal-footer">
           <button class="btn-secondary" onclick="closeDeleteModal()">Cancelar</button>
@@ -3046,7 +3046,7 @@
       </div>
     </div>
 
-    <!-- MODAL NOTIFICAÃ‡ÃƒO (substitui toast) -->
+    <!-- MODAL NOTIFICAÇÃO (substitui toast) -->
     <div class="modal-overlay" id="notifModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
         <div class="modal-header" id="notifModalHeader">
@@ -3062,20 +3062,20 @@
       </div>
     </div>
 
-    <!-- MODAL CONFIRMAÃ‡ÃƒO DE RESTORE (aÃ§Ã£o destrutiva) -->
+    <!-- MODAL CONFIRMAÇÃO DE RESTORE (ação destrutiva) -->
     <div class="modal-overlay" id="restoreConfirmModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
         <div class="modal-header modal-header--danger">
-          <h2 class="modal-title">âš ï¸ Confirmar restauraÃ§Ã£o</h2>
+          <h2 class="modal-title">⚠️ Confirmar restauração</h2>
         </div>
         <div style="padding: 22px 26px 4px; line-height: 1.55; color: var(--text)">
           <p style="margin-bottom: 10px">
-            Esta aÃ§Ã£o <strong>sobrescreve</strong> registros existentes no Firestore com
+            Esta ação <strong>sobrescreve</strong> registros existentes no Firestore com
             os dados do arquivo selecionado.
           </p>
           <p style="font-size: 0.82rem; color: var(--text-light); margin-bottom: 4px">
-            Documentos atuais que NÃƒO estiverem no backup serÃ£o preservados.
-            Para garantir a restauraÃ§Ã£o total, faÃ§a um backup completo agora antes de prosseguir.
+            Documentos atuais que NÃO estiverem no backup serão preservados.
+            Para garantir a restauração total, faça um backup completo agora antes de prosseguir.
           </p>
         </div>
         <div class="modal-footer">
@@ -3085,22 +3085,22 @@
       </div>
     </div>
 
-    <!-- MODAL AVISO DE EXPIRAÃ‡ÃƒO DE SESSÃƒO -->
+    <!-- MODAL AVISO DE EXPIRAÇÃO DE SESSÃO -->
     <div class="modal-overlay" id="sessionWarningModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
         <div class="modal-header modal-header--warning">
-          <h2 class="modal-title">Sua sessÃ£o vai expirar</h2>
+          <h2 class="modal-title">Sua sessão vai expirar</h2>
         </div>
         <div style="padding: 20px 26px 4px; line-height: 1.55; color: var(--text)">
           <p style="margin-bottom: 8px">
-            Por inatividade, vocÃª serÃ¡ deslogado em
+            Por inatividade, você será deslogado em
             <strong id="sessionWarningCountdown" style="color: var(--gold); font-size: 1.15rem"
               >60</strong
             >
             segundos.
           </p>
           <p style="font-size: 0.82rem; color: var(--text-light); margin-bottom: 4px">
-            Clique <strong>Continuar logado</strong> para manter sua sessÃ£o ativa. Seus dados
+            Clique <strong>Continuar logado</strong> para manter sua sessão ativa. Seus dados
             digitados ficam salvos.
           </p>
         </div>
@@ -3122,11 +3122,11 @@
         </div>
         <div class="shortcuts-list">
           <div class="shortcuts-section">
-            <span class="shortcuts-section-title">NavegaÃ§Ã£o</span>
+            <span class="shortcuts-section-title">Navegação</span>
             <div class="shortcut-row"><span><kbd>G</kbd> <kbd>H</kbd></span><span>Home</span></div>
             <div class="shortcut-row"><span><kbd>G</kbd> <kbd>E</kbd></span><span>Entradas</span></div>
-            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>S</kbd></span><span>SaÃ­das</span></div>
-            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>R</kbd></span><span>RelatÃ³rios</span></div>
+            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>S</kbd></span><span>Saídas</span></div>
+            <div class="shortcut-row"><span><kbd>G</kbd> <kbd>R</kbd></span><span>Relatórios</span></div>
             <div class="shortcut-row"><span><kbd>G</kbd> <kbd>T</kbd></span><span>Tesouraria</span></div>
             <div class="shortcut-row"><span><kbd>G</kbd> <kbd>D</kbd></span><span>Dashboard</span></div>
           </div>
@@ -3134,11 +3134,11 @@
             <span class="shortcuts-section-title">Geral</span>
             <div class="shortcut-row"><span><kbd>?</kbd></span><span>Mostrar atalhos</span></div>
             <div class="shortcut-row"><span><kbd>Esc</kbd></span><span>Fechar modal aberto</span></div>
-            <div class="shortcut-row"><span><kbd>Tab</kbd></span><span>PrÃ³ximo elemento focÃ¡vel</span></div>
+            <div class="shortcut-row"><span><kbd>Tab</kbd></span><span>Próximo elemento focável</span></div>
           </div>
           <p class="shortcuts-hint">
-            Atalhos de navegaÃ§Ã£o sÃ£o em duas teclas: pressione <kbd>G</kbd> e em
-            seguida (atÃ© 1.2s) pressione a letra do destino.
+            Atalhos de navegação são em duas teclas: pressione <kbd>G</kbd> e em
+            seguida (até 1.2s) pressione a letra do destino.
           </p>
         </div>
         <div class="modal-footer" style="justify-content: center">
@@ -3147,10 +3147,10 @@
       </div>
     </div>
 
-    <!-- MODAL IMPRESSÃƒO PDF -->
+    <!-- MODAL IMPRESSÃO PDF -->
     <div id="printArea" class="print-area"></div>
 
-    <!-- OVERLAY + SNACKBAR SAÃDA SALVA -->
+    <!-- OVERLAY + SNACKBAR SAÍDA SALVA -->
     <div id="saidaSnackbarOverlay" class="snackbar-overlay"></div>
     <div id="saidaSavedSnackbar" class="saved-snackbar" role="status" aria-live="polite">
       <svg
@@ -3164,10 +3164,10 @@
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
         <polyline points="22 4 12 14.01 9 11.01" />
       </svg>
-      <span id="savedSnackbarMsg">SaÃ­da salva com sucesso!</span>
+      <span id="savedSnackbarMsg">Saída salva com sucesso!</span>
     </div>
 
-    <!-- OVERLAY DE ATUALIZAÃ‡ÃƒO -->
+    <!-- OVERLAY DE ATUALIZAÇÃO -->
     <div id="refreshOverlay" class="refresh-overlay refresh-overlay--hidden">
       <div class="refresh-overlay-content">
         <svg
@@ -3210,11 +3210,11 @@
     <!-- Constantes globais -->
     <script src="js/config.js?v=20260508c"></script>
 
-    <!-- i18n (deve vir antes dos demais para t() estar disponÃ­vel) -->
+    <!-- i18n (deve vir antes dos demais para t() estar disponível) -->
     <script src="js/i18n/strings.js?v=20260508c"></script>
     <script src="js/i18n/i18n.js?v=20260508c"></script>
 
-    <!-- UtilitÃ¡rios -->
+    <!-- Utilitários -->
     <script src="js/utils/helpers.js?v=20260508c"></script>
     <script src="js/utils/format.js?v=20260508c"></script>
     <script src="js/utils/tooltip.js?v=20260508c"></script>
@@ -3224,7 +3224,7 @@
     <script src="js/utils/onboarding.js?v=20260508c"></script>
     <script src="js/utils/form-persist.js?v=20260508c"></script>
 
-    <!-- DomÃ­nio -->
+    <!-- Domínio -->
     <script src="js/domain/financeiro.js?v=20260508c"></script>
 
     <!-- Componentes -->
@@ -3250,7 +3250,7 @@
     <script src="js/pages/auditoria.js?v=20260508c"></script>
     <script src="js/pages/backup.js?v=20260508c"></script>
 
-    <!-- NavegaÃ§Ã£o (depende das pages) -->
+    <!-- Navegação (depende das pages) -->
     <script src="js/core/navigation.js?v=20260508c"></script>
 
     <!-- Entry point -->

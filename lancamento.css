@@ -3814,30 +3814,28 @@ body.modal-open {
   max-height: 430px;
   display: block;
   margin: 0 auto;
-  /* Halo neon azul + sombras escalonadas (substitui o filter SVG que
-     ficava no <g> e engolia o destaque gold do disco selecionado). */
-  filter:
-    drop-shadow(0 0 14px rgba(95, 161, 255, 0.4))
-    drop-shadow(0 18px 38px rgba(74, 141, 240, 0.5))
-    drop-shadow(0 6px 14px rgba(212, 175, 55, 0.18));
+}
+
+/* Halo neon azul SÓ em desktop. Em mobile o filter:drop-shadow
+   aplicado no SVG raiz era renderizado como caixa retangular ao
+   redor de TODO o funil pelo Safari iOS / Chrome mobile. */
+@media (min-width: 1025px) {
+  .funnel-svg {
+    filter:
+      drop-shadow(0 0 14px rgba(95, 161, 255, 0.4))
+      drop-shadow(0 18px 38px rgba(74, 141, 240, 0.5))
+      drop-shadow(0 6px 14px rgba(212, 175, 55, 0.18));
+  }
 }
 
 /* Cada estágio do funil é um <g>. Usamos transform-box: fill-box pra
    que transform-origin (em unidades SVG) funcione consistentemente.
-   SEM will-change permanente: aplicado só durante seleção via classe
-   .funnel-svg--has-selected (evita GPU layer com bordas visíveis em
-   mobile/tablet quando não há interação). */
+   SEM will-change em LUGAR NENHUM: em mobile, will-change cria GPU
+   layer cujas bordas ficam visíveis como caixa retangular. */
 .funnel-stage {
   transform-box: fill-box;
   transition: transform 0.15s ease;
   cursor: default;
-}
-
-/* Durante interação ativa, ativa GPU layer SÓ pro transform (que é
-   o único efeito comum entre desktop e mobile). Sem will-change pra
-   filter/opacity — evita bordas de GPU layer visíveis em mobile. */
-.funnel-svg--has-selected .funnel-stage {
-  will-change: transform;
 }
 
 /* Click na legenda → estágio "salta" levemente (bounce) */
@@ -3982,26 +3980,48 @@ body.modal-open {
 
 /* ═══════════════════════════════════════════════════════════════════
    MOBILE / TABLET / iPad (≤1024px):
-   ZERO filter CSS nos <g> dos estágios. Em mobile, qualquer filter
-   (drop-shadow, blur, brightness, saturate) aplicado em <g> SVG é
-   renderizado como CAIXA RETANGULAR sólida em volta do bounding box
-   pelo Safari iOS e Chrome mobile (CPU compositing fallback).
-   Solução: APENAS transform e opacity (esses dois SVG renderiza
-   nativamente sem criar caixa). O selecionado salta + os demais
-   ficam quase transparentes — contraste suficiente pra destacar.
+   ZERO filter CSS/SVG durante a seleção. Em mobile, QUALQUER filter
+   (drop-shadow, blur, brightness, saturate, feGaussianBlur SVG) é
+   renderizado como CAIXA RETANGULAR sólida pelo Safari iOS / Chrome
+   mobile (CPU compositing fallback).
+
+   Comportamento:
+   • Estado normal (sem seleção): floor shadow + sombras dos discos
+     visíveis normalmente — o funil tem todo o sombreado.
+   • Estado selecionado: APENAS o disco selecionado salta. Floor
+     shadow some, demais discos quase transparentes. Nada mais
+     em volta — só o funil saltando.
 ═══════════════════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
-  .funnel-svg--has-selected .funnel-stage {
-    transition: transform 0.12s ease, opacity 0.12s ease;
+  /* Sombra do chão SEM filter Gaussian SVG (criava caixa retangular).
+     O radialGradient já tem fade nas bordas → bordas suaves naturais. */
+  .funnel-floor-shadow {
+    filter: none;
   }
+
+  .funnel-svg--has-selected .funnel-stage {
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  /* Durante seleção: floor shadow some (assim NADA ao redor do
+     disco selecionado, conforme pedido). Volta suavemente quando
+     a seleção é removida. */
+  .funnel-floor-shadow {
+    transition: opacity 0.2s ease;
+  }
+  .funnel-svg--has-selected .funnel-floor-shadow {
+    opacity: 0;
+  }
+
+  /* Não-selecionados ficam quase invisíveis (apenas opacity, sem
+     filter — filter cria caixa em mobile). */
   .funnel-svg--has-selected .funnel-stage:not(.funnel-stage--selected) {
-    /* Sem filter:blur (cria caixa em mobile). Apenas opacity baixa. */
     opacity: 0.18;
   }
+
+  /* Selecionado: APENAS o salto. Sem filter, sem scale, sem nada
+     que crie bounding box visível em mobile. */
   .funnel-stage--selected {
-    /* Sem filter:drop-shadow nem brightness (criavam caixa em mobile).
-       Apenas o "salto" — o contraste com opacity 0.18 dos outros já
-       destaca claramente qual disco foi selecionado. */
     transform: translateY(-6px);
   }
 }

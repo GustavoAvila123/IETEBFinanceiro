@@ -16,7 +16,7 @@
 // Atenção: por design, NÃO cacheamos requisições POST/PUT/DELETE.
 // Apenas GETs entram em cache.
 
-const CACHE_VERSION = 'ieteb-v6-20260507';
+const CACHE_VERSION = 'ieteb-v7-20260508';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_RUNTIME = `${CACHE_VERSION}-runtime`;
 // Cache PERSISTENTE (não rotaciona com versão) — Tesseract weights

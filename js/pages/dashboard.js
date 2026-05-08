@@ -658,11 +658,16 @@ class DashboardPage {
         // Mostra valor em R$ + pct em pt-BR (vírgula). Assim o usuário
         // sempre vê o VALOR ABSOLUTO além do %, eliminando dúvida quando
         // 2+ categorias coincidentemente têm % parecidos por terem
-        // valores próximos.
+        // valores próximos. data-value/data-pct/data-total inspecionáveis
+        // pelo DevTools pra verificação rápida do cálculo.
         const valorBR = formatBRL(item.value);
         const pctBR = pct.toFixed(1).replace('.', ',');
         return `
-          <li class="funnel-metric-item" data-idx="${i}" tabindex="0"
+          <li class="funnel-metric-item" data-idx="${i}"
+              data-value="${item.value}"
+              data-total="${total}"
+              data-pct="${pct.toFixed(4)}"
+              tabindex="0"
               role="button" aria-label="Destacar ${escHtml(item.label)}">
             <span class="funnel-metric-rank">#${rank}</span>
             <div class="funnel-metric-body">
@@ -708,6 +713,17 @@ class DashboardPage {
     }
 
     const total = items.reduce((s, it) => s + it.value, 0);
+    // Log de auditoria pro caso do usuário ver % estranhos: abrindo
+    // F12 > Console fica claro se os valores são realmente iguais
+    // (coincidência matemática) ou se há divergência.
+    console.log('[Dashboard] Funil SAÍDAS:', {
+      total,
+      items: items.map((it) => ({
+        label: it.label,
+        valor: it.value,
+        pct: ((it.value / total) * 100).toFixed(4) + '%',
+      })),
+    });
     wrap.innerHTML = this._buildFunnelSaidasSVG(items);
     if (legendEl) {
       legendEl.classList.add('dash-chart-legend--funnel');

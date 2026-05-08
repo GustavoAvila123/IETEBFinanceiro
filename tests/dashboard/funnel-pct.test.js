@@ -64,3 +64,64 @@ describe('funnel pct calc', () => {
     expect(p).toBe(100);
   });
 });
+
+// Replica EXATA da função _calcPctPrecision do dashboard.js — escolhe
+// o número MÍNIMO de casas decimais necessário pros pcts ficarem
+// distintos entre si. Garante que valores quase idênticos não fiquem
+// todos com a mesma porcentagem visível.
+function calcPctPrecision(items, total) {
+  if (total <= 0 || items.length <= 1) return 1;
+  for (let p = 1; p <= 4; p++) {
+    const formatted = items.map((it) => ((it.value / total) * 100).toFixed(p));
+    if (new Set(formatted).size === items.length) return p;
+  }
+  return 4;
+}
+
+describe('precisão dinâmica de pct', () => {
+  it('valores muito diferentes: 1 casa decimal basta', () => {
+    const items = [
+      { value: 100 },
+      { value: 80 },
+      { value: 60 },
+      { value: 40 },
+    ];
+    const total = items.reduce((s, it) => s + it.value, 0);
+    expect(calcPctPrecision(items, total)).toBe(1);
+  });
+
+  it('caso real do usuário (348,49 / 348,45 / 348,44 / 348,40): 4 casas', () => {
+    const items = [
+      { value: 348.49 },
+      { value: 348.45 },
+      { value: 348.44 },
+      { value: 348.4 },
+    ];
+    const total = items.reduce((s, it) => s + it.value, 0);
+    // Diferenças: 25.0032 / 25.0004 / 24.9996 / 24.9968
+    // 1, 2, 3 casas: alguns iguais. Só 4 casas distingue todos.
+    expect(calcPctPrecision(items, total)).toBe(4);
+  });
+
+  it('valores muito próximos (90/88/87/83): 1 casa já distingue', () => {
+    const items = [
+      { value: 90 },
+      { value: 88 },
+      { value: 87 },
+      { value: 83 },
+    ];
+    const total = items.reduce((s, it) => s + it.value, 0);
+    expect(calcPctPrecision(items, total)).toBe(1);
+  });
+
+  it('todos iguais: 4 casas (não dá pra distinguir, devolve max)', () => {
+    const items = [
+      { value: 87.1 },
+      { value: 87.1 },
+      { value: 87.1 },
+      { value: 87.1 },
+    ];
+    const total = items.reduce((s, it) => s + it.value, 0);
+    expect(calcPctPrecision(items, total)).toBe(4);
+  });
+});

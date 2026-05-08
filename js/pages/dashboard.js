@@ -650,18 +650,34 @@ class DashboardPage {
     ], 'Funil 3D premium de despesas por categoria (maior valor no topo)');
   }
 
+  /**
+   * Calcula a precisão MÍNIMA necessária pros pcts dos itens ficarem
+   * todos distintos entre si. Quando valores são muito próximos (ex:
+   * 348,49 / 348,45 / 348,44 / 348,40 dão 25,0032% / 25,0004% /
+   * 24,9996% / 24,9968%), 1 casa decimal arredonda tudo pra 25,0%.
+   * Esta função sobe a precisão até 4 casas pra mostrar a diferença
+   * real (que existe matematicamente, só ficava escondida pelo round).
+   */
+  _calcPctPrecision(items, total) {
+    if (total <= 0 || items.length <= 1) return 1;
+    for (let p = 1; p <= 4; p++) {
+      const formatted = items.map((it) => ((it.value / total) * 100).toFixed(p));
+      if (new Set(formatted).size === items.length) return p;
+    }
+    return 4;
+  }
+
   _buildFunnelEntradasMetrics(items, total) {
+    // Precisão dinâmica: 1 casa pra valores muito diferentes; até 4 casas
+    // pros casos em que os valores são quase idênticos (caso contrário
+    // todos arredondam pro mesmo % e parecem iguais).
+    const precision = this._calcPctPrecision(items, total);
     return items
       .map((item, i) => {
         const pct = total > 0 ? (item.value / total) * 100 : 0;
         const rank = i + 1;
-        // Mostra valor em R$ + pct em pt-BR (vírgula). Assim o usuário
-        // sempre vê o VALOR ABSOLUTO além do %, eliminando dúvida quando
-        // 2+ categorias coincidentemente têm % parecidos por terem
-        // valores próximos. data-value/data-pct/data-total inspecionáveis
-        // pelo DevTools pra verificação rápida do cálculo.
         const valorBR = formatBRL(item.value);
-        const pctBR = pct.toFixed(1).replace('.', ',');
+        const pctBR = pct.toFixed(precision).replace('.', ',');
         return `
           <li class="funnel-metric-item" data-idx="${i}"
               data-value="${item.value}"
@@ -713,17 +729,6 @@ class DashboardPage {
     }
 
     const total = items.reduce((s, it) => s + it.value, 0);
-    // Log de auditoria pro caso do usuário ver % estranhos: abrindo
-    // F12 > Console fica claro se os valores são realmente iguais
-    // (coincidência matemática) ou se há divergência.
-    console.log('[Dashboard] Funil SAÍDAS:', {
-      total,
-      items: items.map((it) => ({
-        label: it.label,
-        valor: it.value,
-        pct: ((it.value / total) * 100).toFixed(4) + '%',
-      })),
-    });
     wrap.innerHTML = this._buildFunnelSaidasSVG(items);
     if (legendEl) {
       legendEl.classList.add('dash-chart-legend--funnel');

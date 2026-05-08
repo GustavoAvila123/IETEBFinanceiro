@@ -513,11 +513,12 @@ class DashboardPage {
           <g class="funnel-stage" data-idx="${i}"
              style="transform-origin: ${cx}px ${cy}px;">
 
-            <!-- 1. Sombra do disco PROJETADA no gap (espaço entre discos) -->
+            <!-- 1. Sombra do disco PROJETADA no gap. SEM filter SVG (o
+                 feGaussianBlur dentro de <g> com transform/will-change
+                 era renderizado como RETÂNGULO em mobile/tablet/iPad). -->
             <ellipse cx="${cx}" cy="${yBottom + gap * 0.55}"
                      rx="${wBottom / 2 * 0.92}" ry="${ryBottom * 0.5}"
-                     fill="${palette.rimDark}" opacity="0.88"
-                     filter="url(#discDropShadow)" />
+                     fill="${palette.rimDark}" opacity="0.7" />
 
             <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
             <path d="${bodyPath}" fill="url(#discBody${i})"
@@ -607,11 +608,6 @@ class DashboardPage {
           </radialGradient>
           <filter id="funilFloorBlur" x="-20%" y="-50%" width="140%" height="200%">
             <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
-          </filter>
-
-          <!-- Sombra dos discos no gap (entre fatias) -->
-          <filter id="discDropShadow" x="-20%" y="-50%" width="140%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
           </filter>
         </defs>
 

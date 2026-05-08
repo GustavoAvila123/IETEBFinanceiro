@@ -3960,15 +3960,35 @@ body.modal-open {
   opacity: 0.28;
 }
 
-/* Disco SELECIONADO: triplo drop-shadow gold (interno + médio + sombra)
-   + se eleva 3px + cresce 4%. Combinação dá efeito "pop" 3D real.
-   translateZ(0) é mantido pra preservar o GPU layer. */
+/* Disco SELECIONADO em DESKTOP: triplo drop-shadow gold (interno +
+   médio + sombra) + se eleva 3px + cresce 4%. Em desktop o GPU
+   compositing absorve esses filtros sem artefatos. */
 .funnel-stage--selected {
   filter:
     drop-shadow(0 0 14px rgba(212, 175, 55, 0.95))
     drop-shadow(0 0 28px rgba(212, 175, 55, 0.55))
     drop-shadow(0 14px 26px rgba(212, 175, 55, 0.5));
   transform: translateY(-3px) scale(1.04) translateZ(0);
+}
+
+/* Em MOBILE/TABLET/iPad (≤1024px), o filter:drop-shadow combinado com
+   transform:scale dentro de <g> SVG era renderizado pelo Safari iOS /
+   Chrome mobile como um RETÂNGULO sólido em volta do disco (artefato
+   do CPU compositing em vez de GPU). Solução: simplificar o destaque
+   para APENAS translateY + brightness — só o "salto" do funil, sem
+   moldura quadrada. O contraste com os outros discos (que ficam blur
+   + opacity 0.28) já marca claramente qual está selecionado. */
+@media (max-width: 1024px) {
+  .funnel-stage--selected {
+    filter: brightness(1.18) saturate(1.15);
+    transform: translateY(-6px) translateZ(0);
+  }
+  /* Aumenta um pouco o blur dos não-selecionados pra reforçar o contraste,
+     já que o selecionado não tem mais o glow gold. */
+  .funnel-svg--has-selected .funnel-stage:not(.funnel-stage--selected) {
+    filter: blur(3px);
+    opacity: 0.22;
+  }
 }
 
 .funnel-metric-rank {

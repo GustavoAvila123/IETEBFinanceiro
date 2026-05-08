@@ -473,11 +473,12 @@ class DashboardPage {
           return `M${x1 + (wTop - wBottom) * opening * 0.05},${y1} L${x2},${y2}`;
         })();
 
-        // Texto centralizado no espaço útil (entre o topo elíptico e a
-        // base elíptica) — não cola mais na borda
+        // Texto centralizado no espaço útil. Espaçamento ampliado pra
+        // acomodar fontes maiores (12px label + 20px value) — melhora
+        // legibilidade pra astigmatismo/idosos.
         const cy = (yTop + yBottom) / 2;
-        const labelY = cy - 4;
-        const valueY = cy + 16;
+        const labelY = cy - 6;
+        const valueY = cy + 18;
 
         return `
           <g class="funnel-stage" data-idx="${i}"

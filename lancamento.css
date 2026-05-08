@@ -3851,28 +3851,42 @@ body.modal-open {
   100% { transform: translateY(0)    scale(1); }
 }
 
+/* ── ACESSIBILIDADE DOS TEXTOS DO FUNIL ──
+   Pessoas com astigmatismo / idosos têm dificuldade de ler textos
+   sobre fundos coloridos com pouco contraste. Solução clássica:
+   stroke escuro GROSSO + fonte maior + peso máximo + cantos
+   arredondados no stroke (paint-order: stroke fill faz o stroke
+   ficar atrás do fill, criando contorno preto sólido em volta de
+   cada letra branca). Garante WCAG AA contraste 4.5:1+ em qualquer
+   paleta de cor do funil (gold, vermelho, azul...). */
 .funnel-label {
-  fill: rgba(255, 255, 255, 0.92);
-  font-size: 10px;
-  font-weight: 700;
+  fill: #fff;
+  font-size: 12px;
+  font-weight: 800;
   text-anchor: middle;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   font-family: inherit;
   paint-order: stroke;
-  stroke: rgba(0, 0, 0, 0.45);
-  stroke-width: 0.6px;
+  stroke: #000;
+  stroke-opacity: 0.85;
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
 .funnel-value {
   fill: #fff;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 900;
   text-anchor: middle;
   font-family: inherit;
   paint-order: stroke;
-  stroke: rgba(0, 0, 0, 0.5);
-  stroke-width: 0.8px;
+  stroke: #000;
+  stroke-opacity: 0.9;
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
 

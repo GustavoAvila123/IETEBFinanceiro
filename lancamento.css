@@ -3824,15 +3824,20 @@ body.modal-open {
 
 /* Cada estágio do funil é um <g>. Usamos transform-box: fill-box pra
    que transform-origin (em unidades SVG) funcione consistentemente.
-   translateZ(0) + will-change forçam GPU layer permanente — sem isso,
-   em mobile/tablet a transição entre estados deixava sombra fantasma
-   do disco anterior visível enquanto o novo entrava. */
+   SEM will-change permanente: aplicado só durante seleção via classe
+   .funnel-svg--has-selected (evita GPU layer com bordas visíveis em
+   mobile/tablet quando não há interação). */
 .funnel-stage {
   transform-box: fill-box;
-  transform: translateZ(0);
-  will-change: filter, transform, opacity;
-  transition: filter 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.15s ease;
   cursor: default;
+}
+
+/* Durante interação ativa, ativa GPU layer SÓ pro transform (que é
+   o único efeito comum entre desktop e mobile). Sem will-change pra
+   filter/opacity — evita bordas de GPU layer visíveis em mobile. */
+.funnel-svg--has-selected .funnel-stage {
+  will-change: transform;
 }
 
 /* Click na legenda → estágio "salta" levemente (bounce) */
@@ -3954,40 +3959,50 @@ body.modal-open {
   pointer-events: none;
 }
 
-/* Estágios não-selecionados ficam blur + escuros quando há seleção. */
-.funnel-svg--has-selected .funnel-stage:not(.funnel-stage--selected) {
-  filter: blur(2.8px);
-  opacity: 0.28;
-}
-
-/* Disco SELECIONADO em DESKTOP: triplo drop-shadow gold (interno +
-   médio + sombra) + se eleva 3px + cresce 4%. Em desktop o GPU
-   compositing absorve esses filtros sem artefatos. */
-.funnel-stage--selected {
-  filter:
-    drop-shadow(0 0 14px rgba(212, 175, 55, 0.95))
-    drop-shadow(0 0 28px rgba(212, 175, 55, 0.55))
-    drop-shadow(0 14px 26px rgba(212, 175, 55, 0.5));
-  transform: translateY(-3px) scale(1.04) translateZ(0);
-}
-
-/* Em MOBILE/TABLET/iPad (≤1024px), o filter:drop-shadow combinado com
-   transform:scale dentro de <g> SVG era renderizado pelo Safari iOS /
-   Chrome mobile como um RETÂNGULO sólido em volta do disco (artefato
-   do CPU compositing em vez de GPU). Solução: simplificar o destaque
-   para APENAS translateY + brightness — só o "salto" do funil, sem
-   moldura quadrada. O contraste com os outros discos (que ficam blur
-   + opacity 0.28) já marca claramente qual está selecionado. */
-@media (max-width: 1024px) {
-  .funnel-stage--selected {
-    filter: brightness(1.18) saturate(1.15);
-    transform: translateY(-6px) translateZ(0);
+/* ═══════════════════════════════════════════════════════════════════
+   DESKTOP (≥1025px): efeito completo com drop-shadow gold + scale.
+   GPU compositing do desktop absorve esses filters sem artefatos.
+═══════════════════════════════════════════════════════════════════ */
+@media (min-width: 1025px) {
+  .funnel-svg--has-selected .funnel-stage {
+    transition: filter 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
   }
-  /* Aumenta um pouco o blur dos não-selecionados pra reforçar o contraste,
-     já que o selecionado não tem mais o glow gold. */
   .funnel-svg--has-selected .funnel-stage:not(.funnel-stage--selected) {
-    filter: blur(3px);
-    opacity: 0.22;
+    filter: blur(2.8px);
+    opacity: 0.28;
+  }
+  .funnel-stage--selected {
+    filter:
+      drop-shadow(0 0 14px rgba(212, 175, 55, 0.95))
+      drop-shadow(0 0 28px rgba(212, 175, 55, 0.55))
+      drop-shadow(0 14px 26px rgba(212, 175, 55, 0.5));
+    transform: translateY(-3px) scale(1.04);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE / TABLET / iPad (≤1024px):
+   ZERO filter CSS nos <g> dos estágios. Em mobile, qualquer filter
+   (drop-shadow, blur, brightness, saturate) aplicado em <g> SVG é
+   renderizado como CAIXA RETANGULAR sólida em volta do bounding box
+   pelo Safari iOS e Chrome mobile (CPU compositing fallback).
+   Solução: APENAS transform e opacity (esses dois SVG renderiza
+   nativamente sem criar caixa). O selecionado salta + os demais
+   ficam quase transparentes — contraste suficiente pra destacar.
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .funnel-svg--has-selected .funnel-stage {
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+  .funnel-svg--has-selected .funnel-stage:not(.funnel-stage--selected) {
+    /* Sem filter:blur (cria caixa em mobile). Apenas opacity baixa. */
+    opacity: 0.18;
+  }
+  .funnel-stage--selected {
+    /* Sem filter:drop-shadow nem brightness (criavam caixa em mobile).
+       Apenas o "salto" — o contraste com opacity 0.18 dos outros já
+       destaca claramente qual disco foi selecionado. */
+    transform: translateY(-6px);
   }
 }
 

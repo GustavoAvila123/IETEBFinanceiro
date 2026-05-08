@@ -513,12 +513,11 @@ class DashboardPage {
           <g class="funnel-stage" data-idx="${i}"
              style="transform-origin: ${cx}px ${cy}px;">
 
-            <!-- 1. Sombra do disco PROJETADA no gap. SEM filter SVG (o
-                 feGaussianBlur dentro de <g> com transform/will-change
-                 era renderizado como RETÂNGULO em mobile/tablet/iPad). -->
-            <ellipse cx="${cx}" cy="${yBottom + gap * 0.55}"
-                     rx="${wBottom / 2 * 0.92}" ry="${ryBottom * 0.5}"
-                     fill="${palette.rimDark}" opacity="0.7" />
+            <!-- 1. (removida a sombra projetada no gap — quando o disco
+                 saltava -6px, ela subia junto e ficava "flutuando" no
+                 meio do espaço, criando o efeito de "sombra fantasma".
+                 A profundidade entre discos vem das bordas elípticas
+                 escuras de cada disco — suficiente sem essa sombra.) -->
 
             <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
             <path d="${bodyPath}" fill="url(#discBody${i})"

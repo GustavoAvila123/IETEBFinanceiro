@@ -616,36 +616,36 @@ class DashboardPage {
   }
 
   /**
-   * Wrapper p/ funil de SAÍDAS — paleta vermelho intenso → laranja
-   * fogo → coral → bordô. Cores quentes que remetem a "alerta",
-   * "saída de dinheiro", "fogo consumindo o caixa". Maior despesa
-   * fica no topo (vermelho mais forte).
+   * Wrapper p/ funil de SAÍDAS — paleta INVERTIDA: começa vermelho
+   * ESCURO (topo, líder das despesas) e vai CLAREANDO até coral
+   * salmão (base). Visualmente: alerta máximo (sangue/vinho) no
+   * topo → coral suave embaixo.
    */
   _buildFunnelSaidasSVG(items) {
     return this._buildFunnelSVG(items, 'sai', [
       {
-        // #1: VERMELHO INTENSO — maior despesa, alerta máximo
-        topStops: ['#ffd0c8', '#ff5a3c', '#9a1208'],
-        bodyStops: ['#3a0606', '#9a1208', '#ff6b4a', '#9a1208', '#250303'],
-        rimDark: '#1c0303',
+        // #1 TOPO: VERMELHO ESCURO / BORDÔ PROFUNDO (alerta máximo)
+        topStops: ['#c0848a', '#5a0a10', '#1a0204'],
+        bodyStops: ['#080101', '#3a0608', '#7a1018', '#3a0608', '#040000'],
+        rimDark: '#000000',
       },
       {
-        // #2: LARANJA FOGO
-        topStops: ['#ffe0b8', '#ff8c2a', '#9a4a08'],
-        bodyStops: ['#3a1d05', '#9a4a08', '#ff8c2a', '#9a4a08', '#1f0f02'],
-        rimDark: '#1a0c02',
+        // #2: VERMELHO MÉDIO ESCURO
+        topStops: ['#d89098', '#8a1820', '#2a0408'],
+        bodyStops: ['#150202', '#581014', '#9c181c', '#581014', '#080101'],
+        rimDark: '#020000',
       },
       {
-        // #3: CORAL
-        topStops: ['#fdc8c2', '#e85a4f', '#7a1f17'],
-        bodyStops: ['#2a0808', '#7a1f17', '#e85a4f', '#7a1f17', '#1a0404'],
-        rimDark: '#0f0202',
+        // #3: VERMELHO MÉDIO / CORAL
+        topStops: ['#f4a89e', '#c4302c', '#621414'],
+        bodyStops: ['#280608', '#7a1816', '#dc4838', '#7a1816', '#160304'],
+        rimDark: '#080101',
       },
       {
-        // #4: BORDÔ / VINHO
-        topStops: ['#c89a98', '#84383a', '#3a0e10'],
-        bodyStops: ['#1a0404', '#3a0e10', '#84383a', '#3a0e10', '#0a0202'],
-        rimDark: '#050101',
+        // #4 BASE: CORAL CLARO / SALMÃO (mais claro — alívio visual)
+        topStops: ['#ffd8c8', '#ff8a6a', '#a85040'],
+        bodyStops: ['#3a0e08', '#a85040', '#ffaa90', '#a85040', '#1c0402'],
+        rimDark: '#180402',
       },
     ], 'Funil 3D premium de despesas por categoria (maior valor no topo)');
   }
@@ -655,13 +655,19 @@ class DashboardPage {
       .map((item, i) => {
         const pct = total > 0 ? (item.value / total) * 100 : 0;
         const rank = i + 1;
+        // Mostra valor em R$ + pct em pt-BR (vírgula). Assim o usuário
+        // sempre vê o VALOR ABSOLUTO além do %, eliminando dúvida quando
+        // 2+ categorias coincidentemente têm % parecidos por terem
+        // valores próximos.
+        const valorBR = formatBRL(item.value);
+        const pctBR = pct.toFixed(1).replace('.', ',');
         return `
           <li class="funnel-metric-item" data-idx="${i}" tabindex="0"
               role="button" aria-label="Destacar ${escHtml(item.label)}">
             <span class="funnel-metric-rank">#${rank}</span>
             <div class="funnel-metric-body">
               <span class="funnel-metric-label">${escHtml(item.label)}</span>
-              <span class="funnel-metric-value">${pct.toFixed(2)}% do total</span>
+              <span class="funnel-metric-value">R$ ${valorBR} • ${pctBR}%</span>
             </div>
           </li>
         `;

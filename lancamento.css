@@ -3823,10 +3823,15 @@ body.modal-open {
 }
 
 /* Cada estágio do funil é um <g>. Usamos transform-box: fill-box pra
-   que transform-origin (em unidades SVG) funcione consistentemente. */
+   que transform-origin (em unidades SVG) funcione consistentemente.
+   translateZ(0) + will-change forçam GPU layer permanente — sem isso,
+   em mobile/tablet a transição entre estados deixava sombra fantasma
+   do disco anterior visível enquanto o novo entrava. */
 .funnel-stage {
   transform-box: fill-box;
-  transition: filter 0.25s ease;
+  transform: translateZ(0);
+  will-change: filter, transform, opacity;
+  transition: filter 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
   cursor: default;
 }
 
@@ -3949,29 +3954,21 @@ body.modal-open {
   pointer-events: none;
 }
 
-/* Quando algum estágio está selecionado, os DEMAIS desfocam e ficam
-   translúcidos; o selecionado SE ELEVA + ganha halo gold multi-camada.
-   Transição mais curta (0.2s) + will-change pra GPU compositing — sem
-   isso, em mobile ficava uma "sombra fantasma" do disco anterior na
-   troca rápida de seleção. */
-.funnel-svg--has-selected .funnel-stage {
-  transition: filter 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
-  will-change: filter, transform, opacity;
-}
-
+/* Estágios não-selecionados ficam blur + escuros quando há seleção. */
 .funnel-svg--has-selected .funnel-stage:not(.funnel-stage--selected) {
   filter: blur(2.8px);
   opacity: 0.28;
 }
 
 /* Disco SELECIONADO: triplo drop-shadow gold (interno + médio + sombra)
-   + se eleva 3px + cresce 4%. Combinação dá efeito "pop" 3D real. */
+   + se eleva 3px + cresce 4%. Combinação dá efeito "pop" 3D real.
+   translateZ(0) é mantido pra preservar o GPU layer. */
 .funnel-stage--selected {
   filter:
     drop-shadow(0 0 14px rgba(212, 175, 55, 0.95))
     drop-shadow(0 0 28px rgba(212, 175, 55, 0.55))
     drop-shadow(0 14px 26px rgba(212, 175, 55, 0.5));
-  transform: translateY(-3px) scale(1.04);
+  transform: translateY(-3px) scale(1.04) translateZ(0);
 }
 
 .funnel-metric-rank {
@@ -4153,7 +4150,7 @@ body.modal-open {
   }
   .funnel-metric-item {
     width: 100%;
-    min-height: 44px;
+    height: 56px; /* altura FIXA — todos os cards iguais, sem desencontro */
     padding: 8px 10px;
     align-items: center;
   }
@@ -4168,6 +4165,40 @@ body.modal-open {
   }
   .funnel-metric-value {
     font-size: 0.66rem;
+  }
+}
+
+/* ── iPad / tablet (769-1024px) ──
+   Aplica a MESMA legenda 2x2 da regra mobile, pq nesse range o
+   .dash-chart-body já vira coluna em alguns layouts e a legenda fica
+   embaixo do funil. Também trata iPad portrait (834px) e iPad landscape
+   (1024px) que não estavam pegando a regra de 768px. */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dash-chart-legend--funnel {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px !important;
+    align-content: start;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .dash-chart-legend--funnel .funnel-metric-item {
+    width: 100%;
+    height: 60px; /* altura fixa — todos iguais */
+    padding: 10px 12px;
+    align-items: center;
+  }
+  .dash-chart-legend--funnel .funnel-metric-rank {
+    width: 30px;
+    height: 30px;
+    font-size: 0.74rem;
+  }
+  .dash-chart-legend--funnel .funnel-metric-label {
+    font-size: 0.82rem;
+    line-height: 1.2;
+  }
+  .dash-chart-legend--funnel .funnel-metric-value {
+    font-size: 0.72rem;
   }
 }
 

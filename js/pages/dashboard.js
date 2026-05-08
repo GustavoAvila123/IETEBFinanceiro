@@ -354,9 +354,20 @@ class DashboardPage {
     if (wrap) {
       const svg = wrap.querySelector('.funnel-svg');
       if (svg) svg.classList.remove('funnel-svg--has-selected');
-      wrap
-        .querySelectorAll('.funnel-stage--selected')
-        .forEach((el) => el.classList.remove('funnel-stage--selected'));
+      // Força a saída do disco anterior a ser INSTANTÂNEA (transition:none
+      // por 1 frame). Sem isso, em mobile/tablet o GPU compositing deixa
+      // uma sombra fantasma do estado selected enquanto a transição roda.
+      wrap.querySelectorAll('.funnel-stage--selected').forEach((el) => {
+        el.style.transition = 'none';
+        el.classList.remove('funnel-stage--selected');
+        // Força reflow pra que o transition:none entre em vigor antes
+        // do próximo paint
+        void el.getBoundingClientRect();
+        // Restaura a transition no próximo frame (pra próximas trocas)
+        requestAnimationFrame(() => {
+          el.style.transition = '';
+        });
+      });
     }
     if (this._funnelOutsideHandler) {
       document.removeEventListener('click', this._funnelOutsideHandler);

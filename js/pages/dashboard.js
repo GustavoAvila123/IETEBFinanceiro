@@ -290,6 +290,7 @@ class DashboardPage {
     wrap.innerHTML = this._buildFunnelEntradasSVG(items);
     if (legendEl) {
       legendEl.classList.add('dash-chart-legend--funnel');
+      legendEl.classList.remove('dash-chart-legend--funnel-saidas');
       legendEl.innerHTML = this._buildFunnelEntradasMetrics(items, total);
       this._attachFunnelLegendClicks(legendEl, wrap);
     }
@@ -378,18 +379,14 @@ class DashboardPage {
   /**
    * Funil 3D PREMIUM — discos coloridos empilhados estilo "torre de
    * discos com gap visível" (referência: funil corporativo clássico),
-   * adaptado pro tema dark+gold do app. Cada disco é uma cápsula 3D
-   * completa: face superior elíptica iluminada (top), corpo cilíndrico
-   * com gradient horizontal (lateral), borda inferior escura (sombra),
-   * e gap real entre discos pra reforçar a separação 3D.
+   * adaptado pro tema dark do app.
    *
-   * Inovações:
-   * - Numeração gigante translúcida atrás do label (marca d'água)
-   * - Reflexo fantasma do funil no "chão" (mirror com fade)
-   * - Paleta gold (#1) → azul royal → azul médio → azul escuro
-   * - Halo neon azul ao redor + sombra do chão borrada
+   * Reusável: aceita `idPrefix` (pra evitar collision de gradient IDs
+   * quando dois funis convivem no mesmo DOM — entradas e saídas) e
+   * `palettes` (4 paletas de cor). Wrappers _buildFunnelEntradasSVG
+   * e _buildFunnelSaidasSVG chamam este método com paletas distintas.
    */
-  _buildFunnelEntradasSVG(items) {
+  _buildFunnelSVG(items, idPrefix, palettes, ariaLabel) {
     const W = 400;
     const H = 430;
     const cx = W / 2;
@@ -426,46 +423,19 @@ class DashboardPage {
       return parts.join(' ');
     };
 
-    // 4 paletas premium: GOLD (líder #1) → AZUL ROYAL → AZUL MÉDIO → AZUL ESCURO
-    // Cada uma tem: top (face superior elíptica) e body (lateral cilíndrica)
-    const palettes = [
-      {
-        name: 'gold',
-        topStops: ['#fff5c8', '#f0d061', '#a87a18'],
-        bodyStops: ['#3d2c08', '#a87f1e', '#f5d97a', '#a87f1e', '#2a1d05'],
-        rimDark: '#1a1305',
-      },
-      {
-        name: 'royal',
-        topStops: ['#dfeaff', '#7eb1f5', '#1f4488'],
-        bodyStops: ['#0d2354', '#3e74cc', '#9ec6ff', '#3e74cc', '#091e4a'],
-        rimDark: '#04102a',
-      },
-      {
-        name: 'medium',
-        topStops: ['#cfdcf5', '#5a8bd5', '#1a3a7c'],
-        bodyStops: ['#06173a', '#244e9c', '#7ba6e3', '#244e9c', '#04102a'],
-        rimDark: '#020812',
-      },
-      {
-        name: 'deep',
-        topStops: ['#a8b8d5', '#3e6196', '#0e2354'],
-        bodyStops: ['#020812', '#1a3e7e', '#5b87cb', '#1a3e7e', '#020716'],
-        rimDark: '#000408',
-      },
-    ];
-
-    // Gera os <defs> dinâmicos por estágio (1 gradient top + 1 gradient body cada)
+    // Gera os <defs> dinâmicos por estágio (1 gradient top + 1 gradient
+    // body cada) usando o idPrefix pra evitar conflito de IDs SVG entre
+    // múltiplos funis no mesmo DOM.
     const paletteDefs = items
       .map((_, i) => {
         const p = palettes[i % palettes.length];
         return `
-          <radialGradient id="discTop${i}" cx="0.5" cy="0.5" r="0.5">
+          <radialGradient id="${idPrefix}_discTop${i}" cx="0.5" cy="0.5" r="0.5">
             <stop offset="0%"  stop-color="${p.topStops[0]}" />
             <stop offset="55%" stop-color="${p.topStops[1]}" />
             <stop offset="100%" stop-color="${p.topStops[2]}" />
           </radialGradient>
-          <linearGradient id="discBody${i}" x1="0" y1="0" x2="1" y2="0">
+          <linearGradient id="${idPrefix}_discBody${i}" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%"   stop-color="${p.bodyStops[0]}" />
             <stop offset="22%"  stop-color="${p.bodyStops[1]}" />
             <stop offset="50%"  stop-color="${p.bodyStops[2]}" />
@@ -520,14 +490,14 @@ class DashboardPage {
                  escuras de cada disco — suficiente sem essa sombra.) -->
 
             <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
-            <path d="${bodyPath}" fill="url(#discBody${i})"
+            <path d="${bodyPath}" fill="url(#${idPrefix}_discBody${i})"
                   stroke="rgba(0,0,0,0.5)" stroke-width="0.7" />
 
             <!-- 3. Iluminação vertical (claro topo, escuro base) -->
-            <path d="${bodyPath}" fill="url(#discBodyVertical)" opacity="0.45" />
+            <path d="${bodyPath}" fill="url(#${idPrefix}_discBodyVertical)" opacity="0.45" />
 
             <!-- 4. Reflexo radial interno (foco luz canto sup-esquerdo) -->
-            <path d="${bodyPath}" fill="url(#discInnerReflect)" opacity="0.5" />
+            <path d="${bodyPath}" fill="url(#${idPrefix}_discInnerReflect)" opacity="0.5" />
 
             <!-- 5. Highlight especular (linha branca na lateral esquerda) -->
             <path d="${hlLeft}" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"
@@ -545,13 +515,13 @@ class DashboardPage {
 
             <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
             <ellipse cx="${cx}" cy="${yTop}" rx="${wTop / 2}" ry="${ryTop}"
-                     fill="url(#discTop${i})"
+                     fill="url(#${idPrefix}_discTop${i})"
                      stroke="rgba(255,255,255,0.6)" stroke-width="0.7" />
 
             <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
             <ellipse cx="${cx}" cy="${yTop - ryTop * 0.45}"
                      rx="${wTop / 2 - 16}" ry="${ryTop * 0.32}"
-                     fill="url(#discGloss)" opacity="0.95" />
+                     fill="url(#${idPrefix}_discGloss)" opacity="0.95" />
 
             <!-- 9. Label + valor (centralizados no corpo, longe das bordas) -->
             <text x="${cx}" y="${labelY}" class="funnel-label">${escHtml(item.label)}</text>
@@ -568,44 +538,44 @@ class DashboardPage {
     const floorRx = bottomW * 1.15;
     const floorShadow = `
       <ellipse class="funnel-floor-shadow" cx="${cx}" cy="${floorY}"
-               rx="${floorRx}" ry="8" fill="url(#funilFloorShadow)"
-               filter="url(#funilFloorBlur)" />
+               rx="${floorRx}" ry="8" fill="url(#${idPrefix}_funilFloorShadow)"
+               filter="url(#${idPrefix}_funilFloorBlur)" />
     `;
 
     return `
       <svg class="funnel-svg" viewBox="0 0 ${W} ${H}"
            xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"
-           role="img" aria-label="Funil 3D premium de entradas por curso">
+           role="img" aria-label="${escHtml(ariaLabel || 'Funil 3D premium')}">
         <defs>
           ${paletteDefs}
 
           <!-- Iluminação vertical (sobre todo disco): clara em cima, escura embaixo -->
-          <linearGradient id="discBodyVertical" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="${idPrefix}_discBodyVertical" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stop-color="rgba(255,255,255,0.55)" />
             <stop offset="50%"  stop-color="rgba(255,255,255,0.04)" />
             <stop offset="100%" stop-color="rgba(0,0,0,0.55)" />
           </linearGradient>
 
           <!-- Reflexo radial interno: foco de luz no canto superior-esquerdo -->
-          <radialGradient id="discInnerReflect" cx="0.28" cy="0.18" r="0.5">
+          <radialGradient id="${idPrefix}_discInnerReflect" cx="0.28" cy="0.18" r="0.5">
             <stop offset="0%"   stop-color="rgba(255,255,255,0.5)" />
             <stop offset="55%"  stop-color="rgba(255,255,255,0.06)" />
             <stop offset="100%" stop-color="rgba(255,255,255,0)" />
           </radialGradient>
 
           <!-- Brilho especular fino sobre topo do disco -->
-          <linearGradient id="discGloss" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="${idPrefix}_discGloss" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stop-color="rgba(255,255,255,0.95)" />
             <stop offset="100%" stop-color="rgba(255,255,255,0)" />
           </linearGradient>
 
           <!-- Sombra do chão -->
-          <radialGradient id="funilFloorShadow" cx="0.5" cy="0.5" r="0.5">
+          <radialGradient id="${idPrefix}_funilFloorShadow" cx="0.5" cy="0.5" r="0.5">
             <stop offset="0%"   stop-color="rgba(0,0,0,0.7)" />
             <stop offset="60%"  stop-color="rgba(0,0,0,0.25)" />
             <stop offset="100%" stop-color="rgba(0,0,0,0)" />
           </radialGradient>
-          <filter id="funilFloorBlur" x="-20%" y="-50%" width="140%" height="200%">
+          <filter id="${idPrefix}_funilFloorBlur" x="-20%" y="-50%" width="140%" height="200%">
             <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
           </filter>
         </defs>
@@ -614,6 +584,70 @@ class DashboardPage {
         ${stages}
       </svg>
     `;
+  }
+
+  /**
+   * Wrapper p/ funil de ENTRADAS — paleta gold (líder) → azul royal →
+   * azul médio → azul escuro (combina com tema dark+gold do app).
+   */
+  _buildFunnelEntradasSVG(items) {
+    return this._buildFunnelSVG(items, 'ent', [
+      {
+        topStops: ['#fff5c8', '#f0d061', '#a87a18'],
+        bodyStops: ['#3d2c08', '#a87f1e', '#f5d97a', '#a87f1e', '#2a1d05'],
+        rimDark: '#1a1305',
+      },
+      {
+        topStops: ['#dfeaff', '#7eb1f5', '#1f4488'],
+        bodyStops: ['#0d2354', '#3e74cc', '#9ec6ff', '#3e74cc', '#091e4a'],
+        rimDark: '#04102a',
+      },
+      {
+        topStops: ['#cfdcf5', '#5a8bd5', '#1a3a7c'],
+        bodyStops: ['#06173a', '#244e9c', '#7ba6e3', '#244e9c', '#04102a'],
+        rimDark: '#020812',
+      },
+      {
+        topStops: ['#a8b8d5', '#3e6196', '#0e2354'],
+        bodyStops: ['#020812', '#1a3e7e', '#5b87cb', '#1a3e7e', '#020716'],
+        rimDark: '#000408',
+      },
+    ], 'Funil 3D premium de entradas por curso (maior valor no topo)');
+  }
+
+  /**
+   * Wrapper p/ funil de SAÍDAS — paleta vermelho intenso → laranja
+   * fogo → coral → bordô. Cores quentes que remetem a "alerta",
+   * "saída de dinheiro", "fogo consumindo o caixa". Maior despesa
+   * fica no topo (vermelho mais forte).
+   */
+  _buildFunnelSaidasSVG(items) {
+    return this._buildFunnelSVG(items, 'sai', [
+      {
+        // #1: VERMELHO INTENSO — maior despesa, alerta máximo
+        topStops: ['#ffd0c8', '#ff5a3c', '#9a1208'],
+        bodyStops: ['#3a0606', '#9a1208', '#ff6b4a', '#9a1208', '#250303'],
+        rimDark: '#1c0303',
+      },
+      {
+        // #2: LARANJA FOGO
+        topStops: ['#ffe0b8', '#ff8c2a', '#9a4a08'],
+        bodyStops: ['#3a1d05', '#9a4a08', '#ff8c2a', '#9a4a08', '#1f0f02'],
+        rimDark: '#1a0c02',
+      },
+      {
+        // #3: CORAL
+        topStops: ['#fdc8c2', '#e85a4f', '#7a1f17'],
+        bodyStops: ['#2a0808', '#7a1f17', '#e85a4f', '#7a1f17', '#1a0404'],
+        rimDark: '#0f0202',
+      },
+      {
+        // #4: BORDÔ / VINHO
+        topStops: ['#c89a98', '#84383a', '#3a0e10'],
+        bodyStops: ['#1a0404', '#3a0e10', '#84383a', '#3a0e10', '#0a0202'],
+        rimDark: '#050101',
+      },
+    ], 'Funil 3D premium de despesas por categoria (maior valor no topo)');
   }
 
   _buildFunnelEntradasMetrics(items, total) {
@@ -635,58 +669,48 @@ class DashboardPage {
       .join('');
   }
 
+  /**
+   * Renderiza o gráfico de saídas como FUNIL 3D PREMIUM (paleta
+   * vermelho/laranja — saída de dinheiro). Mesma estrutura do
+   * funil de entradas (auto-reordering por valor desc, top 4).
+   */
   _renderChartSaidas(porCategoria) {
     const wrap = document.getElementById('wrapDespesasCategoria');
     const legendEl = document.getElementById('legendDespesasCategoria');
+    // Limpa instância anterior do Chart.js (se houver — antes usava
+    // bar chart, agora usa SVG funil)
     if (this.dashCharts.saidas) {
-      this.dashCharts.saidas.destroy();
+      try {
+        this.dashCharts.saidas.destroy();
+      } catch (_) {}
       delete this.dashCharts.saidas;
     }
 
-    const labels = Object.keys(porCategoria).sort((a, b) => porCategoria[b] - porCategoria[a]);
-    const values = labels.map((l) => porCategoria[l]);
+    const items = Object.entries(porCategoria || {})
+      .map(([label, value]) => ({ label, value: Number(value) || 0 }))
+      .filter((it) => it.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 4);
 
-    if (!labels.length) {
+    if (!items.length) {
       wrap.innerHTML = '<div class="dash-empty">Nenhuma despesa neste mês</div>';
-      if (legendEl) legendEl.innerHTML = '';
+      if (legendEl) {
+        legendEl.innerHTML = '';
+        legendEl.classList.remove('dash-chart-legend--funnel');
+      }
       return;
     }
-    if (!wrap.querySelector('canvas')) {
-      wrap.innerHTML = '<canvas id="chartDespesasCategoria"></canvas>';
+
+    const total = items.reduce((s, it) => s + it.value, 0);
+    wrap.innerHTML = this._buildFunnelSaidasSVG(items);
+    if (legendEl) {
+      legendEl.classList.add('dash-chart-legend--funnel');
+      // Marca a legenda como "saídas" pra que o CSS troque as cores
+      // dos ranks (gold/azul → vermelho/coral)
+      legendEl.classList.add('dash-chart-legend--funnel-saidas');
+      legendEl.innerHTML = this._buildFunnelEntradasMetrics(items, total);
+      this._attachFunnelLegendClicks(legendEl, wrap);
     }
-
-    const ctx = document.getElementById('chartDespesasCategoria').getContext('2d');
-    const colors = labels.map((_, i) => DASH_COLORS[i % DASH_COLORS.length]);
-
-    this.dashCharts.saidas = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          { data: values, backgroundColor: colors.slice(), borderRadius: 4, borderSkipped: false },
-        ],
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => ` R$ ${formatBRL(ctx.parsed.x)}` } },
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(0,0,0,0.06)' },
-            ticks: { callback: (v) => `R$ ${formatBRL(v)}`, font: { size: 11 } },
-          },
-          y: { grid: { display: false }, ticks: { font: { size: 12 } } },
-        },
-        onClick: (_e, els, chart) => this._onChartSliceClick('saidas', chart, els),
-      },
-    });
-    this.dashCharts.saidas._origColors = colors.slice();
-
-    this._buildLegend('saidas', legendEl, labels, values, colors);
   }
 
   // ── Legenda custom ────────────────────────────────────────────────────

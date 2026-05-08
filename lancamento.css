@@ -3969,11 +3969,21 @@ body.modal-open {
     filter: blur(2.8px);
     opacity: 0.28;
   }
-  .funnel-stage--selected {
+  /* Funil de ENTRADAS: glow gold no disco selecionado */
+  #wrapEntradasCurso .funnel-stage--selected {
     filter:
       drop-shadow(0 0 14px rgba(212, 175, 55, 0.95))
       drop-shadow(0 0 28px rgba(212, 175, 55, 0.55))
       drop-shadow(0 14px 26px rgba(212, 175, 55, 0.5));
+    transform: translateY(-3px) scale(1.04);
+  }
+  /* Funil de SAÍDAS: glow VERMELHO no disco selecionado (combina com
+     a paleta de despesas, não conflita com cor das fatias) */
+  #wrapDespesasCategoria .funnel-stage--selected {
+    filter:
+      drop-shadow(0 0 14px rgba(255, 90, 60, 0.95))
+      drop-shadow(0 0 28px rgba(255, 90, 60, 0.55))
+      drop-shadow(0 14px 26px rgba(255, 90, 60, 0.5));
     transform: translateY(-3px) scale(1.04);
   }
 }
@@ -4047,6 +4057,35 @@ body.modal-open {
   background: linear-gradient(135deg, var(--gold) 0%, #b8971e 100%);
   color: #050d27;
   box-shadow: 0 2px 10px rgba(212, 175, 55, 0.45);
+}
+
+/* ── LEGENDA DO FUNIL DE SAÍDAS — paleta vermelho/coral ──
+   Nas saídas, gold como líder não faz sentido (líder = "vencedor"
+   mas em despesas é "alerta máximo"). Substitui rank por gradient
+   vermelho intenso (#1) e coral (#2-4). */
+.dash-chart-legend--funnel-saidas .funnel-metric-rank {
+  background: linear-gradient(135deg, #e85a4f 0%, #84383a 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(232, 90, 79, 0.4);
+}
+.dash-chart-legend--funnel-saidas
+  .funnel-metric-item:first-child
+  .funnel-metric-rank {
+  background: linear-gradient(135deg, #ff5a3c 0%, #9a1208 100%);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(255, 90, 60, 0.55);
+}
+/* Barra dourada do estado --active vira vermelha em saídas */
+.dash-chart-legend--funnel-saidas .funnel-metric-item--active {
+  background: rgba(255, 90, 60, 0.14);
+}
+.dash-chart-legend--funnel-saidas .funnel-metric-item--active::before {
+  background: #ff5a3c;
+}
+@media (hover: hover) {
+  .dash-chart-legend--funnel-saidas .funnel-metric-item--active:hover {
+    background: rgba(255, 90, 60, 0.22);
+  }
 }
 
 .funnel-metric-body {

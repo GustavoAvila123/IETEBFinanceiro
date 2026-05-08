@@ -650,34 +650,14 @@ class DashboardPage {
     ], 'Funil 3D premium de despesas por categoria (maior valor no topo)');
   }
 
-  /**
-   * Calcula a precisão MÍNIMA necessária pros pcts dos itens ficarem
-   * todos distintos entre si. Quando valores são muito próximos (ex:
-   * 348,49 / 348,45 / 348,44 / 348,40 dão 25,0032% / 25,0004% /
-   * 24,9996% / 24,9968%), 1 casa decimal arredonda tudo pra 25,0%.
-   * Esta função sobe a precisão até 4 casas pra mostrar a diferença
-   * real (que existe matematicamente, só ficava escondida pelo round).
-   */
-  _calcPctPrecision(items, total) {
-    if (total <= 0 || items.length <= 1) return 1;
-    for (let p = 1; p <= 4; p++) {
-      const formatted = items.map((it) => ((it.value / total) * 100).toFixed(p));
-      if (new Set(formatted).size === items.length) return p;
-    }
-    return 4;
-  }
-
   _buildFunnelEntradasMetrics(items, total) {
-    // Precisão dinâmica: 1 casa pra valores muito diferentes; até 4 casas
-    // pros casos em que os valores são quase idênticos (caso contrário
-    // todos arredondam pro mesmo % e parecem iguais).
-    const precision = this._calcPctPrecision(items, total);
     return items
       .map((item, i) => {
         const pct = total > 0 ? (item.value / total) * 100 : 0;
         const rank = i + 1;
         const valorBR = formatBRL(item.value);
-        const pctBR = pct.toFixed(precision).replace('.', ',');
+        // Sempre 2 casas decimais, vírgula brasileira (ex: "25,01%").
+        const pctBR = pct.toFixed(2).replace('.', ',');
         return `
           <li class="funnel-metric-item" data-idx="${i}"
               data-value="${item.value}"

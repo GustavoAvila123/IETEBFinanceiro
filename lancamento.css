@@ -3873,7 +3873,7 @@ body.modal-open {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 8px;
+  padding: 6px 10px;
   border-radius: 8px;
   transition:
     background 0.18s ease,
@@ -3882,6 +3882,10 @@ body.modal-open {
   list-style: none;
   cursor: pointer;
   user-select: none;
+  /* Evita scrollbar interna que aparecia ao ativar o item por causa do
+     box-shadow inset + foco do navegador. */
+  overflow: hidden;
+  min-width: 0;
 }
 
 .funnel-metric-item:hover {
@@ -3890,17 +3894,36 @@ body.modal-open {
 }
 
 .funnel-metric-item:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(74, 141, 240, 0.45);
+  outline: 2px solid rgba(212, 175, 55, 0.55);
+  outline-offset: 2px;
 }
 
 .funnel-metric-item--active {
-  background: rgba(212, 175, 55, 0.12);
-  box-shadow: inset 3px 0 0 var(--gold);
+  background: rgba(212, 175, 55, 0.14);
+  /* Barra dourada à esquerda usando border (não box-shadow inset, que
+     em alguns navegadores ativava barras de rolagem internas) */
+  border-left: 3px solid var(--gold);
+  padding-left: 7px; /* compensa os 3px do border pra não desalinhar */
 }
 
 .funnel-metric-item--active:hover {
-  background: rgba(212, 175, 55, 0.18);
+  background: rgba(212, 175, 55, 0.2);
+}
+
+/* Quando algum estágio está selecionado, os DEMAIS desfocam e ficam
+   translúcidos. Ao clicar fora ou no mesmo item, a classe sai do SVG
+   e o funil volta ao normal. */
+.funnel-svg--has-selected .funnel-stage {
+  transition: filter 0.35s ease, opacity 0.35s ease;
+}
+
+.funnel-svg--has-selected .funnel-stage:not(.funnel-stage--selected) {
+  filter: blur(2.5px);
+  opacity: 0.32;
+}
+
+.funnel-stage--selected {
+  filter: drop-shadow(0 8px 22px rgba(212, 175, 55, 0.6));
 }
 
 .funnel-metric-rank {

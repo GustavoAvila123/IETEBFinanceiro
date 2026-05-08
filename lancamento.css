@@ -3897,16 +3897,38 @@ body.modal-open {
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
+  /* Mata o flash cinza/azul do tap em iOS/Android (que aparecia
+     como "quadrado" em volta do item ao tocar). */
+  -webkit-tap-highlight-color: transparent;
+  /* Remove o focus ring do navegador padrão em touch — só foca
+     visualmente quando vem por teclado (focus-visible). */
+  outline: none;
 }
 
-.funnel-metric-item:hover {
-  background: rgba(74, 141, 240, 0.08);
-  /* Removido translateX(2px) p/ não causar overflow no eixo X */
+/* Hover só em devices que suportam (desktop): em touch o "hover"
+   fica grudado depois do tap, gerando background residual. */
+@media (hover: hover) {
+  .funnel-metric-item:hover {
+    background: rgba(74, 141, 240, 0.08);
+  }
+  .funnel-metric-item--active:hover {
+    background: rgba(212, 175, 55, 0.2);
+  }
 }
 
 .funnel-metric-item:focus-visible {
   outline: 2px solid rgba(212, 175, 55, 0.55);
-  outline-offset: -1px; /* fica POR DENTRO da caixa, sem estourar largura */
+  outline-offset: -1px;
+}
+
+/* Em touch, o foco vem do tap mas NÃO é focus-visible. Reset explícito
+   garante que nenhum browser coloque outline residual nesse caso. */
+.funnel-metric-item:focus:not(:focus-visible) {
+  outline: none;
+  background: transparent;
+}
+.funnel-metric-item--active:focus:not(:focus-visible) {
+  background: rgba(212, 175, 55, 0.14);
 }
 
 /* Destaque ativo via pseudo-element ::before (não consome espaço de layout
@@ -3927,14 +3949,14 @@ body.modal-open {
   pointer-events: none;
 }
 
-.funnel-metric-item--active:hover {
-  background: rgba(212, 175, 55, 0.2);
-}
-
 /* Quando algum estágio está selecionado, os DEMAIS desfocam e ficam
-   translúcidos; o selecionado SE ELEVA + ganha halo gold multi-camada. */
+   translúcidos; o selecionado SE ELEVA + ganha halo gold multi-camada.
+   Transição mais curta (0.2s) + will-change pra GPU compositing — sem
+   isso, em mobile ficava uma "sombra fantasma" do disco anterior na
+   troca rápida de seleção. */
 .funnel-svg--has-selected .funnel-stage {
-  transition: filter 0.35s ease, opacity 0.35s ease, transform 0.35s ease;
+  transition: filter 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+  will-change: filter, transform, opacity;
 }
 
 .funnel-svg--has-selected .funnel-stage:not(.funnel-stage--selected) {
@@ -4119,6 +4141,33 @@ body.modal-open {
   }
   .dash-chart-legend .dash-legend-item {
     flex: 1 1 calc(50% - 3px);
+  }
+
+  /* Legenda do FUNIL em mobile: grid 2 colunas com altura igual em
+     todos os items, alinhamento consistente (não "quebrado") */
+  .dash-chart-legend--funnel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px !important;
+    align-content: start;
+  }
+  .funnel-metric-item {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 10px;
+    align-items: center;
+  }
+  .funnel-metric-rank {
+    width: 26px;
+    height: 26px;
+    font-size: 0.68rem;
+  }
+  .funnel-metric-label {
+    font-size: 0.74rem;
+    line-height: 1.2;
+  }
+  .funnel-metric-value {
+    font-size: 0.66rem;
   }
 }
 

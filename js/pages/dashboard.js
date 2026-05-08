@@ -365,148 +365,188 @@ class DashboardPage {
   }
 
   /**
-   * Funil 3D com laterais CURVAS (não retas): a silhueta usa easing
-   * cubic-in-out, criando um perfil de "vaso/garrafa" estilo o print
-   * de referência (top largo → afina rápido no meio → base estreita).
+   * Funil 3D PREMIUM — discos coloridos empilhados estilo "torre de
+   * discos com gap visível" (referência: funil corporativo clássico),
+   * adaptado pro tema dark+gold do app. Cada disco é uma cápsula 3D
+   * completa: face superior elíptica iluminada (top), corpo cilíndrico
+   * com gradient horizontal (lateral), borda inferior escura (sombra),
+   * e gap real entre discos pra reforçar a separação 3D.
    *
-   * Cada estágio é um <g class="funnel-stage" data-idx="N">. As bordas
-   * laterais são amostradas em vários pontos (pra parecerem curvas) e
-   * a base de cada estágio é um arco elíptico (rim 3D).
+   * Inovações:
+   * - Numeração gigante translúcida atrás do label (marca d'água)
+   * - Reflexo fantasma do funil no "chão" (mirror com fade)
+   * - Paleta gold (#1) → azul royal → azul médio → azul escuro
+   * - Halo neon azul ao redor + sombra do chão borrada
    */
   _buildFunnelEntradasSVG(items) {
-    const W = 380;
-    const H = 360;
+    const W = 400;
+    const H = 410;
     const cx = W / 2;
-    const topW = 340;          // boca larga do funil
-    const bottomW = 170;       // base mais larga: cabe "BÁSICO TEOLOGIA" sem vazar
-    const padTop = 26;         // espaço pro rim/lip do topo
-    const padBottom = 34;      // espaço pra sombra do chão + rim de saída
+    const topW = 340;          // boca larga (#1)
+    const bottomW = 130;       // base estreita do último disco (cabe texto)
+    const padTop = 26;
+    const padBottom = 88;      // espaço pro bocal + sombra + reflexo
+    const gap = 7;             // GAP REAL entre discos (separação visual)
+    const totalGap = gap * (items.length - 1);
     const bodyH = H - padTop - padBottom;
-    const stageH = bodyH / items.length;
-    const ellipseRyTop = 22;   // achatamento da elipse-rim (perspectiva mais 3D)
-    const SAMPLES = 22;        // pontos por lado por estágio (curva ultra suave)
+    const discH = (bodyH - totalGap) / items.length;
+    const ellipseRy = 16;      // achatamento da elipse-rim
+    const SAMPLES = 14;
 
-    // Easing cubic-in-out: começa devagar, acelera no meio, desacelera no fim.
-    // É o que dá a "barriga" curvada do funil estilo vaso.
-    const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    // Easing power 1.4: afunila lento no topo, acelera no fim — parecido
+    // com cone real (não vaso). Mais "funil corporativo" que "garrafa".
+    const ease = (t) => Math.pow(Math.max(0, Math.min(1, t)), 1.4);
+    const widthAtT = (t) => topW - (topW - bottomW) * ease(t);
+    const ryAtT = (t) => (widthAtT(t) / topW) * ellipseRy;
 
-    // Largura no parâmetro t∈[0,1] (0 = topo, 1 = base)
-    const widthAtT = (t) => {
-      const tc = Math.max(0, Math.min(1, t));
-      return topW - (topW - bottomW) * ease(tc);
-    };
-    const ryAtT = (t) => (widthAtT(t) / topW) * ellipseRyTop;
-
-    // Constrói o path de um estágio amostrando N pontos por lado.
-    const stagePath = (t0, t1) => {
-      const yAt = (t) => padTop + t * bodyH;
-      const parts = [];
-      // Lado direito: do topo (t0) até a base (t1) — descendo
-      for (let i = 0; i <= SAMPLES; i++) {
-        const t = t0 + (t1 - t0) * (i / SAMPLES);
-        const x = cx + widthAtT(t) / 2;
-        const y = yAt(t);
-        parts.push(i === 0 ? `M${x},${y}` : `L${x},${y}`);
-      }
-      // Arco elíptico na base (rim de baixo)
-      const wB = widthAtT(t1);
-      const ryB = ryAtT(t1);
-      parts.push(`A${wB / 2},${ryB} 0 0 1 ${cx - wB / 2},${yAt(t1)}`);
-      // Lado esquerdo: subindo da base até o topo
-      for (let i = SAMPLES - 1; i >= 0; i--) {
-        const t = t0 + (t1 - t0) * (i / SAMPLES);
-        const x = cx - widthAtT(t) / 2;
-        const y = yAt(t);
-        parts.push(`L${x},${y}`);
-      }
+    // Path do CORPO CILÍNDRICO de um disco (lateral) — arco no topo +
+    // arco na base + laterais curvas amostradas
+    const discBodyPath = (yTop, yBottom, wTop, wBottom, ryTop, ryBottom) => {
+      const parts = [`M${cx - wTop / 2},${yTop}`];
+      // Lado esquerdo descendo
+      parts.push(`L${cx - wBottom / 2},${yBottom}`);
+      // Arco da base (rim de baixo)
+      parts.push(`A${wBottom / 2},${ryBottom} 0 0 0 ${cx + wBottom / 2},${yBottom}`);
+      // Lado direito subindo
+      parts.push(`L${cx + wTop / 2},${yTop}`);
+      // Arco do topo (de volta) — half-ellipse na frente
+      parts.push(`A${wTop / 2},${ryTop} 0 0 1 ${cx - wTop / 2},${yTop}`);
       parts.push('Z');
       return parts.join(' ');
     };
 
-    // Highlight curvo na lateral esquerda (luz vinda de cima-esquerda):
-    // segue a curva do estágio, mas deslocado pra dentro.
-    const highlightPath = (t0, t1, side, inset, opening, closing) => {
-      const yAt = (t) => padTop + t * bodyH;
-      const parts = [];
-      const sign = side === 'left' ? -1 : 1;
-      const startT = t0 + (t1 - t0) * opening;
-      const endT = t1 - (t1 - t0) * closing;
-      for (let i = 0; i <= SAMPLES; i++) {
-        const t = startT + (endT - startT) * (i / SAMPLES);
-        const x = cx + sign * (widthAtT(t) / 2 - inset);
-        const y = yAt(t);
-        parts.push(i === 0 ? `M${x},${y}` : `L${x},${y}`);
-      }
-      return parts.join(' ');
-    };
+    // 4 paletas premium: GOLD (líder #1) → AZUL ROYAL → AZUL MÉDIO → AZUL ESCURO
+    // Cada uma tem: top (face superior elíptica) e body (lateral cilíndrica)
+    const palettes = [
+      {
+        name: 'gold',
+        topStops: ['#fff5c8', '#f0d061', '#a87a18'],
+        bodyStops: ['#3d2c08', '#a87f1e', '#f5d97a', '#a87f1e', '#2a1d05'],
+        rimDark: '#1a1305',
+      },
+      {
+        name: 'royal',
+        topStops: ['#dfeaff', '#7eb1f5', '#1f4488'],
+        bodyStops: ['#0d2354', '#3e74cc', '#9ec6ff', '#3e74cc', '#091e4a'],
+        rimDark: '#04102a',
+      },
+      {
+        name: 'medium',
+        topStops: ['#cfdcf5', '#5a8bd5', '#1a3a7c'],
+        bodyStops: ['#06173a', '#244e9c', '#7ba6e3', '#244e9c', '#04102a'],
+        rimDark: '#020812',
+      },
+      {
+        name: 'deep',
+        topStops: ['#a8b8d5', '#3e6196', '#0e2354'],
+        bodyStops: ['#020812', '#1a3e7e', '#5b87cb', '#1a3e7e', '#020716'],
+        rimDark: '#000408',
+      },
+    ];
 
+    // Gera os <defs> dinâmicos por estágio (1 gradient top + 1 gradient body cada)
+    const paletteDefs = items
+      .map((_, i) => {
+        const p = palettes[i % palettes.length];
+        return `
+          <radialGradient id="discTop${i}" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="${p.topStops[0]}" />
+            <stop offset="55%" stop-color="${p.topStops[1]}" />
+            <stop offset="100%" stop-color="${p.topStops[2]}" />
+          </radialGradient>
+          <linearGradient id="discBody${i}" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="${p.bodyStops[0]}" />
+            <stop offset="22%"  stop-color="${p.bodyStops[1]}" />
+            <stop offset="50%"  stop-color="${p.bodyStops[2]}" />
+            <stop offset="78%"  stop-color="${p.bodyStops[3]}" />
+            <stop offset="100%" stop-color="${p.bodyStops[4]}" />
+          </linearGradient>
+        `;
+      })
+      .join('');
+
+    // ───────────────────────────────────────────────────────────
+    // GERA OS DISCOS (cada um é um <g class="funnel-stage">)
+    // ───────────────────────────────────────────────────────────
     const stages = items
       .map((item, i) => {
         const t0 = i / items.length;
         const t1 = (i + 1) / items.length;
-        const y0 = padTop + t0 * bodyH;
-        const y1 = padTop + t1 * bodyH;
-        const w0 = widthAtT(t0);
-        const w1 = widthAtT(t1);
-        const ry0 = ryAtT(t0);
-        const ry1 = ryAtT(t1);
+        const yTop = padTop + i * (discH + gap);
+        const yBottom = yTop + discH;
+        const wTop = widthAtT(t0);
+        const wBottom = widthAtT(t1);
+        const ryTop = ryAtT(t0);
+        const ryBottom = ryAtT(t1);
+        const palette = palettes[i % palettes.length];
 
-        const path = stagePath(t0, t1);
+        const bodyPath = discBodyPath(yTop, yBottom, wTop, wBottom, ryTop, ryBottom);
 
-        const labelY = y0 + (y1 - y0) / 2 - 10;
-        const valueY = y0 + (y1 - y0) / 2 + 12;
+        // Highlight especular esquerdo (acompanha a curva do disco)
+        const hlLeft = (() => {
+          const opening = 0.18;
+          const x1 = cx - wTop / 2 + 5;
+          const y1 = yTop + ryTop * 0.3;
+          const x2 = cx - wBottom / 2 + 5;
+          const y2 = yBottom - ryBottom * 0.3;
+          return `M${x1 + (wTop - wBottom) * opening * 0.05},${y1} L${x2},${y2}`;
+        })();
 
-        // Topo: anel duplo (escuro externo + claro interno) p/ simular
-        // a espessura do material como uma boca real de vidro/metal
-        const topRim =
-          i === 0
-            ? `<!-- Anel externo escuro (espessura do material) -->
-               <ellipse cx="${cx}" cy="${y0 + 1.5}"
-                        rx="${w0 / 2 + 2}" ry="${ry0 + 1.5}"
-                        fill="url(#funilTopRimOuter)" opacity="0.85" />
-               <!-- Anel principal claro -->
-               <ellipse cx="${cx}" cy="${y0}" rx="${w0 / 2}" ry="${ry0}"
-                       fill="url(#funilTopRim)" />
-               <!-- Sombra interior do rim (boca do funil olhando pra dentro) -->
-               <ellipse cx="${cx}" cy="${y0 + ry0 * 0.18}"
-                        rx="${w0 / 2 - 4}" ry="${ry0 * 0.78}"
-                        fill="url(#funilRimInside)" />
-               <!-- Brilho especular fino no topo do rim -->
-               <ellipse cx="${cx}" cy="${y0 - ry0 * 0.5}"
-                        rx="${w0 / 2 - 12}" ry="${ry0 * 0.3}"
-                        fill="url(#funilRimGloss)" opacity="0.95" />`
-            : '';
-
-        const hlLeft = highlightPath(t0, t1, 'left', 6, 0.04, 0.06);
-        const hlRight = highlightPath(t0, t1, 'right', 6, 0.04, 0.06);
-        // Linha de luz extra mais para dentro (efeito double-glow)
-        const hlLeftInner = highlightPath(t0, t1, 'left', 16, 0.10, 0.14);
+        const numberY = yTop + discH * 0.62;
+        const labelY = yTop + discH * 0.38;
+        const valueY = yTop + discH * 0.72;
+        const stageId = `stage-${i}`;
 
         return `
-          <g class="funnel-stage" data-idx="${i}" style="transform-origin: ${cx}px ${(y0 + y1) / 2}px;">
-            <path d="${path}" fill="url(#funilBody${i % 4})"
-                  stroke="rgba(255,255,255,0.18)" stroke-width="0.8" />
-            <!-- Iluminação vertical (claro no topo do estágio, escuro na base) -->
-            <path d="${path}" fill="url(#funilBodyVertical)" opacity="0.6" />
-            <!-- Reflexo radial interno (foco de luz no canto sup-esquerdo) -->
-            <path d="${path}" fill="url(#funilInnerReflect)" opacity="0.55" />
-            <!-- Highlight especular esquerdo: linha grossa + linha fina -->
-            <path d="${hlLeft}" stroke="rgba(255,255,255,0.55)" stroke-width="3.5"
-                  stroke-linecap="round" fill="none" opacity="0.7" />
-            <path d="${hlLeft}" stroke="rgba(255,255,255,0.95)" stroke-width="1.2"
+          <g class="funnel-stage" data-idx="${i}"
+             style="transform-origin: ${cx}px ${(yTop + yBottom) / 2}px;">
+
+            <!-- 1. Sombra DO DISCO no gap (fica bem abaixo, no espaço entre fatias) -->
+            <ellipse cx="${cx}" cy="${yBottom + gap * 0.6}"
+                     rx="${wBottom / 2 * 0.95}" ry="${ryBottom * 0.55}"
+                     fill="${palette.rimDark}" opacity="0.85"
+                     filter="url(#discDropShadow)" />
+
+            <!-- 2. CORPO CILÍNDRICO (lateral do disco) — gradient horizontal premium -->
+            <path d="${bodyPath}" fill="url(#discBody${i})"
+                  stroke="rgba(0,0,0,0.45)" stroke-width="0.6" />
+
+            <!-- 3. Iluminação vertical (claro topo, escuro base) -->
+            <path d="${bodyPath}" fill="url(#discBodyVertical)" opacity="0.45" />
+
+            <!-- 4. Reflexo radial interno (foco de luz superior-esquerdo) -->
+            <path d="${bodyPath}" fill="url(#discInnerReflect)" opacity="0.5" />
+
+            <!-- 5. Highlight especular (linha branca curvada na lateral esquerda) -->
+            <path d="${hlLeft}" stroke="rgba(255,255,255,0.85)" stroke-width="1.4"
                   stroke-linecap="round" fill="none" opacity="0.85" />
-            <!-- Segundo highlight (mais para dentro) — sensação de vidro polido -->
-            <path d="${hlLeftInner}" stroke="rgba(255,255,255,0.32)" stroke-width="1.5"
-                  stroke-linecap="round" fill="none" opacity="0.5" />
-            <!-- Sombra lateral direita (lado oposto à luz) -->
-            <path d="${hlRight}" stroke="rgba(0,0,0,0.42)" stroke-width="3"
-                  stroke-linecap="round" fill="none" opacity="0.7" />
-            <path d="${hlRight}" stroke="rgba(0,0,0,0.6)" stroke-width="1"
-                  stroke-linecap="round" fill="none" opacity="0.55" />
-            ${topRim}
-            <!-- Sombra interna no rim de baixo pra dar profundidade entre estágios -->
-            <ellipse cx="${cx}" cy="${y1}" rx="${w1 / 2}" ry="${ry1}"
-                     fill="url(#funilInnerShadow)" opacity="0.78" />
+
+            <!-- 6. Borda inferior elíptica ESCURA (sombra sob o disco, dentro dele) -->
+            <ellipse cx="${cx}" cy="${yBottom}" rx="${wBottom / 2}" ry="${ryBottom}"
+                     fill="rgba(0,0,0,0.55)" />
+            <!-- Anel claro fino na borda inferior (espessura do material) -->
+            <path d="M${cx - wBottom / 2 + 2},${yBottom - 1}
+                     A${wBottom / 2 - 2},${ryBottom * 0.7} 0 0 0
+                     ${cx + wBottom / 2 - 2},${yBottom - 1}"
+                  stroke="rgba(255,255,255,0.18)" stroke-width="0.8"
+                  fill="none" />
+
+            <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
+            <ellipse cx="${cx}" cy="${yTop}" rx="${wTop / 2}" ry="${ryTop}"
+                     fill="url(#discTop${i})"
+                     stroke="rgba(255,255,255,0.55)" stroke-width="0.6" />
+
+            <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
+            <ellipse cx="${cx}" cy="${yTop - ryTop * 0.45}"
+                     rx="${wTop / 2 - 14}" ry="${ryTop * 0.32}"
+                     fill="url(#discGloss)" opacity="0.95" />
+
+            <!-- 9. INOVAÇÃO: NÚMERO GIGANTE TRANSLÚCIDO como marca d'água
+                    atrás do label (tipo "ranking 3D fantasma") -->
+            <text x="${cx}" y="${numberY}" class="funnel-bignumber"
+                  text-anchor="middle">${i + 1}</text>
+
+            <!-- 10. Label + valor (sobre o número) -->
             <text x="${cx}" y="${labelY}" class="funnel-label">${escHtml(item.label)}</text>
             <text x="${cx}" y="${valueY}" class="funnel-value">R$ ${formatBRL(item.value)}</text>
           </g>
@@ -514,183 +554,135 @@ class DashboardPage {
       })
       .join('');
 
-    // Faixa de luz CENTRAL VERTICAL — passa por todo o funil, simulando
-    // o reflexo do "tubo de vidro" no eixo central. Fica POR CIMA dos
-    // estágios pra reforçar o efeito 3D mesmo no modo foco.
-    const centerGlowPath = (() => {
-      const yAt = (t) => padTop + t * bodyH;
-      const N = SAMPLES * items.length;
-      const parts = [];
-      for (let i = 0; i <= N; i++) {
-        const t = i / N;
-        const x = cx + widthAtT(t) * 0.09;
-        parts.push(i === 0 ? `M${x},${yAt(t)}` : `L${x},${yAt(t)}`);
-      }
-      for (let i = N; i >= 0; i--) {
-        const t = i / N;
-        const x = cx - widthAtT(t) * 0.09;
-        parts.push(`L${x},${yAt(t)}`);
-      }
-      parts.push('Z');
-      return parts.join(' ');
-    })();
-    const centerGlow = `
-      <path class="funnel-center-glow" d="${centerGlowPath}"
-            fill="url(#funilCenterGlow)" opacity="0.32"
-            pointer-events="none" />
-    `;
-
-    // Rim de saída na BASE — pequeno bocal visível abaixo da última fatia.
-    // Dá sensação de que o funil "termina" num cilindro, não num corte.
-    const lastT = 1;
-    const wOut = widthAtT(lastT);
-    const ryOut = ryAtT(lastT) + 2;
-    const yOutTop = padTop + bodyH;
-    const yOutBottom = yOutTop + 14;
-    const exitRimPath = [
-      `M${cx - wOut / 2},${yOutTop}`,
-      `L${cx - wOut / 2},${yOutBottom}`,
-      `A${wOut / 2},${ryOut} 0 0 0 ${cx + wOut / 2},${yOutBottom}`,
-      `L${cx + wOut / 2},${yOutTop}`,
-      `A${wOut / 2},${ryOut * 0.7} 0 0 1 ${cx - wOut / 2},${yOutTop}`,
-      'Z',
-    ].join(' ');
+    // ───────────────────────────────────────────────────────────
+    // BOCAL DE SAÍDA (cilindro pequeno embaixo do último disco)
+    // ───────────────────────────────────────────────────────────
+    const yExitTop = padTop + bodyH + 10;
+    const yExitBottom = yExitTop + 22;
+    const wExit = widthAtT(1) * 0.55;
+    const ryExit = ryAtT(1) * 0.55;
     const exitRim = `
-      <path d="${exitRimPath}" fill="url(#funilExitRim)" />
-      <!-- Sombra interna do bocal -->
-      <ellipse cx="${cx}" cy="${yOutBottom}" rx="${wOut / 2}" ry="${ryOut * 0.7}"
-               fill="rgba(0,0,0,0.55)" />
-      <!-- Brilho fino no anel inferior -->
-      <path d="M${cx - wOut / 2 + 4},${yOutBottom - 1}
-               A${wOut / 2 - 4},${ryOut * 0.6} 0 0 0 ${cx + wOut / 2 - 4},${yOutBottom - 1}"
-            stroke="rgba(255,255,255,0.5)" stroke-width="1.2"
+      <!-- Cilindro do bocal -->
+      <path d="M${cx - wExit / 2},${yExitTop}
+               L${cx - wExit / 2},${yExitBottom}
+               A${wExit / 2},${ryExit} 0 0 0 ${cx + wExit / 2},${yExitBottom}
+               L${cx + wExit / 2},${yExitTop}
+               A${wExit / 2},${ryExit * 0.7} 0 0 1 ${cx - wExit / 2},${yExitTop} Z"
+            fill="url(#exitBody)" stroke="rgba(0,0,0,0.5)" stroke-width="0.5" />
+      <!-- Topo do bocal (face elíptica) -->
+      <ellipse cx="${cx}" cy="${yExitTop}" rx="${wExit / 2}" ry="${ryExit * 0.7}"
+               fill="url(#exitTop)" stroke="rgba(255,255,255,0.4)" stroke-width="0.5" />
+      <!-- Base do bocal (sombra escura — saída do funil) -->
+      <ellipse cx="${cx}" cy="${yExitBottom}" rx="${wExit / 2}" ry="${ryExit}"
+               fill="rgba(0,0,0,0.7)" />
+      <!-- Anel claro fino na borda superior (espessura) -->
+      <path d="M${cx - wExit / 2 + 2},${yExitTop - 1}
+               A${wExit / 2 - 2},${ryExit * 0.6} 0 0 0 ${cx + wExit / 2 - 2},${yExitTop - 1}"
+            stroke="rgba(255,255,255,0.5)" stroke-width="1"
             fill="none" opacity="0.8" />
     `;
 
-    // Sombra do chão sob a base
-    const floorY = padTop + bodyH + 22;
-    const floorRx = bottomW * 1.5;
+    // ───────────────────────────────────────────────────────────
+    // SOMBRA DO CHÃO (elipse blur sob o bocal)
+    // ───────────────────────────────────────────────────────────
+    const floorY = yExitBottom + 16;
+    const floorRx = topW * 0.42;
     const floorShadow = `
       <ellipse class="funnel-floor-shadow" cx="${cx}" cy="${floorY}"
-               rx="${floorRx}" ry="8" fill="url(#funilFloorShadow)"
+               rx="${floorRx}" ry="9" fill="url(#funilFloorShadow)"
                filter="url(#funilFloorBlur)" />
     `;
 
     return `
       <svg class="funnel-svg" viewBox="0 0 ${W} ${H}"
            xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"
-           role="img" aria-label="Funil 3D de entradas por curso (maior valor no topo)">
+           role="img" aria-label="Funil 3D premium de entradas por curso">
         <defs>
-          <!-- Gradient horizontal do corpo: 5 stops dão volume tipo "vidro
-               polido" (claros nas bordas internas, escuro nos cantos
-               externos). Cada estágio é uma intensidade diferente. -->
-          <linearGradient id="funilBody0" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#1a3c84" />
-            <stop offset="20%"  stop-color="#5a98ee" />
-            <stop offset="50%"  stop-color="#a8cdff" />
-            <stop offset="80%"  stop-color="#3e74cc" />
-            <stop offset="100%" stop-color="#0d2354" />
-          </linearGradient>
-          <linearGradient id="funilBody1" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#142e69" />
-            <stop offset="20%"  stop-color="#4980d4" />
-            <stop offset="50%"  stop-color="#90b9f5" />
-            <stop offset="80%"  stop-color="#305fb8" />
-            <stop offset="100%" stop-color="#091e4a" />
-          </linearGradient>
-          <linearGradient id="funilBody2" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#0e2354" />
-            <stop offset="20%"  stop-color="#3a6dba" />
-            <stop offset="50%"  stop-color="#7ba6e3" />
-            <stop offset="80%"  stop-color="#244e9c" />
-            <stop offset="100%" stop-color="#06173a" />
-          </linearGradient>
-          <linearGradient id="funilBody3" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#091a44" />
-            <stop offset="20%"  stop-color="#2c5aa0" />
-            <stop offset="50%"  stop-color="#6892ce" />
-            <stop offset="80%"  stop-color="#1a3e7e" />
-            <stop offset="100%" stop-color="#04102a" />
-          </linearGradient>
-          <!-- Camada vertical: clareia o topo do estágio, escurece a base. -->
-          <linearGradient id="funilBodyVertical" x1="0" y1="0" x2="0" y2="1">
+          ${paletteDefs}
+
+          <!-- Iluminação vertical (sobre todo disco): clara em cima, escura embaixo -->
+          <linearGradient id="discBodyVertical" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stop-color="rgba(255,255,255,0.55)" />
-            <stop offset="40%"  stop-color="rgba(255,255,255,0.05)" />
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.04)" />
             <stop offset="100%" stop-color="rgba(0,0,0,0.55)" />
           </linearGradient>
-          <!-- Reflexo radial interno: foco de luz no canto sup-esquerdo -->
-          <radialGradient id="funilInnerReflect" cx="0.25" cy="0.18" r="0.55">
-            <stop offset="0%"   stop-color="rgba(255,255,255,0.6)" />
-            <stop offset="55%"  stop-color="rgba(255,255,255,0.08)" />
+
+          <!-- Reflexo radial interno: foco de luz no canto superior-esquerdo -->
+          <radialGradient id="discInnerReflect" cx="0.28" cy="0.18" r="0.5">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.5)" />
+            <stop offset="55%"  stop-color="rgba(255,255,255,0.06)" />
             <stop offset="100%" stop-color="rgba(255,255,255,0)" />
           </radialGradient>
-          <!-- Faixa de luz central vertical (eixo do funil) -->
-          <linearGradient id="funilCenterGlow" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="rgba(255,255,255,0)" />
-            <stop offset="50%"  stop-color="rgba(255,255,255,0.85)" />
-            <stop offset="100%" stop-color="rgba(255,255,255,0)" />
-          </linearGradient>
-          <!-- Rim de cima (boca do funil): claro, simula luz refletida -->
-          <linearGradient id="funilTopRim" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stop-color="#dfeaff" />
-            <stop offset="50%"  stop-color="#7eb1f5" />
-            <stop offset="100%" stop-color="#0d2354" />
-          </linearGradient>
-          <!-- Anel externo escuro do rim (espessura do material) -->
-          <linearGradient id="funilTopRimOuter" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stop-color="#0a1f4a" />
-            <stop offset="100%" stop-color="#020716" />
-          </linearGradient>
-          <!-- Sombra interior do rim (vista olhando pra dentro do funil) -->
-          <radialGradient id="funilRimInside" cx="0.5" cy="0.4" r="0.55">
-            <stop offset="0%"   stop-color="rgba(8,18,52,0.85)" />
-            <stop offset="70%"  stop-color="rgba(8,18,52,0.4)" />
-            <stop offset="100%" stop-color="rgba(8,18,52,0)" />
-          </radialGradient>
-          <!-- Brilho especular fino no rim -->
-          <linearGradient id="funilRimGloss" x1="0" y1="0" x2="0" y2="1">
+
+          <!-- Brilho especular fino sobre topo do disco -->
+          <linearGradient id="discGloss" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%"   stop-color="rgba(255,255,255,0.95)" />
             <stop offset="100%" stop-color="rgba(255,255,255,0)" />
           </linearGradient>
-          <!-- Bocal de saída (rim cilíndrico abaixo da última fatia) -->
-          <linearGradient id="funilExitRim" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stop-color="#04102a" />
-            <stop offset="20%"  stop-color="#2a5396" />
+
+          <!-- Bocal de saída (cilindro) -->
+          <linearGradient id="exitBody" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#020812" />
+            <stop offset="22%"  stop-color="#1a3e7e" />
             <stop offset="50%"  stop-color="#5b87cb" />
-            <stop offset="80%"  stop-color="#1c3e7c" />
-            <stop offset="100%" stop-color="#020812" />
+            <stop offset="78%"  stop-color="#1a3e7e" />
+            <stop offset="100%" stop-color="#020716" />
           </linearGradient>
-          <!-- Sombra interna nos rims de baixo (entre estágios) -->
-          <radialGradient id="funilInnerShadow" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0%"   stop-color="rgba(0,0,0,0.65)" />
-            <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+          <radialGradient id="exitTop" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="#a8b8d5" />
+            <stop offset="100%" stop-color="#1a3060" />
           </radialGradient>
-          <!-- Sombra do chão sob a base do funil -->
+
+          <!-- Sombra do chão -->
           <radialGradient id="funilFloorShadow" cx="0.5" cy="0.5" r="0.5">
-            <stop offset="0%"   stop-color="rgba(0,0,0,0.65)" />
-            <stop offset="70%"  stop-color="rgba(0,0,0,0.22)" />
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.7)" />
+            <stop offset="60%"  stop-color="rgba(0,0,0,0.25)" />
             <stop offset="100%" stop-color="rgba(0,0,0,0)" />
           </radialGradient>
           <filter id="funilFloorBlur" x="-20%" y="-50%" width="140%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
           </filter>
-          <!-- Glow halo azul ao redor do funil (efeito "neon premium") -->
-          <filter id="funilHalo" x="-30%" y="-15%" width="160%" height="130%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
-            <feFlood flood-color="#4a8df0" flood-opacity="0.55" result="color" />
+
+          <!-- Sombra de drop dos discos no gap (entre discos) -->
+          <filter id="discDropShadow" x="-20%" y="-50%" width="140%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+          </filter>
+
+          <!-- Halo neon azul ao redor de todos os discos -->
+          <filter id="funilHalo" x="-20%" y="-10%" width="140%" height="120%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+            <feFlood flood-color="#5fa1ff" flood-opacity="0.45" result="color" />
             <feComposite in="color" in2="blur" operator="in" result="halo" />
             <feMerge>
               <feMergeNode in="halo" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
+
+          <!-- INOVAÇÃO: Reflexo fantasma do funil no chão (mirror com fade).
+               O <g> dos discos é REUSADO via <use> espelhado verticalmente. -->
+          <linearGradient id="funilReflectFade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0)" />
+            <stop offset="100%" stop-color="rgba(0,0,0,1)" />
+          </linearGradient>
+          <mask id="funilReflectMask">
+            <rect x="0" y="0" width="${W}" height="${H}" fill="url(#funilReflectFade)" />
+          </mask>
         </defs>
+
+        <!-- Reflexo fantasma (espelho vertical com mask de fade) -->
+        <g transform="translate(0, ${(yExitBottom + 6) * 2}) scale(1, -1)"
+           opacity="0.18" mask="url(#funilReflectMask)" pointer-events="none">
+          ${stages}
+          ${exitRim}
+        </g>
+
         ${floorShadow}
+
         <g filter="url(#funilHalo)">
           ${stages}
           ${exitRim}
         </g>
-        ${centerGlow}
       </svg>
     `;
   }

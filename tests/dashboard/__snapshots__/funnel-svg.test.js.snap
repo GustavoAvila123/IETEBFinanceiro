@@ -1,0 +1,699 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`funil SVG — snapshots (regressão visual de estrutura) > SVG entradas (4 items) bate com snapshot 1`] = `
+"
+      <svg class="funnel-svg" viewBox="0 0 400 430"
+           xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"
+           role="img" aria-label="Funil 3D premium de entradas por curso (maior valor no topo)">
+        <defs>
+          
+          <radialGradient id="ent_discTop0" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="#fff5c8" />
+            <stop offset="55%" stop-color="#f0d061" />
+            <stop offset="100%" stop-color="#a87a18" />
+          </radialGradient>
+          <linearGradient id="ent_discBody0" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#3d2c08" />
+            <stop offset="22%"  stop-color="#a87f1e" />
+            <stop offset="50%"  stop-color="#f5d97a" />
+            <stop offset="78%"  stop-color="#a87f1e" />
+            <stop offset="100%" stop-color="#2a1d05" />
+          </linearGradient>
+        
+          <radialGradient id="ent_discTop1" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="#dfeaff" />
+            <stop offset="55%" stop-color="#7eb1f5" />
+            <stop offset="100%" stop-color="#1f4488" />
+          </radialGradient>
+          <linearGradient id="ent_discBody1" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#0d2354" />
+            <stop offset="22%"  stop-color="#3e74cc" />
+            <stop offset="50%"  stop-color="#9ec6ff" />
+            <stop offset="78%"  stop-color="#3e74cc" />
+            <stop offset="100%" stop-color="#091e4a" />
+          </linearGradient>
+        
+          <radialGradient id="ent_discTop2" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="#cfdcf5" />
+            <stop offset="55%" stop-color="#5a8bd5" />
+            <stop offset="100%" stop-color="#1a3a7c" />
+          </radialGradient>
+          <linearGradient id="ent_discBody2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#06173a" />
+            <stop offset="22%"  stop-color="#244e9c" />
+            <stop offset="50%"  stop-color="#7ba6e3" />
+            <stop offset="78%"  stop-color="#244e9c" />
+            <stop offset="100%" stop-color="#04102a" />
+          </linearGradient>
+        
+          <radialGradient id="ent_discTop3" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="#a8b8d5" />
+            <stop offset="55%" stop-color="#3e6196" />
+            <stop offset="100%" stop-color="#0e2354" />
+          </radialGradient>
+          <linearGradient id="ent_discBody3" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#020812" />
+            <stop offset="22%"  stop-color="#1a3e7e" />
+            <stop offset="50%"  stop-color="#5b87cb" />
+            <stop offset="78%"  stop-color="#1a3e7e" />
+            <stop offset="100%" stop-color="#020716" />
+          </linearGradient>
+        
+
+          <!-- Iluminação vertical (sobre todo disco): clara em cima, escura embaixo -->
+          <linearGradient id="ent_discBodyVertical" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.55)" />
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.04)" />
+            <stop offset="100%" stop-color="rgba(0,0,0,0.55)" />
+          </linearGradient>
+
+          <!-- Reflexo radial interno: foco de luz no canto superior-esquerdo -->
+          <radialGradient id="ent_discInnerReflect" cx="0.28" cy="0.18" r="0.5">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.5)" />
+            <stop offset="55%"  stop-color="rgba(255,255,255,0.06)" />
+            <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+          </radialGradient>
+
+          <!-- Brilho especular fino sobre topo do disco -->
+          <linearGradient id="ent_discGloss" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.95)" />
+            <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+          </linearGradient>
+
+          <!-- Sombra do chão -->
+          <radialGradient id="ent_funilFloorShadow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.7)" />
+            <stop offset="60%"  stop-color="rgba(0,0,0,0.25)" />
+            <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+          </radialGradient>
+          <filter id="ent_funilFloorBlur" x="-20%" y="-50%" width="140%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
+          </filter>
+        </defs>
+
+        
+      <ellipse class="funnel-floor-shadow" cx="200" cy="412"
+               rx="172.5" ry="8" fill="url(#ent_funilFloorShadow)"
+               filter="url(#ent_funilFloorBlur)" />
+    
+        
+          <g class="funnel-stage" data-idx="0"
+             style="transform-origin: 200px 70.25px;">
+
+            <!-- 1. (removida a sombra projetada no gap — quando o disco
+                 saltava -6px, ela subia junto e ficava "flutuando" no
+                 meio do espaço, criando o efeito de "sombra fantasma".
+                 A profundidade entre discos vem das bordas elípticas
+                 escuras de cada disco — suficiente sem essa sombra.) -->
+
+            <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
+            <path d="M25,30 L39.35872943746293,110.5 A160.64127056253707,20.19490258500466 0 0 0 360.6412705625371,110.5 L375,30 A175,22 0 0 1 25,30 Z" fill="url(#ent_discBody0)"
+                  stroke="rgba(0,0,0,0.5)" stroke-width="0.7" />
+
+            <!-- 3. Iluminação vertical (claro topo, escuro base) -->
+            <path d="M25,30 L39.35872943746293,110.5 A160.64127056253707,20.19490258500466 0 0 0 360.6412705625371,110.5 L375,30 A175,22 0 0 1 25,30 Z" fill="url(#ent_discBodyVertical)" opacity="0.45" />
+
+            <!-- 4. Reflexo radial interno (foco luz canto sup-esquerdo) -->
+            <path d="M25,30 L39.35872943746293,110.5 A160.64127056253707,20.19490258500466 0 0 0 360.6412705625371,110.5 L375,30 A175,22 0 0 1 25,30 Z" fill="url(#ent_discInnerReflect)" opacity="0.5" />
+
+            <!-- 5. Highlight especular (linha branca na lateral esquerda) -->
+            <path d="M30.258457129874333,36.6 L44.35872943746293,104.44152922449861" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"
+                  stroke-linecap="round" fill="none" opacity="0.85" />
+
+            <!-- 6. Borda inferior elíptica ESCURA (sombra dentro do disco) -->
+            <ellipse cx="200" cy="110.5" rx="160.64127056253707" ry="20.19490258500466"
+                     fill="rgba(0,0,0,0.6)" />
+            <!-- Anel claro fino na borda inferior (espessura do material) -->
+            <path d="M41.35872943746293,109.5
+                     A158.64127056253707,14.13643180950326 0 0 0
+                     358.6412705625371,109.5"
+                  stroke="rgba(255,255,255,0.22)" stroke-width="1"
+                  fill="none" />
+
+            <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
+            <ellipse cx="200" cy="30" rx="175" ry="22"
+                     fill="url(#ent_discTop0)"
+                     stroke="rgba(255,255,255,0.6)" stroke-width="0.7" />
+
+            <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
+            <ellipse cx="200" cy="20.1"
+                     rx="159" ry="7.04"
+                     fill="url(#ent_discGloss)" opacity="0.95" />
+
+            <!-- 9. Label + valor (centralizados no corpo, longe das bordas) -->
+            <text x="200" y="66.25" class="funnel-label">CFAM</text>
+            <text x="200" y="86.25" class="funnel-value">R$ 600,00</text>
+          </g>
+        
+          <g class="funnel-stage" data-idx="1"
+             style="transform-origin: 200px 164.75px;">
+
+            <!-- 1. (removida a sombra projetada no gap — quando o disco
+                 saltava -6px, ela subia junto e ficava "flutuando" no
+                 meio do espaço, criando o efeito de "sombra fantasma".
+                 A profundidade entre discos vem das bordas elípticas
+                 escuras de cada disco — suficiente sem essa sombra.) -->
+
+            <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
+            <path d="M39.35872943746293,124.5 L62.89291416275995,205 A137.10708583724005,17.236319362395893 0 0 0 337.10708583724005,205 L360.6412705625371,124.5 A160.64127056253707,20.19490258500466 0 0 1 39.35872943746293,124.5 Z" fill="url(#ent_discBody1)"
+                  stroke="rgba(0,0,0,0.5)" stroke-width="0.7" />
+
+            <!-- 3. Iluminação vertical (claro topo, escuro base) -->
+            <path d="M39.35872943746293,124.5 L62.89291416275995,205 A137.10708583724005,17.236319362395893 0 0 0 337.10708583724005,205 L360.6412705625371,124.5 A160.64127056253707,20.19490258500466 0 0 1 39.35872943746293,124.5 Z" fill="url(#ent_discBodyVertical)" opacity="0.45" />
+
+            <!-- 4. Reflexo radial interno (foco luz canto sup-esquerdo) -->
+            <path d="M39.35872943746293,124.5 L62.89291416275995,205 A137.10708583724005,17.236319362395893 0 0 0 337.10708583724005,205 L360.6412705625371,124.5 A160.64127056253707,20.19490258500466 0 0 1 39.35872943746293,124.5 Z" fill="url(#ent_discInnerReflect)" opacity="0.5" />
+
+            <!-- 5. Highlight especular (linha branca na lateral esquerda) -->
+            <path d="M44.78234476251827,130.5584707755014 L67.89291416275995,199.82910419128123" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"
+                  stroke-linecap="round" fill="none" opacity="0.85" />
+
+            <!-- 6. Borda inferior elíptica ESCURA (sombra dentro do disco) -->
+            <ellipse cx="200" cy="205" rx="137.10708583724005" ry="17.236319362395893"
+                     fill="rgba(0,0,0,0.6)" />
+            <!-- Anel claro fino na borda inferior (espessura do material) -->
+            <path d="M64.89291416275995,204
+                     A135.10708583724005,12.065423553677125 0 0 0
+                     335.10708583724005,204"
+                  stroke="rgba(255,255,255,0.22)" stroke-width="1"
+                  fill="none" />
+
+            <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
+            <ellipse cx="200" cy="124.5" rx="160.64127056253707" ry="20.19490258500466"
+                     fill="url(#ent_discTop1)"
+                     stroke="rgba(255,255,255,0.6)" stroke-width="0.7" />
+
+            <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
+            <ellipse cx="200" cy="115.4122938367479"
+                     rx="144.64127056253707" ry="6.462368827201491"
+                     fill="url(#ent_discGloss)" opacity="0.95" />
+
+            <!-- 9. Label + valor (centralizados no corpo, longe das bordas) -->
+            <text x="200" y="160.75" class="funnel-label">Capacitação de Professor</text>
+            <text x="200" y="180.75" class="funnel-value">R$ 350,00</text>
+          </g>
+        
+          <g class="funnel-stage" data-idx="2"
+             style="transform-origin: 200px 259.25px;">
+
+            <!-- 1. (removida a sombra projetada no gap — quando o disco
+                 saltava -6px, ela subia junto e ficava "flutuando" no
+                 meio do espaço, criando o efeito de "sombra fantasma".
+                 A profundidade entre discos vem das bordas elípticas
+                 escuras de cada disco — suficiente sem essa sombra.) -->
+
+            <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
+            <path d="M62.89291416275995,219 L91.84759217372512,299.5 A108.15240782627488,13.59630269816027 0 0 0 308.1524078262749,299.5 L337.10708583724005,219 A137.10708583724005,17.236319362395893 0 0 1 62.89291416275995,219 Z" fill="url(#ent_discBody2)"
+                  stroke="rgba(0,0,0,0.5)" stroke-width="0.7" />
+
+            <!-- 3. Iluminação vertical (claro topo, escuro base) -->
+            <path d="M62.89291416275995,219 L91.84759217372512,299.5 A108.15240782627488,13.59630269816027 0 0 0 308.1524078262749,299.5 L337.10708583724005,219 A137.10708583724005,17.236319362395893 0 0 1 62.89291416275995,219 Z" fill="url(#ent_discBodyVertical)" opacity="0.45" />
+
+            <!-- 4. Reflexo radial interno (foco luz canto sup-esquerdo) -->
+            <path d="M62.89291416275995,219 L91.84759217372512,299.5 A108.15240782627488,13.59630269816027 0 0 0 308.1524078262749,299.5 L337.10708583724005,219 A137.10708583724005,17.236319362395893 0 0 1 62.89291416275995,219 Z" fill="url(#ent_discInnerReflect)" opacity="0.5" />
+
+            <!-- 5. Highlight especular (linha branca na lateral esquerda) -->
+            <path d="M68.41409836695732,224.17089580871877 L96.84759217372512,295.42110919055193" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"
+                  stroke-linecap="round" fill="none" opacity="0.85" />
+
+            <!-- 6. Borda inferior elíptica ESCURA (sombra dentro do disco) -->
+            <ellipse cx="200" cy="299.5" rx="108.15240782627488" ry="13.59630269816027"
+                     fill="rgba(0,0,0,0.6)" />
+            <!-- Anel claro fino na borda inferior (espessura do material) -->
+            <path d="M93.84759217372512,298.5
+                     A106.15240782627488,9.51741188871219 0 0 0
+                     306.1524078262749,298.5"
+                  stroke="rgba(255,255,255,0.22)" stroke-width="1"
+                  fill="none" />
+
+            <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
+            <ellipse cx="200" cy="219" rx="137.10708583724005" ry="17.236319362395893"
+                     fill="url(#ent_discTop2)"
+                     stroke="rgba(255,255,255,0.6)" stroke-width="0.7" />
+
+            <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
+            <ellipse cx="200" cy="211.24365628692186"
+                     rx="121.10708583724005" ry="5.515622195966686"
+                     fill="url(#ent_discGloss)" opacity="0.95" />
+
+            <!-- 9. Label + valor (centralizados no corpo, longe das bordas) -->
+            <text x="200" y="255.25" class="funnel-label">Bacharel em Teologia</text>
+            <text x="200" y="275.25" class="funnel-value">R$ 240,00</text>
+          </g>
+        
+          <g class="funnel-stage" data-idx="3"
+             style="transform-origin: 200px 353.75px;">
+
+            <!-- 1. (removida a sombra projetada no gap — quando o disco
+                 saltava -6px, ela subia junto e ficava "flutuando" no
+                 meio do espaço, criando o efeito de "sombra fantasma".
+                 A profundidade entre discos vem das bordas elípticas
+                 escuras de cada disco — suficiente sem essa sombra.) -->
+
+            <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
+            <path d="M91.84759217372512,313.5 L125,394 A75,9.428571428571429 0 0 0 275,394 L308.1524078262749,313.5 A108.15240782627488,13.59630269816027 0 0 1 91.84759217372512,313.5 Z" fill="url(#ent_discBody3)"
+                  stroke="rgba(0,0,0,0.5)" stroke-width="0.7" />
+
+            <!-- 3. Iluminação vertical (claro topo, escuro base) -->
+            <path d="M91.84759217372512,313.5 L125,394 A75,9.428571428571429 0 0 0 275,394 L308.1524078262749,313.5 A108.15240782627488,13.59630269816027 0 0 1 91.84759217372512,313.5 Z" fill="url(#ent_discBodyVertical)" opacity="0.45" />
+
+            <!-- 4. Reflexo radial interno (foco luz canto sup-esquerdo) -->
+            <path d="M91.84759217372512,313.5 L125,394 A75,9.428571428571429 0 0 0 275,394 L308.1524078262749,313.5 A108.15240782627488,13.59630269816027 0 0 1 91.84759217372512,313.5 Z" fill="url(#ent_discInnerReflect)" opacity="0.5" />
+
+            <!-- 5. Highlight especular (linha branca na lateral esquerda) -->
+            <path d="M97.44433551459807,317.57889080944807 L130,391.1714285714286" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"
+                  stroke-linecap="round" fill="none" opacity="0.85" />
+
+            <!-- 6. Borda inferior elíptica ESCURA (sombra dentro do disco) -->
+            <ellipse cx="200" cy="394" rx="75" ry="9.428571428571429"
+                     fill="rgba(0,0,0,0.6)" />
+            <!-- Anel claro fino na borda inferior (espessura do material) -->
+            <path d="M127,393
+                     A73,6.6 0 0 0
+                     273,393"
+                  stroke="rgba(255,255,255,0.22)" stroke-width="1"
+                  fill="none" />
+
+            <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
+            <ellipse cx="200" cy="313.5" rx="108.15240782627488" ry="13.59630269816027"
+                     fill="url(#ent_discTop3)"
+                     stroke="rgba(255,255,255,0.6)" stroke-width="0.7" />
+
+            <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
+            <ellipse cx="200" cy="307.38166378582787"
+                     rx="92.15240782627488" ry="4.3508168634112865"
+                     fill="url(#ent_discGloss)" opacity="0.95" />
+
+            <!-- 9. Label + valor (centralizados no corpo, longe das bordas) -->
+            <text x="200" y="349.75" class="funnel-label">Básico Teologia</text>
+            <text x="200" y="369.75" class="funnel-value">R$ 140,00</text>
+          </g>
+        
+      </svg>
+    "
+`;
+
+exports[`funil SVG — snapshots (regressão visual de estrutura) > SVG saídas (4 items) bate com snapshot 1`] = `
+"
+      <svg class="funnel-svg" viewBox="0 0 400 430"
+           xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"
+           role="img" aria-label="Funil 3D premium de despesas por categoria (maior valor no topo)">
+        <defs>
+          
+          <radialGradient id="sai_discTop0" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="#c0848a" />
+            <stop offset="55%" stop-color="#5a0a10" />
+            <stop offset="100%" stop-color="#1a0204" />
+          </radialGradient>
+          <linearGradient id="sai_discBody0" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#080101" />
+            <stop offset="22%"  stop-color="#3a0608" />
+            <stop offset="50%"  stop-color="#7a1018" />
+            <stop offset="78%"  stop-color="#3a0608" />
+            <stop offset="100%" stop-color="#040000" />
+          </linearGradient>
+        
+          <radialGradient id="sai_discTop1" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="#d89098" />
+            <stop offset="55%" stop-color="#8a1820" />
+            <stop offset="100%" stop-color="#2a0408" />
+          </radialGradient>
+          <linearGradient id="sai_discBody1" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#150202" />
+            <stop offset="22%"  stop-color="#581014" />
+            <stop offset="50%"  stop-color="#9c181c" />
+            <stop offset="78%"  stop-color="#581014" />
+            <stop offset="100%" stop-color="#080101" />
+          </linearGradient>
+        
+          <radialGradient id="sai_discTop2" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="#f4a89e" />
+            <stop offset="55%" stop-color="#c4302c" />
+            <stop offset="100%" stop-color="#621414" />
+          </radialGradient>
+          <linearGradient id="sai_discBody2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#280608" />
+            <stop offset="22%"  stop-color="#7a1816" />
+            <stop offset="50%"  stop-color="#dc4838" />
+            <stop offset="78%"  stop-color="#7a1816" />
+            <stop offset="100%" stop-color="#160304" />
+          </linearGradient>
+        
+          <radialGradient id="sai_discTop3" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"  stop-color="#ffd8c8" />
+            <stop offset="55%" stop-color="#ff8a6a" />
+            <stop offset="100%" stop-color="#a85040" />
+          </radialGradient>
+          <linearGradient id="sai_discBody3" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#3a0e08" />
+            <stop offset="22%"  stop-color="#a85040" />
+            <stop offset="50%"  stop-color="#ffaa90" />
+            <stop offset="78%"  stop-color="#a85040" />
+            <stop offset="100%" stop-color="#1c0402" />
+          </linearGradient>
+        
+
+          <!-- Iluminação vertical (sobre todo disco): clara em cima, escura embaixo -->
+          <linearGradient id="sai_discBodyVertical" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.55)" />
+            <stop offset="50%"  stop-color="rgba(255,255,255,0.04)" />
+            <stop offset="100%" stop-color="rgba(0,0,0,0.55)" />
+          </linearGradient>
+
+          <!-- Reflexo radial interno: foco de luz no canto superior-esquerdo -->
+          <radialGradient id="sai_discInnerReflect" cx="0.28" cy="0.18" r="0.5">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.5)" />
+            <stop offset="55%"  stop-color="rgba(255,255,255,0.06)" />
+            <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+          </radialGradient>
+
+          <!-- Brilho especular fino sobre topo do disco -->
+          <linearGradient id="sai_discGloss" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="rgba(255,255,255,0.95)" />
+            <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+          </linearGradient>
+
+          <!-- Sombra do chão -->
+          <radialGradient id="sai_funilFloorShadow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.7)" />
+            <stop offset="60%"  stop-color="rgba(0,0,0,0.25)" />
+            <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+          </radialGradient>
+          <filter id="sai_funilFloorBlur" x="-20%" y="-50%" width="140%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
+          </filter>
+        </defs>
+
+        
+      <ellipse class="funnel-floor-shadow" cx="200" cy="412"
+               rx="172.5" ry="8" fill="url(#sai_funilFloorShadow)"
+               filter="url(#sai_funilFloorBlur)" />
+    
+        
+          <g class="funnel-stage" data-idx="0"
+             style="transform-origin: 200px 70.25px;">
+
+            <!-- 1. (removida a sombra projetada no gap — quando o disco
+                 saltava -6px, ela subia junto e ficava "flutuando" no
+                 meio do espaço, criando o efeito de "sombra fantasma".
+                 A profundidade entre discos vem das bordas elípticas
+                 escuras de cada disco — suficiente sem essa sombra.) -->
+
+            <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
+            <path d="M25,30 L39.35872943746293,110.5 A160.64127056253707,20.19490258500466 0 0 0 360.6412705625371,110.5 L375,30 A175,22 0 0 1 25,30 Z" fill="url(#sai_discBody0)"
+                  stroke="rgba(0,0,0,0.5)" stroke-width="0.7" />
+
+            <!-- 3. Iluminação vertical (claro topo, escuro base) -->
+            <path d="M25,30 L39.35872943746293,110.5 A160.64127056253707,20.19490258500466 0 0 0 360.6412705625371,110.5 L375,30 A175,22 0 0 1 25,30 Z" fill="url(#sai_discBodyVertical)" opacity="0.45" />
+
+            <!-- 4. Reflexo radial interno (foco luz canto sup-esquerdo) -->
+            <path d="M25,30 L39.35872943746293,110.5 A160.64127056253707,20.19490258500466 0 0 0 360.6412705625371,110.5 L375,30 A175,22 0 0 1 25,30 Z" fill="url(#sai_discInnerReflect)" opacity="0.5" />
+
+            <!-- 5. Highlight especular (linha branca na lateral esquerda) -->
+            <path d="M30.258457129874333,36.6 L44.35872943746293,104.44152922449861" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"
+                  stroke-linecap="round" fill="none" opacity="0.85" />
+
+            <!-- 6. Borda inferior elíptica ESCURA (sombra dentro do disco) -->
+            <ellipse cx="200" cy="110.5" rx="160.64127056253707" ry="20.19490258500466"
+                     fill="rgba(0,0,0,0.6)" />
+            <!-- Anel claro fino na borda inferior (espessura do material) -->
+            <path d="M41.35872943746293,109.5
+                     A158.64127056253707,14.13643180950326 0 0 0
+                     358.6412705625371,109.5"
+                  stroke="rgba(255,255,255,0.22)" stroke-width="1"
+                  fill="none" />
+
+            <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
+            <ellipse cx="200" cy="30" rx="175" ry="22"
+                     fill="url(#sai_discTop0)"
+                     stroke="rgba(255,255,255,0.6)" stroke-width="0.7" />
+
+            <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
+            <ellipse cx="200" cy="20.1"
+                     rx="159" ry="7.04"
+                     fill="url(#sai_discGloss)" opacity="0.95" />
+
+            <!-- 9. Label + valor (centralizados no corpo, longe das bordas) -->
+            <text x="200" y="66.25" class="funnel-label">Pagamento de Professor</text>
+            <text x="200" y="86.25" class="funnel-value">R$ 348,49</text>
+          </g>
+        
+          <g class="funnel-stage" data-idx="1"
+             style="transform-origin: 200px 164.75px;">
+
+            <!-- 1. (removida a sombra projetada no gap — quando o disco
+                 saltava -6px, ela subia junto e ficava "flutuando" no
+                 meio do espaço, criando o efeito de "sombra fantasma".
+                 A profundidade entre discos vem das bordas elípticas
+                 escuras de cada disco — suficiente sem essa sombra.) -->
+
+            <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
+            <path d="M39.35872943746293,124.5 L62.89291416275995,205 A137.10708583724005,17.236319362395893 0 0 0 337.10708583724005,205 L360.6412705625371,124.5 A160.64127056253707,20.19490258500466 0 0 1 39.35872943746293,124.5 Z" fill="url(#sai_discBody1)"
+                  stroke="rgba(0,0,0,0.5)" stroke-width="0.7" />
+
+            <!-- 3. Iluminação vertical (claro topo, escuro base) -->
+            <path d="M39.35872943746293,124.5 L62.89291416275995,205 A137.10708583724005,17.236319362395893 0 0 0 337.10708583724005,205 L360.6412705625371,124.5 A160.64127056253707,20.19490258500466 0 0 1 39.35872943746293,124.5 Z" fill="url(#sai_discBodyVertical)" opacity="0.45" />
+
+            <!-- 4. Reflexo radial interno (foco luz canto sup-esquerdo) -->
+            <path d="M39.35872943746293,124.5 L62.89291416275995,205 A137.10708583724005,17.236319362395893 0 0 0 337.10708583724005,205 L360.6412705625371,124.5 A160.64127056253707,20.19490258500466 0 0 1 39.35872943746293,124.5 Z" fill="url(#sai_discInnerReflect)" opacity="0.5" />
+
+            <!-- 5. Highlight especular (linha branca na lateral esquerda) -->
+            <path d="M44.78234476251827,130.5584707755014 L67.89291416275995,199.82910419128123" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"
+                  stroke-linecap="round" fill="none" opacity="0.85" />
+
+            <!-- 6. Borda inferior elíptica ESCURA (sombra dentro do disco) -->
+            <ellipse cx="200" cy="205" rx="137.10708583724005" ry="17.236319362395893"
+                     fill="rgba(0,0,0,0.6)" />
+            <!-- Anel claro fino na borda inferior (espessura do material) -->
+            <path d="M64.89291416275995,204
+                     A135.10708583724005,12.065423553677125 0 0 0
+                     335.10708583724005,204"
+                  stroke="rgba(255,255,255,0.22)" stroke-width="1"
+                  fill="none" />
+
+            <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
+            <ellipse cx="200" cy="124.5" rx="160.64127056253707" ry="20.19490258500466"
+                     fill="url(#sai_discTop1)"
+                     stroke="rgba(255,255,255,0.6)" stroke-width="0.7" />
+
+            <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
+            <ellipse cx="200" cy="115.4122938367479"
+                     rx="144.64127056253707" ry="6.462368827201491"
+                     fill="url(#sai_discGloss)" opacity="0.95" />
+
+            <!-- 9. Label + valor (centralizados no corpo, longe das bordas) -->
+            <text x="200" y="160.75" class="funnel-label">Material de Escritório</text>
+            <text x="200" y="180.75" class="funnel-value">R$ 348,45</text>
+          </g>
+        
+          <g class="funnel-stage" data-idx="2"
+             style="transform-origin: 200px 259.25px;">
+
+            <!-- 1. (removida a sombra projetada no gap — quando o disco
+                 saltava -6px, ela subia junto e ficava "flutuando" no
+                 meio do espaço, criando o efeito de "sombra fantasma".
+                 A profundidade entre discos vem das bordas elípticas
+                 escuras de cada disco — suficiente sem essa sombra.) -->
+
+            <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
+            <path d="M62.89291416275995,219 L91.84759217372512,299.5 A108.15240782627488,13.59630269816027 0 0 0 308.1524078262749,299.5 L337.10708583724005,219 A137.10708583724005,17.236319362395893 0 0 1 62.89291416275995,219 Z" fill="url(#sai_discBody2)"
+                  stroke="rgba(0,0,0,0.5)" stroke-width="0.7" />
+
+            <!-- 3. Iluminação vertical (claro topo, escuro base) -->
+            <path d="M62.89291416275995,219 L91.84759217372512,299.5 A108.15240782627488,13.59630269816027 0 0 0 308.1524078262749,299.5 L337.10708583724005,219 A137.10708583724005,17.236319362395893 0 0 1 62.89291416275995,219 Z" fill="url(#sai_discBodyVertical)" opacity="0.45" />
+
+            <!-- 4. Reflexo radial interno (foco luz canto sup-esquerdo) -->
+            <path d="M62.89291416275995,219 L91.84759217372512,299.5 A108.15240782627488,13.59630269816027 0 0 0 308.1524078262749,299.5 L337.10708583724005,219 A137.10708583724005,17.236319362395893 0 0 1 62.89291416275995,219 Z" fill="url(#sai_discInnerReflect)" opacity="0.5" />
+
+            <!-- 5. Highlight especular (linha branca na lateral esquerda) -->
+            <path d="M68.41409836695732,224.17089580871877 L96.84759217372512,295.42110919055193" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"
+                  stroke-linecap="round" fill="none" opacity="0.85" />
+
+            <!-- 6. Borda inferior elíptica ESCURA (sombra dentro do disco) -->
+            <ellipse cx="200" cy="299.5" rx="108.15240782627488" ry="13.59630269816027"
+                     fill="rgba(0,0,0,0.6)" />
+            <!-- Anel claro fino na borda inferior (espessura do material) -->
+            <path d="M93.84759217372512,298.5
+                     A106.15240782627488,9.51741188871219 0 0 0
+                     306.1524078262749,298.5"
+                  stroke="rgba(255,255,255,0.22)" stroke-width="1"
+                  fill="none" />
+
+            <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
+            <ellipse cx="200" cy="219" rx="137.10708583724005" ry="17.236319362395893"
+                     fill="url(#sai_discTop2)"
+                     stroke="rgba(255,255,255,0.6)" stroke-width="0.7" />
+
+            <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
+            <ellipse cx="200" cy="211.24365628692186"
+                     rx="121.10708583724005" ry="5.515622195966686"
+                     fill="url(#sai_discGloss)" opacity="0.95" />
+
+            <!-- 9. Label + valor (centralizados no corpo, longe das bordas) -->
+            <text x="200" y="255.25" class="funnel-label">Outros</text>
+            <text x="200" y="275.25" class="funnel-value">R$ 348,44</text>
+          </g>
+        
+          <g class="funnel-stage" data-idx="3"
+             style="transform-origin: 200px 353.75px;">
+
+            <!-- 1. (removida a sombra projetada no gap — quando o disco
+                 saltava -6px, ela subia junto e ficava "flutuando" no
+                 meio do espaço, criando o efeito de "sombra fantasma".
+                 A profundidade entre discos vem das bordas elípticas
+                 escuras de cada disco — suficiente sem essa sombra.) -->
+
+            <!-- 2. CORPO CILÍNDRICO (lateral) — gradient horizontal premium -->
+            <path d="M91.84759217372512,313.5 L125,394 A75,9.428571428571429 0 0 0 275,394 L308.1524078262749,313.5 A108.15240782627488,13.59630269816027 0 0 1 91.84759217372512,313.5 Z" fill="url(#sai_discBody3)"
+                  stroke="rgba(0,0,0,0.5)" stroke-width="0.7" />
+
+            <!-- 3. Iluminação vertical (claro topo, escuro base) -->
+            <path d="M91.84759217372512,313.5 L125,394 A75,9.428571428571429 0 0 0 275,394 L308.1524078262749,313.5 A108.15240782627488,13.59630269816027 0 0 1 91.84759217372512,313.5 Z" fill="url(#sai_discBodyVertical)" opacity="0.45" />
+
+            <!-- 4. Reflexo radial interno (foco luz canto sup-esquerdo) -->
+            <path d="M91.84759217372512,313.5 L125,394 A75,9.428571428571429 0 0 0 275,394 L308.1524078262749,313.5 A108.15240782627488,13.59630269816027 0 0 1 91.84759217372512,313.5 Z" fill="url(#sai_discInnerReflect)" opacity="0.5" />
+
+            <!-- 5. Highlight especular (linha branca na lateral esquerda) -->
+            <path d="M97.44433551459807,317.57889080944807 L130,391.1714285714286" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"
+                  stroke-linecap="round" fill="none" opacity="0.85" />
+
+            <!-- 6. Borda inferior elíptica ESCURA (sombra dentro do disco) -->
+            <ellipse cx="200" cy="394" rx="75" ry="9.428571428571429"
+                     fill="rgba(0,0,0,0.6)" />
+            <!-- Anel claro fino na borda inferior (espessura do material) -->
+            <path d="M127,393
+                     A73,6.6 0 0 0
+                     273,393"
+                  stroke="rgba(255,255,255,0.22)" stroke-width="1"
+                  fill="none" />
+
+            <!-- 7. TOPO do disco: face elíptica iluminada (gradient radial) -->
+            <ellipse cx="200" cy="313.5" rx="108.15240782627488" ry="13.59630269816027"
+                     fill="url(#sai_discTop3)"
+                     stroke="rgba(255,255,255,0.6)" stroke-width="0.7" />
+
+            <!-- 8. Brilho especular fino no topo (reflexo cromado) -->
+            <ellipse cx="200" cy="307.38166378582787"
+                     rx="92.15240782627488" ry="4.3508168634112865"
+                     fill="url(#sai_discGloss)" opacity="0.95" />
+
+            <!-- 9. Label + valor (centralizados no corpo, longe das bordas) -->
+            <text x="200" y="349.75" class="funnel-label">Serviços</text>
+            <text x="200" y="369.75" class="funnel-value">R$ 348,40</text>
+          </g>
+        
+      </svg>
+    "
+`;
+
+exports[`funil SVG — snapshots (regressão visual de estrutura) > legenda (4 items entradas) bate com snapshot 1`] = `
+"
+          <li class="funnel-metric-item" data-idx="0"
+              data-value="600"
+              data-total="1330"
+              data-pct="45.1128"
+              tabindex="0"
+              role="button" aria-label="Destacar CFAM">
+            <span class="funnel-metric-rank">#1</span>
+            <div class="funnel-metric-body">
+              <span class="funnel-metric-label">CFAM</span>
+              <span class="funnel-metric-value">R$ 600,00 • 45,11%</span>
+            </div>
+          </li>
+        
+          <li class="funnel-metric-item" data-idx="1"
+              data-value="350"
+              data-total="1330"
+              data-pct="26.3158"
+              tabindex="0"
+              role="button" aria-label="Destacar Capacitação de Professor">
+            <span class="funnel-metric-rank">#2</span>
+            <div class="funnel-metric-body">
+              <span class="funnel-metric-label">Capacitação de Professor</span>
+              <span class="funnel-metric-value">R$ 350,00 • 26,32%</span>
+            </div>
+          </li>
+        
+          <li class="funnel-metric-item" data-idx="2"
+              data-value="240"
+              data-total="1330"
+              data-pct="18.0451"
+              tabindex="0"
+              role="button" aria-label="Destacar Bacharel em Teologia">
+            <span class="funnel-metric-rank">#3</span>
+            <div class="funnel-metric-body">
+              <span class="funnel-metric-label">Bacharel em Teologia</span>
+              <span class="funnel-metric-value">R$ 240,00 • 18,05%</span>
+            </div>
+          </li>
+        
+          <li class="funnel-metric-item" data-idx="3"
+              data-value="140"
+              data-total="1330"
+              data-pct="10.5263"
+              tabindex="0"
+              role="button" aria-label="Destacar Básico Teologia">
+            <span class="funnel-metric-rank">#4</span>
+            <div class="funnel-metric-body">
+              <span class="funnel-metric-label">Básico Teologia</span>
+              <span class="funnel-metric-value">R$ 140,00 • 10,53%</span>
+            </div>
+          </li>
+        "
+`;
+
+exports[`funil SVG — snapshots (regressão visual de estrutura) > legenda (4 items saídas com valores quase iguais) bate com snapshot 1`] = `
+"
+          <li class="funnel-metric-item" data-idx="0"
+              data-value="348.49"
+              data-total="1393.7800000000002"
+              data-pct="25.0032"
+              tabindex="0"
+              role="button" aria-label="Destacar Pagamento de Professor">
+            <span class="funnel-metric-rank">#1</span>
+            <div class="funnel-metric-body">
+              <span class="funnel-metric-label">Pagamento de Professor</span>
+              <span class="funnel-metric-value">R$ 348,49 • 25,00%</span>
+            </div>
+          </li>
+        
+          <li class="funnel-metric-item" data-idx="1"
+              data-value="348.45"
+              data-total="1393.7800000000002"
+              data-pct="25.0004"
+              tabindex="0"
+              role="button" aria-label="Destacar Material de Escritório">
+            <span class="funnel-metric-rank">#2</span>
+            <div class="funnel-metric-body">
+              <span class="funnel-metric-label">Material de Escritório</span>
+              <span class="funnel-metric-value">R$ 348,45 • 25,00%</span>
+            </div>
+          </li>
+        
+          <li class="funnel-metric-item" data-idx="2"
+              data-value="348.44"
+              data-total="1393.7800000000002"
+              data-pct="24.9996"
+              tabindex="0"
+              role="button" aria-label="Destacar Outros">
+            <span class="funnel-metric-rank">#3</span>
+            <div class="funnel-metric-body">
+              <span class="funnel-metric-label">Outros</span>
+              <span class="funnel-metric-value">R$ 348,44 • 25,00%</span>
+            </div>
+          </li>
+        
+          <li class="funnel-metric-item" data-idx="3"
+              data-value="348.4"
+              data-total="1393.7800000000002"
+              data-pct="24.9968"
+              tabindex="0"
+              role="button" aria-label="Destacar Serviços">
+            <span class="funnel-metric-rank">#4</span>
+            <div class="funnel-metric-body">
+              <span class="funnel-metric-label">Serviços</span>
+              <span class="funnel-metric-value">R$ 348,40 • 25,00%</span>
+            </div>
+          </li>
+        "
+`;

@@ -160,6 +160,110 @@ Decisão pragmática: sem build, scripts são concatenados pelo browser.
 Para os testes no Node, usamos `eval` controlado em `tests/setup.js` que
 carrega os arquivos no escopo global do módulo de teste.
 
+## Anatomia do funil 3D do Dashboard
+
+⚠️ Antes de mexer nos funis (Entradas por Curso / Despesas por
+Categoria), leia esta seção. Mudanças que parecem inofensivas podem
+quebrar visualmente em mobile/iPad/tablet — historicamente foi onde
+mais pegou regressão.
+
+### Onde está o quê
+
+| Componente                   | Local                                                   |
+| ---------------------------- | ------------------------------------------------------- |
+| Entry points                 | `_renderChartEntradas`, `_renderChartSaidas` (dashboard.js) |
+| Builder genérico de SVG      | `_buildFunnelSVG(items, idPrefix, palettes, ariaLabel)` |
+| Wrapper entradas (paleta gold/azul)  | `_buildFunnelEntradasSVG(items)`                |
+| Wrapper saídas (paleta vermelho)     | `_buildFunnelSaidasSVG(items)`                  |
+| Legenda lateral (rank + R$ + %)      | `_buildFunnelEntradasMetrics(items, total)`     |
+| Click handler (toggle/select)        | `_attachFunnelLegendClicks(legendEl, wrap)`     |
+| CSS do funil (visual + responsivo)   | `lancamento.css` — buscar `.funnel-`            |
+| Tests de regressão                   | `tests/dashboard/funnel-*.test.js`              |
+
+### Contratos críticos (NÃO violar)
+
+1. **IDs SVG são prefixados** com `idPrefix` (`ent_` ou `sai_`).
+   SVG IDs são globais no DOM — sem prefixo, dois funis na mesma
+   página colidiam (gradient errado renderizado no segundo).
+2. **`escHtml(item.label)`** em todo `<text>` e `aria-label` —
+   defesa XSS. Tem teste que valida.
+3. **`pct.toFixed(2).replace('.', ',')`** — sempre 2 casas decimais
+   e vírgula brasileira. Mudou? Atualize `tests/dashboard/funnel-pct.test.js`.
+4. **Top 4 só** — `items.slice(0, 4)` em ambos os `_renderChart*`.
+   Se mudar pra mais, ajuste `palettes` (atualmente 4 cores cada).
+5. **Auto-reorder por valor desc** — `.sort((a, b) => b.value - a.value)`.
+   É o que faz o "líder" aparecer no topo automaticamente.
+
+### Desktop vs mobile/tablet — regra de ouro
+
+Em **mobile/tablet/iPad (≤1024px), QUALQUER `filter` CSS
+(drop-shadow, blur, brightness, saturate) ou `<filter>` SVG
+aplicado em `<g>` é renderizado pelo Safari iOS / Chrome mobile
+como CAIXA RETANGULAR sólida** em volta do bounding box. Isso é
+um artefato do CPU compositing — no GPU compositing do desktop
+nunca aparece.
+
+Por isso o CSS está separado em duas media queries exclusivas:
+
+- **`@media (min-width: 1025px)`** (desktop): efeito completo —
+  `drop-shadow` gold/vermelho tripla + `scale(1.04)` + `blur`
+  nos demais. GPU compositing absorve sem artefato.
+- **`@media (max-width: 1024px)`** (mobile/tablet/iPad): ZERO
+  filter. Apenas `transform: translateY(-6px)` no selecionado e
+  `opacity: 0.18` nos demais. Sombra do chão (`.funnel-floor-shadow`)
+  ganha `filter: none` (sobrescreve o filter SVG).
+
+**Se for adicionar efeito visual ao funil, sempre teste em mobile
+real (não só desktop).** Se ele aparecer como caixa retangular,
+o filter precisa ser desabilitado em mobile via media query.
+
+### Estados visuais (CSS)
+
+```
+.funnel-stage                    # estado base (cada disco do funil)
+.funnel-stage--bounce            # animação curta ao clicar (bounce/salto)
+.funnel-stage--selected          # disco em foco quando legenda foi clicada
+.funnel-svg--has-selected        # classe no SVG raiz quando há seleção
+                                 # ativa — usada pra aplicar blur/opacity
+                                 # nos OUTROS discos via :not(--selected)
+```
+
+Na legenda:
+
+```
+.funnel-metric-item              # cada cartão da legenda
+.funnel-metric-item--active      # cartão correspondente ao disco selected
+.dash-chart-legend--funnel       # marca a legenda como "do funil"
+.dash-chart-legend--funnel-saidas  # vira ranks vermelhos (vs gold/azul)
+```
+
+### Onde encoding pode quebrar (regressão histórica 2026-05-08)
+
+Nunca usar `Get-Content -Raw` do PowerShell 5.1 pra editar arquivos
+com acentos (ex: bumpar cache-buster no `index.html`). Ele lê em
+ANSI (windows-1252) por padrão e ao reescrever como UTF-8 corrompe
+acentos (`Lançamento` → `LanÃ§amento`). Sempre use:
+
+```powershell
+$enc = New-Object System.Text.UTF8Encoding $false
+$txt = [IO.File]::ReadAllText('index.html', $enc)
+$new = $txt.Replace('v=20260508p', 'v=20260508q')
+[IO.File]::WriteAllText('index.html', $new, $enc)
+```
+
+Ou Edit/Write do Claude Code (que já trabalham em UTF-8).
+
+### Como rodar os tests do funil
+
+```bash
+npm test -- tests/dashboard          # só os do dashboard
+npm test -- -u tests/dashboard       # atualiza snapshots após mudança intencional
+```
+
+Snapshots ficam em `tests/dashboard/__snapshots__/`. Se mudou a
+estrutura do SVG/HTML do funil de propósito, rode com `-u` pra
+atualizar e revise o diff antes de commitar.
+
 ## PWA (Progressive Web App)
 
 O app é instalável e funciona offline com cache básico.

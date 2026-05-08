@@ -291,42 +291,110 @@ class DashboardPage {
     if (legendEl) {
       legendEl.classList.add('dash-chart-legend--funnel');
       legendEl.innerHTML = this._buildFunnelEntradasMetrics(items, total);
+      this._attachFunnelLegendClicks(legendEl, wrap);
     }
   }
 
+  /**
+   * Quando o usuário clica num item da legenda, o estágio correspondente
+   * do funil "salta" levemente (animação CSS). Re-attach a cada render
+   * porque o conteúdo do legendEl é reescrito.
+   */
+  _attachFunnelLegendClicks(legendEl, wrap) {
+    legendEl.onclick = (e) => {
+      const item = e.target.closest('.funnel-metric-item');
+      if (!item) return;
+      const idx = Number(item.dataset.idx);
+      if (Number.isNaN(idx)) return;
+      const stage = wrap.querySelector(`g.funnel-stage[data-idx="${idx}"]`);
+      if (!stage) return;
+      // Reset class pra reiniciar a animação mesmo no segundo clique seguido
+      stage.classList.remove('funnel-stage--bounce');
+      // Force reflow pra garantir que o navegador veja a remoção antes de re-add
+      void stage.getBoundingClientRect();
+      stage.classList.add('funnel-stage--bounce');
+      // Destaque visual sincronizado na legenda
+      legendEl.querySelectorAll('.funnel-metric-item').forEach((el) =>
+        el.classList.toggle('funnel-metric-item--active', el === item)
+      );
+      setTimeout(() => stage.classList.remove('funnel-stage--bounce'), 700);
+    };
+  }
+
+  /**
+   * Funil 3D com afunilamento real (top ~280, bottom ~70) + ellipses
+   * de "rim" no topo e nas bordas internas pra simular profundidade.
+   * Cada estágio fica num <g class="funnel-stage" data-idx="N"> pra
+   * que a click handler possa fazer ele "saltar" via animação CSS.
+   */
   _buildFunnelEntradasSVG(items) {
-    const W = 320;
-    const H = 280;
-    const stageH = H / items.length;
-    const maxW = W - 24;
-    // Cada estágio fica progressivamente mais estreito. O ratio aqui
-    // controla o "afunilamento": ratio menor → bocal mais reto;
-    // ratio maior → funil mais agressivo.
-    const shrinkPerStage = items.length > 1 ? maxW * 0.16 : 0;
+    const W = 360;
+    const H = 320;
     const cx = W / 2;
+    const topW = 300;          // largura do topo (boca do funil)
+    const bottomW = 80;        // largura da base (saída do funil)
+    const padTop = 18;         // espaço pro rim/lip do topo
+    const padBottom = 18;      // espaço pra base
+    const bodyH = H - padTop - padBottom;
+    const stageH = bodyH / items.length;
+    const ellipseRyTop = 14;   // achatamento da elipse-rim (perspectiva)
+
+    // Largura na altura y (interpolação linear entre top e bottom)
+    const widthAt = (y) => {
+      const t = (y - padTop) / bodyH; // 0 no topo, 1 na base
+      return topW - (topW - bottomW) * Math.max(0, Math.min(1, t));
+    };
 
     const stages = items
       .map((item, i) => {
-        const y0 = i * stageH;
-        const y1 = (i + 1) * stageH;
-        const w0 = maxW - i * shrinkPerStage;
-        const w1 = maxW - (i + 1) * shrinkPerStage;
+        const y0 = padTop + i * stageH;
+        const y1 = padTop + (i + 1) * stageH;
+        const w0 = widthAt(y0);
+        const w1 = widthAt(y1);
+        const ry0 = (w0 / topW) * ellipseRyTop;
+        const ry1 = (w1 / topW) * ellipseRyTop;
+
+        // Path do corpo: trapezoidal mas com borda inferior em "elipse"
+        // (um arco) pra simular a perspectiva de um anel visto de cima.
+        // Topo desse estágio NÃO tem arco visível na borda da silhueta
+        // porque quem renderiza o "rim" interno é a ellipse separada
+        // (sobreposta logo acima).
         const path = [
           `M${cx - w0 / 2},${y0}`,
           `L${cx + w0 / 2},${y0}`,
           `L${cx + w1 / 2},${y1}`,
-          `L${cx - w1 / 2},${y1}`,
+          // Arco da base do estágio (visualmente é o "rim de baixo")
+          `A${w1 / 2},${ry1} 0 0 1 ${cx - w1 / 2},${y1}`,
           'Z',
         ].join(' ');
-        // Opacidade decrescente — dá efeito de profundidade nos estágios
-        const opacity = (1 - i * 0.12).toFixed(2);
-        const labelY = y0 + stageH / 2 - 8;
+
+        const labelY = y0 + stageH / 2 - 10;
         const valueY = y0 + stageH / 2 + 12;
+
+        // O elipsoide superior (rim de cima) só é desenhado se for o
+        // primeiro estágio — pros demais, o rim de cima do estágio é
+        // o rim de baixo do estágio anterior (que já foi desenhado).
+        const topRim =
+          i === 0
+            ? `<ellipse cx="${cx}" cy="${y0}" rx="${w0 / 2}" ry="${ry0}"
+                       fill="url(#funilTopRim)" />`
+            : '';
+
         return `
-          <path d="${path}" fill="url(#funilGrad)" opacity="${opacity}"
-                stroke="rgba(255,255,255,0.08)" stroke-width="0.5" />
-          <text x="${cx}" y="${labelY}" class="funnel-label">${escHtml(item.label)}</text>
-          <text x="${cx}" y="${valueY}" class="funnel-value">R$ ${formatBRL(item.value)}</text>
+          <g class="funnel-stage" data-idx="${i}" style="transform-origin: ${cx}px ${(y0 + y1) / 2}px;">
+            <path d="${path}" fill="url(#funilBody${i % 4})"
+                  stroke="rgba(255,255,255,0.12)" stroke-width="0.6" />
+            <!-- Highlight curvo na lateral esquerda (luz vinda do alto-esquerda) -->
+            <path d="M${cx - w0 / 2 + 4},${y0 + 2} L${cx - w1 / 2 + 4},${y1 - 2}"
+                  stroke="rgba(255,255,255,0.18)" stroke-width="2"
+                  stroke-linecap="round" fill="none" opacity="0.6" />
+            ${topRim}
+            <!-- Sombra interna no rim de baixo pra dar profundidade -->
+            <ellipse cx="${cx}" cy="${y1}" rx="${w1 / 2}" ry="${ry1}"
+                     fill="url(#funilInnerShadow)" opacity="0.55" />
+            <text x="${cx}" y="${labelY}" class="funnel-label">${escHtml(item.label)}</text>
+            <text x="${cx}" y="${valueY}" class="funnel-value">R$ ${formatBRL(item.value)}</text>
+          </g>
         `;
       })
       .join('');
@@ -334,13 +402,40 @@ class DashboardPage {
     return `
       <svg class="funnel-svg" viewBox="0 0 ${W} ${H}"
            xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"
-           role="img" aria-label="Funil de entradas por curso (maior valor no topo)">
+           role="img" aria-label="Funil 3D de entradas por curso (maior valor no topo)">
         <defs>
-          <linearGradient id="funilGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"  stop-color="#5fa1ff" />
-            <stop offset="50%" stop-color="#2563eb" />
-            <stop offset="100%" stop-color="#1e3a8a" />
+          <!-- Gradient do corpo: cada estágio tem uma intensidade diferente
+               pra dar "profundidade" (mais escuro descendo) -->
+          <linearGradient id="funilBody0" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#4f8ff5" />
+            <stop offset="50%"  stop-color="#7eb5ff" />
+            <stop offset="100%" stop-color="#3a72d8" />
           </linearGradient>
+          <linearGradient id="funilBody1" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#3e76d8" />
+            <stop offset="50%"  stop-color="#6ba1f0" />
+            <stop offset="100%" stop-color="#295dbe" />
+          </linearGradient>
+          <linearGradient id="funilBody2" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#305fc0" />
+            <stop offset="50%"  stop-color="#5588d8" />
+            <stop offset="100%" stop-color="#1f47a0" />
+          </linearGradient>
+          <linearGradient id="funilBody3" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#264fa3" />
+            <stop offset="50%"  stop-color="#4675c0" />
+            <stop offset="100%" stop-color="#16357a" />
+          </linearGradient>
+          <!-- Rim de cima (boca do funil): mais claro, simula luz refletida -->
+          <linearGradient id="funilTopRim" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#9ec6ff" />
+            <stop offset="100%" stop-color="#3a72d8" />
+          </linearGradient>
+          <!-- Sombra interna nos rims de baixo (entre estágios) -->
+          <radialGradient id="funilInnerShadow" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0%"   stop-color="rgba(0,0,0,0.38)" />
+            <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+          </radialGradient>
         </defs>
         ${stages}
       </svg>
@@ -353,7 +448,8 @@ class DashboardPage {
         const pct = total > 0 ? (item.value / total) * 100 : 0;
         const rank = i + 1;
         return `
-          <li class="funnel-metric-item">
+          <li class="funnel-metric-item" data-idx="${i}" tabindex="0"
+              role="button" aria-label="Destacar ${escHtml(item.label)}">
             <span class="funnel-metric-rank">#${rank}</span>
             <div class="funnel-metric-body">
               <span class="funnel-metric-label">${escHtml(item.label)}</span>

@@ -80,6 +80,84 @@ class OCREntradas {
     });
   }
 
+  // Pré-processamento alternativo com BINARIZAÇÃO OTSU (threshold
+  // adaptativo baseado no histograma). Funciona muito melhor que o
+  // contraste fixo da preprocessImageForOcr em CUPONS FISCAIS de
+  // cartão (Cielo, Stone, Rede...) que têm texto preto em fundo branco
+  // amassado/com sombras. É a MESMA técnica do OCR de saídas (NFC-e).
+  //
+  // Não substitui o pré-processamento padrão (que é melhor pra
+  // screenshots PIX coloridos) — é usado em 2º pass quando o 1º
+  // detecta cupom de cartão mas falha em data/hora.
+  async preprocessImageWithOtsu(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('img load error'));
+      };
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        try {
+          const maxSide = Math.max(img.width, img.height);
+          let scale = 1;
+          if (maxSide < 2800) scale = 2800 / maxSide;
+          else if (maxSide > 4000) scale = 4000 / maxSide;
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = imageData.data;
+          const histogram = new Array(256).fill(0);
+          for (let i = 0; i < d.length; i += 4) {
+            const gray = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+            d[i] = d[i + 1] = d[i + 2] = gray;
+            histogram[gray]++;
+          }
+          // Otsu — threshold ótimo via maximização de variância entre classes
+          const total = canvas.width * canvas.height;
+          let sumAll = 0;
+          for (let i = 0; i < 256; i++) sumAll += i * histogram[i];
+          let sumB = 0,
+            wB = 0,
+            maxBetween = 0,
+            threshold = 128;
+          for (let t = 0; t < 256; t++) {
+            wB += histogram[t];
+            if (wB === 0) continue;
+            const wF = total - wB;
+            if (wF === 0) break;
+            sumB += t * histogram[t];
+            const mB = sumB / wB;
+            const mF = (sumAll - sumB) / wF;
+            const between = wB * wF * (mB - mF) * (mB - mF);
+            if (between > maxBetween) {
+              maxBetween = between;
+              threshold = t;
+            }
+          }
+          // Aplica binarização com contraste extra (1.6x)
+          for (let i = 0; i < d.length; i += 4) {
+            const v = d[i];
+            const boosted = Math.min(255, Math.max(0, (v - 128) * 1.6 + 128));
+            const bw = boosted > threshold ? 255 : 0;
+            d[i] = d[i + 1] = d[i + 2] = bw;
+          }
+          ctx.putImageData(imageData, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.src = url;
+    });
+  }
+
   async extrairDaImagem(currentFile) {
     this.setStatus(true, 'Iniciando reconhecimento de texto...');
     if (typeof Tesseract === 'undefined') {
@@ -102,6 +180,27 @@ class OCREntradas {
       },
     });
     let text = result.data.text;
+
+    // 2º pass com OTSU se detectar cupom de cartão mas faltarem
+    // data/hora (caso clássico: Cielo com cabeçalho borrado/baixa
+    // resolução onde "09/05/26 • 11:20" virou "OS Ii260 * £O" no 1º
+    // pass de contraste). Otsu lê melhor texto preto em fundo branco.
+    const ehCupomCartao = /cielo|stone|\brede\b|getnet|pagseguro|sumup|infinitepay|moderninha|mastercard|\bvisa\b|cr[eé]dito\s+a\s+vista|d[eé]bito\s+a\s+vista/i.test(text);
+    const semData = !/\b\d{2}[\/\-\.\s]\d{2}[\/\-\.\s]\d{2,4}\b/.test(text);
+    const semHora = !/\b\d{1,2}[:hH.;]\d{2}\b/.test(text);
+    if (ehCupomCartao && (semData || semHora)) {
+      try {
+        this.setStatus(true, 'Refinando leitura do cabeçalho do cupom...');
+        const fileOtsu = await this.preprocessImageWithOtsu(currentFile);
+        const r2 = await Tesseract.recognize(fileOtsu, 'por', {
+          tessedit_pageseg_mode: '4', // assume one column of text (cupom)
+          logger: () => {},
+        });
+        text = text + '\n\n' + (r2.data.text || '');
+      } catch (e) {
+        console.warn('[OCR] 2º pass Otsu falhou:', e);
+      }
+    }
 
     // Comprovantes como Mercado Pago renderizam o "R$ 200" em fonte
     // gigante. O PSM 3 (padrão, auto) costuma tratar texto muito
@@ -652,7 +751,23 @@ class OCREntradas {
         if (candidatos.length) {
           // Junta as linhas vizinhas. Linhas curtas (1-2 chars) costumam
           // ser continuação ("CENTRO EDUCACIONAL" + "E" -> mesma razão)
-          const loja = candidatos.join(' ').replace(/\s{2,}/g, ' ').trim();
+          let loja = candidatos.join(' ').replace(/\s{2,}/g, ' ').trim();
+          // Remove palavras-lixo no FIM (OCR costuma adicionar ruído
+          // depois do nome real: "CENTRO EDUCACIONAL een À" → tira o
+          // "een À"). Considera lixo: palavras com < 4 chars que NÃO
+          // são abreviações conhecidas de tipo societário.
+          const TIPO_SOCIETARIO = /^(SA|S\.A|S\/A|ME|MEI|EPP|LTDA|EIRELI|CIA)\.?$/i;
+          const palavras = loja.split(/\s+/);
+          while (palavras.length > 1) {
+            const ultima = palavras[palavras.length - 1];
+            const alfas = ultima.replace(/[^A-Za-zÀ-ÿ]/g, '');
+            if (alfas.length < 4 && !TIPO_SOCIETARIO.test(ultima)) {
+              palavras.pop();
+            } else {
+              break;
+            }
+          }
+          loja = palavras.join(' ');
           const isBrand = MAQUININHA_BRANDS.some(([, re]) => re.test(loja));
           if (!isBrand && loja.length >= 3) {
             result.nomeDepositante = toTitleCase(loja);

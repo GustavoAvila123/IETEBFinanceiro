@@ -396,75 +396,147 @@ class OCREntradas {
       if (mes) result.data = `${dataNomeMes[3]}-${mes}-${dia}`;
     }
 
+    // Helper: corrige chars ambíguos do OCR (O→0, l→1, S→5...).
+    // Usado SÓ em candidatos que já parecem data/hora (não global).
+    const _ocrDigitFix = (s) =>
+      s
+        .replace(/[Oo]/g, '0')
+        .replace(/[QqDÇç]/g, '0')
+        .replace(/[IiLl|!]/g, '1')
+        .replace(/[Zz]/g, '2')
+        .replace(/[BbßĐ]/g, '8')
+        .replace(/[Ss]/g, '5')
+        .replace(/[Gg]/g, '6');
+
     if (!result.data) {
-      const dataMatch =
-        // Aceita nome completo ou abreviado, com/sem "-feira" e com/sem ponto
-        full.match(
-          /(?:segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo|seg|ter|qua|qui|sex|s[áa]b|dom)\.?\s*(?:-?\s*feira)?[,.]?\s*(\d{2}\/\d{2}\/\d{4})/i
-        ) ||
-        full.match(
-          /data\s+(?:do\s+)?(?:pagamento|dep[oó]sito|pix|transfer[eê]ncia)?\s*[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i
-        ) ||
-        full.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
-        full.match(/\b(\d{4}-\d{2}-\d{2})\b/) ||
-        full.match(/\b(\d{2}\/\d{2}\/\d{2})\b/) ||
-        // Tolerante a OCR ruim: separadores podem ser ` `, `.`, `-`, `:`
-        // ou nada (cupom Cielo "09 05 26", "09.05.26", "09-05-26").
-        // Aceita 1-2 dígitos no dia/mês e 2 ou 4 no ano.
-        full.match(/\b(\d{1,2})[\s\.\-\/](\d{1,2})[\s\.\-\/](\d{2}|\d{4})\b/);
-      if (dataMatch && dataMatch[1]) {
-        // 2 formatos: dataMatch[1] tem a string completa (\d{2}\/\d{2}\/...)
-        // OU dataMatch[1,2,3] são os 3 grupos (regex tolerante)
-        let raw;
-        if (dataMatch[2] && dataMatch[3]) {
-          // Regex tolerante separou em 3 grupos
-          const dd = String(dataMatch[1]).padStart(2, '0');
-          const mm = String(dataMatch[2]).padStart(2, '0');
-          const yy = dataMatch[3].length === 2 ? `20${dataMatch[3]}` : dataMatch[3];
-          // Valida ranges (dd 1-31, mm 1-12, ano razoável)
-          const ddN = parseInt(dd, 10);
-          const mmN = parseInt(mm, 10);
-          if (ddN >= 1 && ddN <= 31 && mmN >= 1 && mmN <= 12) {
-            result.data = `${yy}-${mm}-${dd}`;
+      // Helper: valida dd/mm/yyyy e retorna ISO "YYYY-MM-DD" ou null.
+      // Aceita YY de 2 dígitos (vira 20YY).
+      const _parseDdMmYyyy = (dd, mm, yy) => {
+        const ddN = parseInt(dd, 10);
+        const mmN = parseInt(mm, 10);
+        if (Number.isNaN(ddN) || ddN < 1 || ddN > 31) return null;
+        if (Number.isNaN(mmN) || mmN < 1 || mmN > 12) return null;
+        const yyyy = yy.length === 2 ? `20${yy}` : yy;
+        const yyyyN = parseInt(yyyy, 10);
+        if (Number.isNaN(yyyyN) || yyyyN < 2000 || yyyyN > 2100) return null;
+        return `${yyyy}-${String(mmN).padStart(2, '0')}-${String(ddN).padStart(2, '0')}`;
+      };
+      const _parseRawData = (raw) => {
+        if (!raw) return null;
+        if (raw.includes('-')) {
+          // ISO yyyy-mm-dd
+          const [y, m, d] = raw.split('-');
+          return _parseDdMmYyyy(d, m, y);
+        }
+        const [d, m, y] = raw.split('/');
+        return _parseDdMmYyyy(d, m, y);
+      };
+
+      // Tenta cada estratégia em ordem. Se uma capturar mas o resultado
+      // for inválido (mês 26, dia 99 etc), descarta e segue pra próxima.
+      const strategies = [
+        () => {
+          const m = full.match(
+            /(?:segunda|ter[çc]a|quarta|quinta|sexta|s[áa]bado|domingo|seg|ter|qua|qui|sex|s[áa]b|dom)\.?\s*(?:-?\s*feira)?[,.]?\s*(\d{2}\/\d{2}\/\d{4})/i
+          );
+          return m ? _parseRawData(m[1]) : null;
+        },
+        () => {
+          const m = full.match(
+            /data\s+(?:do\s+)?(?:pagamento|dep[oó]sito|pix|transfer[eê]ncia)?\s*[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i
+          );
+          return m ? _parseRawData(m[1]) : null;
+        },
+        () => {
+          const m = full.match(/\b(\d{2}\/\d{2}\/\d{4})\b/);
+          return m ? _parseRawData(m[1]) : null;
+        },
+        () => {
+          const m = full.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+          return m ? _parseRawData(m[1]) : null;
+        },
+        () => {
+          const m = full.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
+          return m ? _parseRawData(m[1]) : null;
+        },
+        () => {
+          // Tolerante a separador: aceita espaço/ponto/hífen além de /.
+          // Tenta TODAS as ocorrências (matchAll), valida cada uma e
+          // descarta inválidas (ex: "05/26 11" interpretado como
+          // 05/26/11 dá mm=26 inválido — pula).
+          const re = /\b(\d{1,2})[\s\.\-\/](\d{1,2})[\s\.\-\/](\d{2}|\d{4})\b/g;
+          for (const m of full.matchAll(re)) {
+            const parsed = _parseDdMmYyyy(m[1], m[2], m[3]);
+            if (parsed) return parsed;
           }
-        } else {
-          raw = dataMatch[1];
-          if (raw.includes('-')) {
-            result.data = raw;
-          } else {
-            const parts = raw.split('/');
-            result.data =
-              parts[2].length === 2
-                ? `20${parts[2]}-${parts[1]}-${parts[0]}`
-                : `${parts[2]}-${parts[1]}-${parts[0]}`;
+          return null;
+        },
+        () => {
+          // OCR ambíguo: aceita O/I/S/Z/G no lugar de dígitos.
+          // Aplica nas 10 primeiras linhas (cabeçalho).
+          const topText = full.split(/\r?\n/).slice(0, 10).join('\n');
+          const candidatos =
+            topText.match(
+              /[0-9OoIiLlBbSsZzQqGgDÇç!|]{1,2}[\/\.\-\s][0-9OoIiLlBbSsZzQqGgDÇç!|]{1,2}[\/\.\-\s][0-9OoIiLlBbSsZzQqGgDÇç!|]{2,4}/g
+            ) || [];
+          for (const c of candidatos) {
+            const fixed = _ocrDigitFix(c).replace(/[.\-\s]/g, '/');
+            const m = fixed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+            if (m) {
+              const parsed = _parseDdMmYyyy(m[1], m[2], m[3]);
+              if (parsed) return parsed;
+            }
+          }
+          return null;
+        },
+      ];
+
+      for (const strat of strategies) {
+        const d = strat();
+        if (d) {
+          result.data = d;
+          break;
+        }
+      }
+    }
+
+    let horaMatch =
+      full.match(/hor[aá]rio\s+(\d{1,2})h(\d{2})/i) ||
+      full.match(/hor[aá]rio\s*[:\-]\s*(\d{1,2}):(\d{2})/i) ||
+      full.match(/\b(\d{1,2})h(\d{2})\b/i) ||
+      full.match(/[àa]s\s+(\d{1,2}):(\d{2})/i) ||
+      full.match(/\d{2}\/\d{2}\/\d{4}[T\s,\-]+(\d{2}):(\d{2})/) ||
+      full.match(/\d{4}-\d{2}-\d{2}[T\s]+(\d{2}):(\d{2})/) ||
+      full.match(/\d{2}\/\d{2}\/\d{2}[\sT,\-•·●○*|]+(\d{2}):(\d{2})/) ||
+      full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i) ||
+      full.match(/\b((?:[01]\d|2[0-3])):([0-5]\d)\b/) ||
+      (() => {
+        const topLines = full.split(/\r?\n/).slice(0, 10).join('\n');
+        return topLines.match(/\b((?:[01]?\d|2[0-3]))[.:;,](\d{2})\b/);
+      })();
+
+    // Último recurso pra hora: aceita chars OCR ambíguos no cabeçalho
+    // (Cielo: "1l:2O" virou "11:20"). Procura padrão HH(:|.|;|h)MM
+    // com letras-pra-dígitos nas 10 primeiras linhas.
+    if (!horaMatch) {
+      const topLines = full.split(/\r?\n/).slice(0, 10).join('\n');
+      const candidatos = topLines.match(
+        /[0-9OoIiLlBbSsZzQqGg!|]{1,2}[:.;hH][0-9OoIiLlBbSsZzQqGg!|]{2}(?![\dOoIiLlBbSsZzQqGg!|])/g
+      ) || [];
+      for (const c of candidatos) {
+        const fixed = _ocrDigitFix(c).replace(/[hH.;,]/g, ':');
+        const m = fixed.match(/^(\d{1,2}):(\d{2})$/);
+        if (m) {
+          const hN = parseInt(m[1], 10);
+          const minN = parseInt(m[2], 10);
+          if (hN >= 0 && hN <= 23 && minN >= 0 && minN <= 59) {
+            horaMatch = [c, m[1], m[2]];
+            break;
           }
         }
       }
     }
 
-    const horaMatch =
-      full.match(/hor[aá]rio\s+(\d{1,2})h(\d{2})/i) ||
-      full.match(/hor[aá]rio\s*[:\-]\s*(\d{1,2}):(\d{2})/i) ||
-      full.match(/\b(\d{1,2})h(\d{2})\b/i) ||
-      full.match(/[àa]s\s+(\d{1,2}):(\d{2})/i) ||
-      // "DD/MM/AAAA - HH:MM" (Bradesco usa hífen entre data e hora)
-      full.match(/\d{2}\/\d{2}\/\d{4}[T\s,\-]+(\d{2}):(\d{2})/) ||
-      full.match(/\d{4}-\d{2}-\d{2}[T\s]+(\d{2}):(\d{2})/) ||
-      // "DD/MM/AA • HH:MM" (Cielo usa bullet/asterisco/separador entre
-      // data curta e hora — cupom de cartão de crédito)
-      full.match(/\d{2}\/\d{2}\/\d{2}[\sT,\-•·●○*|]+(\d{2}):(\d{2})/) ||
-      full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i) ||
-      // Fallback final: hora isolada HH:MM válida (00:00 a 23:59) em
-      // QUALQUER lugar do texto. Usado quando não há prefixo/contexto
-      // explícito (cabeçalho de cupom Cielo: "09/05/26 • 11:20").
-      full.match(/\b((?:[01]\d|2[0-3])):([0-5]\d)\b/) ||
-      // Tolerante a OCR ruim: `:` pode virar `.` ou `;` em scan de
-      // baixa qualidade. Aceita HH(.|:|;)MM nas 5 primeiras linhas
-      // do cupom (cabeçalho) onde a hora geralmente aparece.
-      (() => {
-        const topLines = full.split(/\r?\n/).slice(0, 8).join('\n');
-        return topLines.match(/\b((?:[01]?\d|2[0-3]))[.:;]([0-5]\d)\b/);
-      })();
     if (horaMatch && horaMatch[1] && horaMatch[2]) {
       result.hora =
         String(horaMatch[1]).padStart(2, '0') + ':' + String(horaMatch[2]).padStart(2, '0');
@@ -523,27 +595,38 @@ class OCREntradas {
           break;
         }
       }
-      // Detecta linhas que são RUÍDO DE OCR (mistura de chars curtos
-      // intercalados com símbolos estranhos: "Een À E /", "@ # $").
+      // Detecta linhas que são RUÍDO DE OCR.
+      // Filtros (rejeita se QUALQUER um casar):
+      //   1) menos de 3 chars alfa totais
+      //   2) ratio chars alfa/total < 70%
+      //   3) chars proibidos: / \ | * ? ! # @ ¥
+      //   4) sem palavra com 4+ chars alfa contíguos
+      //   5) mais de 1 caractere acentuado isolado (Æ Ç À sozinhos)
+      //   6) mistura de chars muito curtos: 3+ "palavras" de 1-2 chars
       const _isOcrNoise = (s) => {
         if (!s) return true;
         const trimmed = s.trim();
         if (trimmed.length < 3) return true;
         const alphaCount = (trimmed.match(/[A-Za-zÀ-ÿ]/g) || []).length;
         if (alphaCount < 3) return true;
-        // Ratio: chars alfa devem ser pelo menos 65% do total
-        if (alphaCount / trimmed.length < 0.65) return true;
-        // Símbolos que NÃO aparecem em nome de empresa: / \ | * ? ! # @ ¥
+        if (alphaCount / trimmed.length < 0.7) return true;
         if (/[\/\\|*?!#@¥]/.test(trimmed)) return true;
-        // Exige pelo menos UMA palavra com 4+ chars alfa contíguos
-        // (filtra "Een À E /" que só tem palavras de 1-3 chars).
         if (!/[A-Za-zÀ-ÿ]{4,}/.test(trimmed)) return true;
+        // Conta "palavras" muito curtas (1-2 chars) — ruído OCR costuma
+        // produzir mistura "E n À x" enquanto nome real tem palavras
+        // mais longas. Se mais que metade das palavras forem curtas,
+        // é provável ruído.
+        const palavras = trimmed.split(/\s+/).filter(Boolean);
+        const curtas = palavras.filter((p) => p.replace(/[^A-Za-zÀ-ÿ]/g, '').length <= 2).length;
+        if (palavras.length >= 3 && curtas / palavras.length > 0.5) return true;
         return false;
       };
 
       if (cnpjLineIdx > 0) {
-        // Coleta até 3 linhas anteriores ao CNPJ, concatena as que parecem
-        // continuação do nome (curtas, em caixa alta) na mesma string.
+        // Coleta até 3 linhas anteriores ao CNPJ. O filtro _isOcrNoise
+        // descarta linhas com chars proibidos/ruído OCR, então mesmo
+        // que entre o nome real e o CNPJ haja uma linha-lixo, o nome
+        // ainda é alcançado.
         const candidatos = [];
         for (let j = cnpjLineIdx - 1; j >= Math.max(0, cnpjLineIdx - 3); j--) {
           const ln = lines[j];
@@ -553,8 +636,8 @@ class OCREntradas {
           if (BANDEIRA_BRANDS.some(([, re]) => re.test(ln))) continue;
           if (/^\d/.test(ln)) continue;
           if (ln.length < 2) continue;
-          // Filtra linhas curtas (1-3 chars) que NÃO sejam pura letra
-          // maiúscula (acomoda "E" como continuação válida de nome).
+          // Linha curta (1-3 chars) só passa se for pura letra maiúscula
+          // (acomoda "E" / "LTDA" como continuação válida de nome).
           if (ln.length <= 3 && !/^[A-ZÀ-Þ]+$/.test(ln)) continue;
           if (_isOcrNoise(ln)) continue;
           candidatos.unshift(ln);

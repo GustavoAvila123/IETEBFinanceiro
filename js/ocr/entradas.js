@@ -160,6 +160,13 @@ class OCREntradas {
   }
 
   parseAndShow(text) {
+    // Expõe o texto OCR raw em window pra debug em PROD:
+    // F12 > Console > `copy(window.__ietebOcrEntradasText)` cola o
+    // output exato do Tesseract no clipboard. Ajuda quando o parser
+    // falha num cupom específico — sem isso é palpite cego.
+    try {
+      window.__ietebOcrEntradasText = text;
+    } catch (_) {}
     const extracted = this.extractFields(text);
     this.ocrExtracted = extracted;
 

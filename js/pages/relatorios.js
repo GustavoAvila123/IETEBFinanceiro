@@ -334,7 +334,7 @@ class RelatorioPage {
         <td data-label="Banco Rec.">${escHtml(item.bancoRecebedor || '—')}</td>
         <td class="col-valor" data-label="Valor">R$ ${escHtml(item.valor || '0,00')}</td>
         <td data-label="Obs." title="${escHtml(item.observacao || '')}">${escHtml(truncate(item.observacao, 20))}</td>
-        <td>${delBtn}</td>
+        <td>${acoes}</td>
       </tr>`;
       })
       .join('');

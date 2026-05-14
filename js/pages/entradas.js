@@ -117,11 +117,11 @@ class EntradaPage {
 
     if (isCredito || isDebito) {
       this._setLabelText('labelNomeDepositante', 'Nome da Loja ');
-      this._setLabelText('labelNomeRecebedor', 'Maquininha ');
+      this._setLabelText('labelNomeRecebedor', 'Bandeira ');
       this._setLabelText('labelDataDeposito', 'Data da Transação ');
       if (labelHora) labelHora.textContent = 'Horário do Recebimento';
       if (inputNomeDepo) inputNomeDepo.placeholder = 'Nome do estabelecimento';
-      if (inputNomeRec) inputNomeRec.placeholder = 'Ex: Laranjinha, Stone, Cielo...';
+      if (inputNomeRec) inputNomeRec.placeholder = 'Ex: Mastercard, Visa, Elo...';
     } else {
       this._setLabelText('labelNomeDepositante', 'Nome do Depositante ');
       this._setLabelText('labelNomeRecebedor', 'Nome de Quem Recebeu ');

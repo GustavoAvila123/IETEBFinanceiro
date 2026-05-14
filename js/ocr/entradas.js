@@ -193,7 +193,7 @@ class OCREntradas {
     const labels = {
       nomeAluno: 'Nome do Aluno',
       nomeDepositante: isCredito ? 'Nome da Loja' : 'Depositante',
-      nomeRecebedor: isCredito ? 'Maquininha' : 'Quem Recebeu',
+      nomeRecebedor: isCredito ? 'Bandeira' : 'Quem Recebeu',
       bancoDepositante: 'Banco Depositante',
       bancoRecebedor: 'Banco Recebedor',
       valor: 'Valor',
@@ -407,17 +407,37 @@ class OCREntradas {
         ) ||
         full.match(/\b(\d{2}\/\d{2}\/\d{4})\b/) ||
         full.match(/\b(\d{4}-\d{2}-\d{2})\b/) ||
-        full.match(/\b(\d{2}\/\d{2}\/\d{2})\b/);
+        full.match(/\b(\d{2}\/\d{2}\/\d{2})\b/) ||
+        // Tolerante a OCR ruim: separadores podem ser ` `, `.`, `-`, `:`
+        // ou nada (cupom Cielo "09 05 26", "09.05.26", "09-05-26").
+        // Aceita 1-2 dígitos no dia/mês e 2 ou 4 no ano.
+        full.match(/\b(\d{1,2})[\s\.\-\/](\d{1,2})[\s\.\-\/](\d{2}|\d{4})\b/);
       if (dataMatch && dataMatch[1]) {
-        const raw = dataMatch[1];
-        if (raw.includes('-')) {
-          result.data = raw;
+        // 2 formatos: dataMatch[1] tem a string completa (\d{2}\/\d{2}\/...)
+        // OU dataMatch[1,2,3] são os 3 grupos (regex tolerante)
+        let raw;
+        if (dataMatch[2] && dataMatch[3]) {
+          // Regex tolerante separou em 3 grupos
+          const dd = String(dataMatch[1]).padStart(2, '0');
+          const mm = String(dataMatch[2]).padStart(2, '0');
+          const yy = dataMatch[3].length === 2 ? `20${dataMatch[3]}` : dataMatch[3];
+          // Valida ranges (dd 1-31, mm 1-12, ano razoável)
+          const ddN = parseInt(dd, 10);
+          const mmN = parseInt(mm, 10);
+          if (ddN >= 1 && ddN <= 31 && mmN >= 1 && mmN <= 12) {
+            result.data = `${yy}-${mm}-${dd}`;
+          }
         } else {
-          const parts = raw.split('/');
-          result.data =
-            parts[2].length === 2
-              ? `20${parts[2]}-${parts[1]}-${parts[0]}`
-              : `${parts[2]}-${parts[1]}-${parts[0]}`;
+          raw = dataMatch[1];
+          if (raw.includes('-')) {
+            result.data = raw;
+          } else {
+            const parts = raw.split('/');
+            result.data =
+              parts[2].length === 2
+                ? `20${parts[2]}-${parts[1]}-${parts[0]}`
+                : `${parts[2]}-${parts[1]}-${parts[0]}`;
+          }
         }
       }
     }
@@ -437,7 +457,14 @@ class OCREntradas {
       // Fallback final: hora isolada HH:MM válida (00:00 a 23:59) em
       // QUALQUER lugar do texto. Usado quando não há prefixo/contexto
       // explícito (cabeçalho de cupom Cielo: "09/05/26 • 11:20").
-      full.match(/\b((?:[01]\d|2[0-3])):([0-5]\d)\b/);
+      full.match(/\b((?:[01]\d|2[0-3])):([0-5]\d)\b/) ||
+      // Tolerante a OCR ruim: `:` pode virar `.` ou `;` em scan de
+      // baixa qualidade. Aceita HH(.|:|;)MM nas 5 primeiras linhas
+      // do cupom (cabeçalho) onde a hora geralmente aparece.
+      (() => {
+        const topLines = full.split(/\r?\n/).slice(0, 8).join('\n');
+        return topLines.match(/\b((?:[01]?\d|2[0-3]))[.:;]([0-5]\d)\b/);
+      })();
     if (horaMatch && horaMatch[1] && horaMatch[2]) {
       result.hora =
         String(horaMatch[1]).padStart(2, '0') + ':' + String(horaMatch[2]).padStart(2, '0');
@@ -462,6 +489,23 @@ class OCREntradas {
       ['Ton', /\bton\b/i],
     ];
 
+    // BANDEIRAS de cartão — capturadas em cupons de crédito/débito.
+    // Têm PRIORIDADE sobre MAQUININHA no campo nomeRecebedor (label
+    // "Bandeira" na UI). Maquininha continua sendo detectada pra usar
+    // como fallback se nenhuma bandeira aparecer no cupom.
+    const BANDEIRA_BRANDS = [
+      ['Mastercard', /\bmaster[\s\-]?card\b|\bmastercar[dt]\b/i],
+      ['Visa', /\bvisa\b/i],
+      ['Elo', /\belo\b(?!\s*(?:com|s\.?a\.?))/i],
+      ['American Express', /american\s+express|\bamex\b/i],
+      ['Hipercard', /hipercard|hiper\s*card/i],
+      ['Diners', /diners\s*club|\bdiners\b/i],
+      ['Discover', /\bdiscover\b/i],
+      ['Cabal', /\bcabal\b/i],
+      ['Banescard', /banescard/i],
+      ['Sorocred', /sorocred/i],
+    ];
+
     // ── Nome da loja (cupom de crédito) ─────────────────────────────────
     // Prefere a linha IMEDIATAMENTE anterior ao CNPJ (até 3 linhas atrás
     // pra acomodar quebras tipo "CENTRO EDUCACIONAL\nE\nCNPJ...").
@@ -479,6 +523,24 @@ class OCREntradas {
           break;
         }
       }
+      // Detecta linhas que são RUÍDO DE OCR (mistura de chars curtos
+      // intercalados com símbolos estranhos: "Een À E /", "@ # $").
+      const _isOcrNoise = (s) => {
+        if (!s) return true;
+        const trimmed = s.trim();
+        if (trimmed.length < 3) return true;
+        const alphaCount = (trimmed.match(/[A-Za-zÀ-ÿ]/g) || []).length;
+        if (alphaCount < 3) return true;
+        // Ratio: chars alfa devem ser pelo menos 65% do total
+        if (alphaCount / trimmed.length < 0.65) return true;
+        // Símbolos que NÃO aparecem em nome de empresa: / \ | * ? ! # @ ¥
+        if (/[\/\\|*?!#@¥]/.test(trimmed)) return true;
+        // Exige pelo menos UMA palavra com 4+ chars alfa contíguos
+        // (filtra "Een À E /" que só tem palavras de 1-3 chars).
+        if (!/[A-Za-zÀ-ÿ]{4,}/.test(trimmed)) return true;
+        return false;
+      };
+
       if (cnpjLineIdx > 0) {
         // Coleta até 3 linhas anteriores ao CNPJ, concatena as que parecem
         // continuação do nome (curtas, em caixa alta) na mesma string.
@@ -488,8 +550,13 @@ class OCREntradas {
           if (!ln) continue;
           if (_HEADER_KW.test(ln)) continue;
           if (MAQUININHA_BRANDS.some(([, re]) => re.test(ln))) continue;
+          if (BANDEIRA_BRANDS.some(([, re]) => re.test(ln))) continue;
           if (/^\d/.test(ln)) continue;
           if (ln.length < 2) continue;
+          // Filtra linhas curtas (1-3 chars) que NÃO sejam pura letra
+          // maiúscula (acomoda "E" como continuação válida de nome).
+          if (ln.length <= 3 && !/^[A-ZÀ-Þ]+$/.test(ln)) continue;
+          if (_isOcrNoise(ln)) continue;
           candidatos.unshift(ln);
         }
         if (candidatos.length) {
@@ -519,9 +586,18 @@ class OCREntradas {
       }
     }
 
-    const brandEntry = MAQUININHA_BRANDS.find(([, re]) => re.test(full));
-    if (brandEntry) {
-      result.nomeRecebedor = brandEntry[0];
+    // BANDEIRA tem prioridade sobre MAQUININHA pro nomeRecebedor.
+    // Ex: cupom Cielo + Mastercard → mostra "Mastercard" (bandeira).
+    // Se o cupom só tem maquininha sem bandeira, ainda mostra a
+    // maquininha (Cielo) — melhor que ficar vazio. A presença de
+    // qualquer dos dois também garante formaPagamento = Crédito.
+    const bandeiraEntry = BANDEIRA_BRANDS.find(([, re]) => re.test(full));
+    const maqEntry = MAQUININHA_BRANDS.find(([, re]) => re.test(full));
+    if (bandeiraEntry) {
+      result.nomeRecebedor = bandeiraEntry[0];
+      result.formaPagamento = result.formaPagamento || 'Crédito';
+    } else if (maqEntry) {
+      result.nomeRecebedor = maqEntry[0];
       result.formaPagamento = result.formaPagamento || 'Crédito';
     }
 

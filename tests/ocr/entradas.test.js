@@ -114,18 +114,37 @@ describe('OCR Entradas — fixtures de bancos', () => {
   //   1) "VIA LOJA" não pode virar nome de loja (header genérico)
   //   2) "CREDITO A VISTA" é forma de pagamento, não nome do favorecido
   //   3) hora HH:MM isolada no cabeçalho ("09/05/26 • 11:20") precisa ser lida
-  it('Cielo cupom crédito (regressão prod 2026-05-14)', () => {
+  //   4) Bandeira (Mastercard) tem prioridade sobre maquininha (Cielo)
+  //      pro campo nomeRecebedor (label "Bandeira" na UI)
+  it('Cielo cupom crédito limpo (regressão prod 2026-05-14)', () => {
     const r = extract(fix('cielo-credito-cupom.txt'));
     expect(r.valor).toBe('R$ 114,00');
     expect(r.data).toBe('2026-05-09');
     expect(r.hora).toBe('11:20');
     expect(r.formaPagamento).toBe('Crédito');
-    // Maquininha (nomeRecebedor) deve ser Cielo — não pode virar "Vista"
-    expect(r.nomeRecebedor).toBe('Cielo');
-    // Loja (nomeDepositante) deve ser o nome do estabelecimento antes
-    // do CNPJ — não pode virar "Via Loja"
+    // Bandeira tem prioridade sobre maquininha (Cielo) — não pode virar "Vista"
+    expect(r.nomeRecebedor).toBe('Mastercard');
+    // Loja deve ser o nome do estabelecimento antes do CNPJ —
+    // não pode virar "Via Loja" do cabeçalho
     expect(r.nomeDepositante).toMatch(/Centro Educacional/i);
     expect(r.nomeDepositante).not.toMatch(/^Via Loja$/i);
+  });
+
+  // Segunda variante do cupom Cielo, simulando OCR REAL ruidoso reportado
+  // pelo usuário em 2026-05-14: data com separadores tortos ("09/05/26 *"
+  // em vez de "•"), hora com ponto em vez de dois pontos ("11.20"), e
+  // linha extra de ruído OCR entre o nome e o CNPJ ("Een À E /").
+  it('Cielo cupom crédito OCR ruidoso (regressão prod 2026-05-14)', () => {
+    const r = extract(fix('cielo-credito-cupom-ocr-ruido.txt'));
+    expect(r.valor).toBe('R$ 114,00');
+    expect(r.data).toBe('2026-05-09');
+    expect(r.hora).toBe('11:20');
+    expect(r.formaPagamento).toBe('Crédito');
+    expect(r.nomeRecebedor).toBe('Mastercard');
+    // O ruído "Een À E /" entre o nome e o CNPJ NÃO pode entrar no nome
+    expect(r.nomeDepositante).toBe('Centro Educacional');
+    expect(r.nomeDepositante).not.toMatch(/Een/);
+    expect(r.nomeDepositante).not.toMatch(/\//);
   });
 });
 

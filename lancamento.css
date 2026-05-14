@@ -2312,6 +2312,116 @@ html[data-theme='dark'] .badge--dinheiro {
   max-width: 380px;
 }
 
+/* Modal de edição: card mais largo pra acomodar grid de 2 colunas
+   com todos os campos do lançamento. Scroll interno se ultrapassar
+   altura da viewport. */
+.modal-card--lg {
+  max-width: 680px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-modal-body {
+  padding: 18px 24px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.edit-field--wide {
+  grid-column: span 2;
+}
+
+.edit-field--full {
+  grid-column: span 2;
+}
+
+.edit-field > span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gold-dim, #d4af37);
+}
+
+.edit-field input,
+.edit-field select,
+.edit-field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-strong, #e7eaf3);
+  font-size: 0.88rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.edit-field input:focus,
+.edit-field select:focus,
+.edit-field textarea:focus {
+  border-color: var(--gold, #d4af37);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.edit-field textarea {
+  resize: vertical;
+  min-height: 38px;
+}
+
+@media (max-width: 640px) {
+  .edit-grid {
+    grid-template-columns: 1fr;
+  }
+  .edit-field--wide,
+  .edit-field--full {
+    grid-column: span 1;
+  }
+}
+
+/* Botão de edição na tabela (gêmeo da lixeira) */
+.btn-edit-row {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--gold-dim, #c9a32e);
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+  margin-right: 4px;
+}
+.btn-edit-row:hover,
+.btn-edit-row:focus-visible {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(212, 175, 55, 0.4);
+  color: var(--gold, #d4af37);
+  outline: none;
+}
+
 .modal-header--danger {
   background: #7b1d1d;
   border-bottom-color: var(--danger);

@@ -291,13 +291,19 @@ class RelatorioPage {
       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
       <path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
     </svg>`;
+    const editIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M12 20h9"/>
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+    </svg>`;
 
     empty.style.display = 'none';
     tbody.innerHTML = page
       .map((item, idx) => {
         const badge = badgePagamento(item.formaPagamento);
         const globalIdx = (this.currentPage - 1) * PAGE_SIZE + idx;
+        const editBtn = `<button class="btn-edit-row" onclick="pedirEdicao(${globalIdx})" title="Editar">${editIcon}</button>`;
         const delBtn = `<button class="btn-delete-row" onclick="pedirExclusao(${globalIdx})" title="Excluir">${deleteIcon}</button>`;
+        const acoes = editBtn + delBtn;
 
         if (this.tipo === 'saidas') {
           const data = item.data ? item.data.split('-').reverse().join('/') : '—';
@@ -309,7 +315,7 @@ class RelatorioPage {
           <td data-label="Pagamento">${badge}</td>
           <td class="col-valor" data-label="Valor">R$ ${escHtml(item.valor || '0,00')}</td>
           <td data-label="Obs." title="${escHtml(item.observacao || '')}">${escHtml(truncate(item.observacao, 20))}</td>
-          <td>${delBtn}</td>
+          <td>${acoes}</td>
         </tr>`;
         }
 
@@ -775,6 +781,145 @@ class RelatorioPage {
   closeDeleteModal() {
     this.modal.close('deleteModal');
     this.deleteTarget = null;
+  }
+
+  // ── Edição ────────────────────────────────────────────────────────────────────
+  // Abre o modal de edição apropriado (entrada ou saída) pré-preenchido com
+  // os dados do registro selecionado. Salvar persiste em localStorage +
+  // firebase via `save` (faz upsert pelo id existente, preserva o registro).
+  pedirEdicao(idx) {
+    const item = this.filteredData[idx];
+    if (!item) return;
+    this.editTarget = item.id;
+    if (this.tipo === 'saidas') {
+      this._preencherModalEdicaoSaida(item);
+      this.modal.open('editSaidaModal');
+    } else {
+      this._preencherModalEdicaoEntrada(item);
+      this.modal.open('editEntradaModal');
+    }
+  }
+
+  _preencherModalEdicaoEntrada(item) {
+    const _set = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.value = v == null ? '' : v;
+    };
+    _set('editEntId', item.id);
+    _set('editEntData', item.dataDeposito || '');
+    _set('editEntHora', item.horaDeposito || '');
+    _set('editEntAluno', item.nomeAluno || '');
+    _set('editEntCurso', item.curso || '');
+    _set('editEntForma', item.formaPagamento || 'Pix');
+    _set('editEntIgreja', item.igreja || '');
+    _set('editEntParcela', item.parcela || '');
+    _set('editEntValor', item.valor || '');
+    _set('editEntDepositante', item.nomeDepositante || '');
+    _set('editEntRecebedor', item.nomeRecebedor || '');
+    _set('editEntBancoDep', item.bancoDepositante || '');
+    _set('editEntBancoRec', item.bancoRecebedor || '');
+    _set('editEntObs', item.observacao || '');
+  }
+
+  _preencherModalEdicaoSaida(item) {
+    const _set = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.value = v == null ? '' : v;
+    };
+    _set('editSaiId', item.id);
+    _set('editSaiData', item.data || '');
+    _set('editSaiHora', item.hora || '');
+    _set('editSaiCategoria', item.categoria || '');
+    _set('editSaiForma', item.formaPagamento || 'Pix');
+    _set('editSaiFornecedor', item.fornecedor || '');
+    _set('editSaiValor', item.valor || '');
+    _set('editSaiObs', item.observacao || '');
+  }
+
+  salvarEdicaoEntrada() {
+    const id = Number(document.getElementById('editEntId').value);
+    if (!id) return;
+    const _get = (k) => (document.getElementById(k) || {}).value || '';
+    const _trim = (v) => String(v || '').trim();
+
+    const todos = JSON.parse(localStorage.getItem('ieteb_lancamentos') || '[]');
+    const idx = todos.findIndex((l) => l.id === id);
+    if (idx < 0) {
+      this.modal.showToast('Registro não encontrado.', 'error');
+      return;
+    }
+    const atualizado = {
+      ...todos[idx],
+      dataDeposito: _get('editEntData') || todos[idx].dataDeposito,
+      horaDeposito: _get('editEntHora'),
+      nomeAluno: _trim(_get('editEntAluno')),
+      curso: _get('editEntCurso'),
+      formaPagamento: _get('editEntForma'),
+      igreja: _trim(_get('editEntIgreja')),
+      parcela: _trim(_get('editEntParcela')),
+      valor: _trim(_get('editEntValor')),
+      nomeDepositante: _trim(_get('editEntDepositante')),
+      nomeRecebedor: _trim(_get('editEntRecebedor')),
+      bancoDepositante: _trim(_get('editEntBancoDep')),
+      bancoRecebedor: _trim(_get('editEntBancoRec')),
+      observacao: _trim(_get('editEntObs')),
+      atualizadoEm: new Date().toISOString(),
+    };
+    todos[idx] = atualizado;
+    localStorage.setItem('ieteb_lancamentos', JSON.stringify(todos));
+    this.firebase.save('Entradas', atualizado);
+    this.modal.close('editEntradaModal');
+    this.editTarget = null;
+    this.carregar();
+    this.modal.showToast('Lançamento atualizado.', 'success');
+    try {
+      document.dispatchEvent(new CustomEvent('ietebDataChanged'));
+    } catch (_) {}
+  }
+
+  salvarEdicaoSaida() {
+    const id = Number(document.getElementById('editSaiId').value);
+    if (!id) return;
+    const _get = (k) => (document.getElementById(k) || {}).value || '';
+    const _trim = (v) => String(v || '').trim();
+
+    const todos = JSON.parse(localStorage.getItem('ieteb_saidas') || '[]');
+    const idx = todos.findIndex((l) => l.id === id);
+    if (idx < 0) {
+      this.modal.showToast('Registro não encontrado.', 'error');
+      return;
+    }
+    const atualizado = {
+      ...todos[idx],
+      data: _get('editSaiData') || todos[idx].data,
+      hora: _get('editSaiHora'),
+      categoria: _trim(_get('editSaiCategoria')),
+      formaPagamento: _get('editSaiForma'),
+      fornecedor: _trim(_get('editSaiFornecedor')),
+      valor: _trim(_get('editSaiValor')),
+      observacao: _trim(_get('editSaiObs')),
+      atualizadoEm: new Date().toISOString(),
+    };
+    todos[idx] = atualizado;
+    localStorage.setItem('ieteb_saidas', JSON.stringify(todos));
+    this.firebase.save('Saidas', atualizado);
+    this.modal.close('editSaidaModal');
+    this.editTarget = null;
+    this.carregar();
+    this.modal.showToast('Lançamento atualizado.', 'success');
+    try {
+      document.dispatchEvent(new CustomEvent('ietebDataChanged'));
+    } catch (_) {}
+  }
+
+  closeEditEntradaModal() {
+    this.modal.close('editEntradaModal');
+    this.editTarget = null;
+  }
+
+  closeEditSaidaModal() {
+    this.modal.close('editSaidaModal');
+    this.editTarget = null;
   }
 
   // ── Comprovante ───────────────────────────────────────────────────────────────

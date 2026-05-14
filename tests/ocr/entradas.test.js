@@ -107,6 +107,26 @@ describe('OCR Entradas — fixtures de bancos', () => {
     // Depositante = Paula (era a falha — ficava vazio)
     expect(r.nomeDepositante).toMatch(/Paula/i);
   });
+
+  // Bug reportado em prod 2026-05-14: cupom Cielo de cartão de crédito
+  // estava virando nomeDepositante="Via Loja" (cabeçalho do cupom),
+  // nomeRecebedor="Vista" (de "CREDITO A VISTA"), hora vazia. Casos:
+  //   1) "VIA LOJA" não pode virar nome de loja (header genérico)
+  //   2) "CREDITO A VISTA" é forma de pagamento, não nome do favorecido
+  //   3) hora HH:MM isolada no cabeçalho ("09/05/26 • 11:20") precisa ser lida
+  it('Cielo cupom crédito (regressão prod 2026-05-14)', () => {
+    const r = extract(fix('cielo-credito-cupom.txt'));
+    expect(r.valor).toBe('R$ 114,00');
+    expect(r.data).toBe('2026-05-09');
+    expect(r.hora).toBe('11:20');
+    expect(r.formaPagamento).toBe('Crédito');
+    // Maquininha (nomeRecebedor) deve ser Cielo — não pode virar "Vista"
+    expect(r.nomeRecebedor).toBe('Cielo');
+    // Loja (nomeDepositante) deve ser o nome do estabelecimento antes
+    // do CNPJ — não pode virar "Via Loja"
+    expect(r.nomeDepositante).toMatch(/Centro Educacional/i);
+    expect(r.nomeDepositante).not.toMatch(/^Via Loja$/i);
+  });
 });
 
 describe('OCR Entradas — heurísticas isoladas', () => {

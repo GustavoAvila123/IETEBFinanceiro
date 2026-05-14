@@ -3014,6 +3014,146 @@
       </div>
     </div>
 
+    <!-- ── MODAL EDITAR ENTRADA ──
+         Aberto pelo botão Editar na tabela de Relatórios (tipo=entradas).
+         Campos pré-preenchidos com os dados atuais e totalmente editáveis.
+         Fundo fosco + scroll lock vêm do ModalManager (.modal-overlay). -->
+    <div class="modal-overlay" id="editEntradaModal" style="display: none">
+      <div class="modal-card modal-card--lg" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">Editar lançamento de Entrada</h2>
+          <p class="modal-desc">Altere os campos necessários e clique em Salvar.</p>
+        </div>
+        <div class="edit-modal-body">
+          <input type="hidden" id="editEntId" />
+          <div class="edit-grid">
+            <label class="edit-field">
+              <span>Data</span>
+              <input type="date" id="editEntData" />
+            </label>
+            <label class="edit-field">
+              <span>Hora</span>
+              <input type="time" id="editEntHora" />
+            </label>
+            <label class="edit-field edit-field--wide">
+              <span>Aluno</span>
+              <input type="text" id="editEntAluno" autocomplete="off" />
+            </label>
+            <label class="edit-field">
+              <span>Curso</span>
+              <select id="editEntCurso">
+                <option value="">—</option>
+                <option value="CFAM">CFAM</option>
+                <option value="Bacharel em Teologia">Bacharel em Teologia</option>
+                <option value="Básico Teologia">Básico Teologia</option>
+                <option value="Capacitação de Professor">Capacitação de Professor</option>
+              </select>
+            </label>
+            <label class="edit-field">
+              <span>Forma de Pagamento</span>
+              <select id="editEntForma">
+                <option value="Pix">Pix</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Crédito">Crédito</option>
+                <option value="Débito">Débito</option>
+              </select>
+            </label>
+            <label class="edit-field edit-field--wide">
+              <span>Igreja</span>
+              <input type="text" id="editEntIgreja" autocomplete="off" />
+            </label>
+            <label class="edit-field">
+              <span>Parcela</span>
+              <input type="text" id="editEntParcela" autocomplete="off" />
+            </label>
+            <label class="edit-field">
+              <span>Valor</span>
+              <input type="text" id="editEntValor" autocomplete="off" placeholder="0,00" />
+            </label>
+            <label class="edit-field">
+              <span>Depositante</span>
+              <input type="text" id="editEntDepositante" autocomplete="off" />
+            </label>
+            <label class="edit-field">
+              <span>Recebedor</span>
+              <input type="text" id="editEntRecebedor" autocomplete="off" />
+            </label>
+            <label class="edit-field">
+              <span>Banco Depositante</span>
+              <input type="text" id="editEntBancoDep" autocomplete="off" />
+            </label>
+            <label class="edit-field">
+              <span>Banco Recebedor</span>
+              <input type="text" id="editEntBancoRec" autocomplete="off" />
+            </label>
+            <label class="edit-field edit-field--full">
+              <span>Observação</span>
+              <textarea id="editEntObs" rows="2"></textarea>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeEditEntradaModal()">Cancelar</button>
+          <button class="btn-primary" onclick="salvarEdicaoEntrada()">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MODAL EDITAR SAÍDA ──
+         Análogo ao de entrada, com os campos pertinentes a despesas. -->
+    <div class="modal-overlay" id="editSaidaModal" style="display: none">
+      <div class="modal-card modal-card--lg" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">Editar lançamento de Saída</h2>
+          <p class="modal-desc">Altere os campos necessários e clique em Salvar.</p>
+        </div>
+        <div class="edit-modal-body">
+          <input type="hidden" id="editSaiId" />
+          <div class="edit-grid">
+            <label class="edit-field">
+              <span>Data</span>
+              <input type="date" id="editSaiData" />
+            </label>
+            <label class="edit-field">
+              <span>Hora</span>
+              <input type="time" id="editSaiHora" />
+            </label>
+            <label class="edit-field">
+              <span>Categoria</span>
+              <input type="text" id="editSaiCategoria" autocomplete="off" />
+            </label>
+            <label class="edit-field">
+              <span>Forma de Pagamento</span>
+              <select id="editSaiForma">
+                <option value="Pix">Pix</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Crédito">Crédito</option>
+                <option value="Débito">Débito</option>
+                <option value="Boleto">Boleto</option>
+                <option value="Transferência">Transferência</option>
+              </select>
+            </label>
+            <label class="edit-field edit-field--wide">
+              <span>Fornecedor</span>
+              <input type="text" id="editSaiFornecedor" autocomplete="off" />
+            </label>
+            <label class="edit-field">
+              <span>Valor</span>
+              <input type="text" id="editSaiValor" autocomplete="off" placeholder="0,00" />
+            </label>
+            <label class="edit-field edit-field--full">
+              <span>Observação</span>
+              <textarea id="editSaiObs" rows="2"></textarea>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeEditSaidaModal()">Cancelar</button>
+          <button class="btn-primary" onclick="salvarEdicaoSaida()">Salvar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL CONFIRMAÇÃO EXCLUSÃO -->
     <div class="modal-overlay" id="deleteModal" style="display: none">
       <div class="modal-card modal-card--sm" onclick="event.stopPropagation()">
@@ -3217,6 +3357,7 @@
     <!-- Utilitários -->
     <script src="js/utils/helpers.js?v=20260508r"></script>
     <script src="js/utils/format.js?v=20260508r"></script>
+    <script src="js/utils/no-emoji.js?v=20260508r"></script>
     <script src="js/utils/tooltip.js?v=20260508r"></script>
     <script src="js/utils/a11y.js?v=20260508r"></script>
     <script src="js/utils/shortcuts.js?v=20260508r"></script>

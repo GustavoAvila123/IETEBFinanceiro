@@ -430,7 +430,14 @@ class OCREntradas {
       // "DD/MM/AAAA - HH:MM" (Bradesco usa hífen entre data e hora)
       full.match(/\d{2}\/\d{2}\/\d{4}[T\s,\-]+(\d{2}):(\d{2})/) ||
       full.match(/\d{4}-\d{2}-\d{2}[T\s]+(\d{2}):(\d{2})/) ||
-      full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i);
+      // "DD/MM/AA • HH:MM" (Cielo usa bullet/asterisco/separador entre
+      // data curta e hora — cupom de cartão de crédito)
+      full.match(/\d{2}\/\d{2}\/\d{2}[\sT,\-•·●○*|]+(\d{2}):(\d{2})/) ||
+      full.match(/(?:hora|time)\s*[:\-]\s*(\d{1,2}):(\d{2})/i) ||
+      // Fallback final: hora isolada HH:MM válida (00:00 a 23:59) em
+      // QUALQUER lugar do texto. Usado quando não há prefixo/contexto
+      // explícito (cabeçalho de cupom Cielo: "09/05/26 • 11:20").
+      full.match(/\b((?:[01]\d|2[0-3])):([0-5]\d)\b/);
     if (horaMatch && horaMatch[1] && horaMatch[2]) {
       result.hora =
         String(horaMatch[1]).padStart(2, '0') + ':' + String(horaMatch[2]).padStart(2, '0');
@@ -455,14 +462,61 @@ class OCREntradas {
       ['Ton', /\bton\b/i],
     ];
 
-    const lojaLineMatch =
-      full.match(
-        /([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'"|-]{1,50})\s+(?:CNPJ|CNPI|CNPE)\s*[:.]?\s*\d/i
-      ) || full.match(/([A-Z][A-Z0-9 &.,'-]{2,50})\s*\n[\s\S]{0,80}?(?:CNPJ|CNPI)/im);
-    if (lojaLineMatch && lojaLineMatch[1]) {
-      const loja = lojaLineMatch[1].trim().replace(/^[\s|;"'(]+|[\s|;"')=]+$/g, '');
-      const isBrand = MAQUININHA_BRANDS.some(([, re]) => re.test(loja));
-      if (!isBrand && loja.length >= 2) result.nomeDepositante = toTitleCase(loja);
+    // ── Nome da loja (cupom de crédito) ─────────────────────────────────
+    // Prefere a linha IMEDIATAMENTE anterior ao CNPJ (até 3 linhas atrás
+    // pra acomodar quebras tipo "CENTRO EDUCACIONAL\nE\nCNPJ...").
+    // Filtra linhas curtas (< 3 chars), cabeçalhos genéricos
+    // ("VIA LOJA", "VIA CLIENTE", "VIA ESTABELECIMENTO") e marcas de
+    // maquininha — bug reportado em prod 2026-05-14 onde "VIA LOJA"
+    // virava nomeDepositante.
+    const _HEADER_KW = /^(via\s+(?:loja|cliente|estabelecimento|comerciante)|cupom\s+fiscal|nfc-?e|recibo|comprovante|via)$/i;
+    {
+      const lines = full.split(/\r?\n/).map((l) => l.trim());
+      let cnpjLineIdx = -1;
+      for (let i = 0; i < lines.length; i++) {
+        if (/CN[PF]J|CNPI/i.test(lines[i])) {
+          cnpjLineIdx = i;
+          break;
+        }
+      }
+      if (cnpjLineIdx > 0) {
+        // Coleta até 3 linhas anteriores ao CNPJ, concatena as que parecem
+        // continuação do nome (curtas, em caixa alta) na mesma string.
+        const candidatos = [];
+        for (let j = cnpjLineIdx - 1; j >= Math.max(0, cnpjLineIdx - 3); j--) {
+          const ln = lines[j];
+          if (!ln) continue;
+          if (_HEADER_KW.test(ln)) continue;
+          if (MAQUININHA_BRANDS.some(([, re]) => re.test(ln))) continue;
+          if (/^\d/.test(ln)) continue;
+          if (ln.length < 2) continue;
+          candidatos.unshift(ln);
+        }
+        if (candidatos.length) {
+          // Junta as linhas vizinhas. Linhas curtas (1-2 chars) costumam
+          // ser continuação ("CENTRO EDUCACIONAL" + "E" -> mesma razão)
+          const loja = candidatos.join(' ').replace(/\s{2,}/g, ' ').trim();
+          const isBrand = MAQUININHA_BRANDS.some(([, re]) => re.test(loja));
+          if (!isBrand && loja.length >= 3) {
+            result.nomeDepositante = toTitleCase(loja);
+          }
+        }
+      }
+    }
+    // Fallback: regex original (texto + CNPJ na mesma linha) — útil pra
+    // cupons que têm "EMPRESA LTDA CNPJ:..." em uma linha só.
+    if (!result.nomeDepositante) {
+      const lojaLineMatch = full.match(
+        /([A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 &.,'"|-]{2,50})\s+(?:CNPJ|CNPI|CNPE)\s*[:.]?\s*\d/i
+      );
+      if (lojaLineMatch && lojaLineMatch[1]) {
+        const loja = lojaLineMatch[1].trim().replace(/^[\s|;"'(]+|[\s|;"')=]+$/g, '');
+        const isBrand = MAQUININHA_BRANDS.some(([, re]) => re.test(loja));
+        const isHeader = _HEADER_KW.test(loja);
+        if (!isBrand && !isHeader && loja.length >= 3) {
+          result.nomeDepositante = toTitleCase(loja);
+        }
+      }
     }
 
     const brandEntry = MAQUININHA_BRANDS.find(([, re]) => re.test(full));
@@ -537,14 +591,25 @@ class OCREntradas {
       ) ||
       full.match(new RegExp(`recebedor\\s*[:\\-]\\s*${NOME_PAT_LOOSE}`, 'i')) ||
       full.match(new RegExp(`recebido\\s+por\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
-      full.match(new RegExp(`cr[eé]dito\\s+a\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      // "Crédito a [Nome]" do BB. PRECISA de dois-pontos ou nome composto
+      // pra evitar capturar "CREDITO A VISTA" / "CREDITO A PRAZO" (forma
+      // de pagamento em cupom de cartão) como nome do recebedor.
+      // Exige rótulo explícito (`:` ou `-`) OU nome com 2+ palavras
+      // (que não inclui as palavras-reservadas vista/prazo).
+      full.match(
+        new RegExp(
+          `cr[eé]dito\\s+a\\s*[:\\-]\\s*${NOME_PAT_LOOSE}|cr[eé]dito\\s+a\\s+(?!vista\\b|prazo\\b)((?:[A-ZÁÉÍÓÚÀÂÊÔÃÕÜÇ][A-Za-záéíóúàâêôãõüç]* ){2,8}[A-ZÁÉÍÓÚÀÂÊÔÃÕÜÇ][A-Za-záéíóúàâêôãõüç]*)`,
+          'i'
+        )
+      ) ||
       full.match(
         new RegExp(`conta\\s+destino[\\s\\S]{0,200}?(?:nome\\s*[:\\-]?\\s*)?${NOME_PAT_LOOSE}`, 'i')
       ) ||
       // BB usa "Recebedor\nNome" sem dois-pontos nem rótulo "Nome:"
       full.match(new RegExp(`recebedor\\s*\\n+\\s*${NOME_PAT_LOOSE}`, 'i'));
-    if (blocoRecebeu && blocoRecebeu[1]) {
-      result.nomeRecebedor = toTitleCase(blocoRecebeu[1].trim().replace(/\s{2,}/g, ' '));
+    if (blocoRecebeu && (blocoRecebeu[1] || blocoRecebeu[2])) {
+      const nomeRaw = blocoRecebeu[1] || blocoRecebeu[2];
+      result.nomeRecebedor = toTitleCase(nomeRaw.trim().replace(/\s{2,}/g, ' '));
     }
 
     const instRecebeuMatch =
@@ -599,32 +664,84 @@ class OCREntradas {
         ['ABC Brasil', /abc\s+brasil/i],
         ['Banco24Horas', /banco24horas|banco\s+24\s+horas/i],
       ];
-      // Atribui na ORDEM DE APARIÇÃO no texto (não na ordem do array).
-      // Comprovantes como Mercado Pago só têm "De / Para" — sem rótulos
-      // "Quem pagou / Instituição" — então o banco do pagador é o que
-      // aparece primeiro e o do recebedor é o que aparece depois.
+      // Acha todas as ocorrências de banco no texto
       const found = [];
       for (const [nome, re] of bancos) {
         const m = full.match(re);
         if (m) found.push({ nome, pos: m.index });
       }
       found.sort((a, b) => a.pos - b.pos);
-      const ordemAparicao = [];
-      const seen = new Set();
-      for (const f of found) {
-        if (!seen.has(f.nome)) {
-          seen.add(f.nome);
-          ordemAparicao.push(f.nome);
+
+      // ── ESTRATÉGIA 1: PROXIMIDADE AOS RÓTULOS ────────────────────────
+      // Comprovantes do app do RECEBEDOR (ex: Inter recebendo) listam
+      // o banco DELE primeiro (no topo) e o do pagador depois.
+      // A regra antiga "primeiro banco = pagador" invertia esses casos
+      // (bug reportado em prod 2026-05-14). Solução: pra cada banco
+      // encontrado, olhar QUAL rótulo (pagador/recebedor) está mais
+      // próximo ANTES dele e classificar baseado nisso.
+      //
+      // Rótulos restritivos (evita falsos positivos com palavras comuns
+      // como "de" e "para" sem contexto financeiro).
+      const ROT_PAG =
+        /(?:pagador|origem|remetente|debitado|quem\s+pagou|pago\s+por|enviado\s+por|conta\s+(?:de\s+)?origem|^\s*de\s*[:\-]|\bde\s*[:\-])/gim;
+      const ROT_REC =
+        /(?:favorecido|benefici[áa]rio|destinat[áa]rio|recebedor|recebido\s+por|cr[eé]dito\s+a|conta\s+destino|quem\s+recebeu|^\s*para\s*[:\-]|\bpara\s*[:\-])/gim;
+
+      const ocPag = [...full.matchAll(ROT_PAG)].map((m) => m.index);
+      const ocRec = [...full.matchAll(ROT_REC)].map((m) => m.index);
+
+      const _maisProximoAntes = (occurrences, bankPos) => {
+        let best = null;
+        for (const idx of occurrences) {
+          const dist = bankPos - idx;
+          if (dist >= 0 && dist <= 300 && (best === null || dist < best)) {
+            best = dist;
+          }
         }
+        return best;
+      };
+
+      const classificados = found.map((b) => {
+        const dPag = _maisProximoAntes(ocPag, b.pos);
+        const dRec = _maisProximoAntes(ocRec, b.pos);
+        let tipo = null;
+        if (dPag !== null && (dRec === null || dPag < dRec)) tipo = 'pag';
+        else if (dRec !== null && (dPag === null || dRec < dPag)) tipo = 'rec';
+        return { ...b, tipo };
+      });
+
+      const primeiroPag = classificados.find((b) => b.tipo === 'pag');
+      const primeiroRec = classificados.find((b) => b.tipo === 'rec' && (!primeiroPag || b.nome !== primeiroPag.nome));
+
+      if (!result.bancoDepositante && primeiroPag) {
+        result.bancoDepositante = primeiroPag.nome;
       }
-      if (!result.bancoDepositante && ordemAparicao[0]) {
-        result.bancoDepositante = ordemAparicao[0];
+      if (!result.bancoRecebedor && primeiroRec) {
+        result.bancoRecebedor = primeiroRec.nome;
       }
-      if (!result.bancoRecebedor) {
-        for (const nome of ordemAparicao) {
-          if (nome !== result.bancoDepositante) {
-            result.bancoRecebedor = nome;
-            break;
+
+      // ── ESTRATÉGIA 2: ORDEM DE APARIÇÃO (fallback) ──────────────────
+      // Pros comprovantes sem rótulos explícitos (ex: Mercado Pago só
+      // tem "De / Para" sem dois-pontos, ou layout livre): mantém o
+      // comportamento histórico — primeiro banco do texto vira pagador.
+      if (!result.bancoDepositante || !result.bancoRecebedor) {
+        const ordemAparicao = [];
+        const seen = new Set();
+        for (const f of found) {
+          if (!seen.has(f.nome)) {
+            seen.add(f.nome);
+            ordemAparicao.push(f.nome);
+          }
+        }
+        if (!result.bancoDepositante && ordemAparicao[0]) {
+          result.bancoDepositante = ordemAparicao[0];
+        }
+        if (!result.bancoRecebedor) {
+          for (const nome of ordemAparicao) {
+            if (nome !== result.bancoDepositante) {
+              result.bancoRecebedor = nome;
+              break;
+            }
           }
         }
       }

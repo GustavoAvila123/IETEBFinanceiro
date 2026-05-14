@@ -2715,6 +2715,37 @@ body.modal-open {
   word-break: break-word;
 }
 
+/* Destaca campos que o OCR não conseguiu ler (valor "—"). Indicação
+   visual sutil pro usuário identificar de cara o que precisa
+   preencher manualmente após confirmar o modal. */
+.ocr-row--missing .ocr-row-value {
+  color: var(--gray-500, #888);
+  font-style: italic;
+}
+.ocr-row--missing .ocr-row-label {
+  opacity: 0.7;
+}
+
+/* Aviso amigável no rodapé do modal OCR quando há campos vazios.
+   Usa cor de alerta sem ser alarmante — o fluxo continua normal,
+   só explica que o usuário precisará preencher esses campos no
+   formulário após confirmar. */
+.ocr-row--info {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(212, 175, 55, 0.1);
+  border-left: 3px solid var(--gold, #d4af37);
+  border-radius: 4px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+.ocr-row-info {
+  color: var(--text-strong, #e7eaf3);
+}
+.ocr-row-info b {
+  color: var(--gold, #d4af37);
+}
+
 .modal-footer {
   display: flex;
   gap: 10px;

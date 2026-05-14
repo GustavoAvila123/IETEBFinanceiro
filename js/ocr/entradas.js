@@ -315,12 +315,34 @@ class OCREntradas {
     document.getElementById('ocrSummary').innerHTML = camposVisiveis
       .map(
         (k) =>
-          `<div class="ocr-row">
+          `<div class="ocr-row${!extracted[k] ? ' ocr-row--missing' : ''}">
         <span class="ocr-row-label">${labels[k]}</span>
         <span class="ocr-row-value">${escHtml(extracted[k] || '—')}</span>
       </div>`
       )
       .join('');
+
+    // Se algum campo crítico ficou em branco, adiciona aviso amigável
+    // explicando que o usuário pode preencher manualmente no formulário.
+    // Caso clássico: cupom Cielo com cabeçalho borrado onde o Tesseract
+    // não consegue ler "09/05/26 • 11:20".
+    const camposCriticos = isCredito
+      ? ['data', 'hora', 'valor']
+      : ['data', 'valor', 'nomeDepositante'];
+    const faltando = camposCriticos.filter((k) => !extracted[k]);
+    const avisoEl = document.getElementById('ocrSummary');
+    if (faltando.length && avisoEl) {
+      const nomes = faltando.map((k) => labels[k]).join(', ');
+      avisoEl.insertAdjacentHTML(
+        'beforeend',
+        `<div class="ocr-row ocr-row--info">
+          <span class="ocr-row-info">
+            ⚠ Não foi possível ler <b>${escHtml(nomes)}</b> deste documento.
+            Você poderá preencher manualmente no formulário após confirmar.
+          </span>
+        </div>`
+      );
+    }
 
     this.modal.open('ocrModal');
   }

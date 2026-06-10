@@ -383,6 +383,62 @@ class RelatorioPage {
     return this._exportarPdfDesktop();
   }
 
+  // Monta o HTML do relatório de impressão (desktop). Puro: não toca DOM
+  // nem globals de dados — recebe os itens já filtrados e a data formatada.
+  // Inclui a linha de TOTAL (soma de Entradas ou Saídas) no rodapé da
+  // tabela, visível tanto no modo retrato quanto paisagem.
+  _buildPrintHTML(items, isSaidas, agora) {
+    const titulo = isSaidas ? 'Relatório de Saídas' : 'Relatório de Lançamentos';
+    let cabecalho, linhas;
+
+    if (isSaidas) {
+      cabecalho = `<th>Data</th><th>Hora</th><th>Categoria</th><th>Fornecedor</th><th>Pagamento</th><th class="print-col-valor">Valor</th>`;
+      linhas = items
+        .map((item) => {
+          const data = item.data ? item.data.split('-').reverse().join('/') : '—';
+          return `<tr><td>${data}</td><td>${item.hora || '—'}</td>
+          <td>${escHtml(item.categoria || '—')}</td><td>${escHtml(item.fornecedor || '—')}</td>
+          <td>${escHtml(item.formaPagamento || '—')}</td><td class="print-col-valor">R$ ${escHtml(item.valor || '0,00')}</td></tr>`;
+        })
+        .join('');
+    } else {
+      cabecalho = `<th>Data</th><th>Hora</th><th>Aluno</th><th>Curso</th><th>Igreja</th>
+        <th>Pagamento</th><th>Depositante</th><th>Banco Dep.</th><th>Banco Rec.</th><th class="print-col-valor">Valor</th>`;
+      linhas = items
+        .map((item) => {
+          const data = item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '—';
+          return `<tr><td>${data}</td><td>${item.horaDeposito || '—'}</td>
+          <td>${escHtml(item.nomeAluno || '—')}</td><td>${escHtml(item.curso || '—')}</td>
+          <td>${escHtml(item.igreja || '—')}</td><td>${escHtml(item.formaPagamento || '—')}</td>
+          <td>${escHtml(item.nomeDepositante || '—')}</td><td>${escHtml(item.bancoDepositante || '—')}</td>
+          <td>${escHtml(item.bancoRecebedor || '—')}</td><td class="print-col-valor">R$ ${escHtml(item.valor || '0,00')}</td></tr>`;
+        })
+        .join('');
+    }
+
+    // Linha de total — soma dos valores filtrados. colspan deixa o rótulo
+    // alinhado à direita logo antes da coluna Valor.
+    const totalLabel = isSaidas ? 'Total de Saídas' : 'Total de Entradas';
+    const totalColspan = isSaidas ? 5 : 9;
+    const totalValor = somarValores(items);
+    const rodapeTotal = `<tfoot><tr class="print-total-row">
+        <td colspan="${totalColspan}" class="print-total-label">${totalLabel}</td>
+        <td class="print-col-valor">R$ ${escHtml(formatBRL(totalValor))}</td>
+      </tr></tfoot>`;
+
+    return `
+      <div class="print-header">
+        <h1>IETEB — ${titulo}</h1>
+        <p>Gerado em: ${agora} &nbsp;|&nbsp; Total: ${items.length} registro(s)</p>
+      </div>
+      <table class="print-table">
+        <thead><tr>${cabecalho}</tr></thead>
+        <tbody>${linhas}</tbody>
+        ${rodapeTotal}
+      </table>
+      <div class="print-footer">IETEB — Centro Educacional Teológico</div>`;
+  }
+
   _exportarPdfDesktop() {
     if (window.showProcess)
       {window.showProcess('Preparando PDF...', 'Organizando os dados do relatório.');}
@@ -394,44 +450,12 @@ class RelatorioPage {
 
     const agora = new Date().toLocaleString('pt-BR');
     const isSaidas = this.tipo === 'saidas';
-    const titulo = isSaidas ? 'Relatório de Saídas' : 'Relatório de Lançamentos';
-    let cabecalho, linhas;
 
-    if (isSaidas) {
-      cabecalho = `<th>Data</th><th>Hora</th><th>Categoria</th><th>Fornecedor</th><th>Pagamento</th><th>Valor</th>`;
-      linhas = this.filteredData
-        .map((item) => {
-          const data = item.data ? item.data.split('-').reverse().join('/') : '—';
-          return `<tr><td>${data}</td><td>${item.hora || '—'}</td>
-          <td>${escHtml(item.categoria || '—')}</td><td>${escHtml(item.fornecedor || '—')}</td>
-          <td>${escHtml(item.formaPagamento || '—')}</td><td>R$ ${escHtml(item.valor || '0,00')}</td></tr>`;
-        })
-        .join('');
-    } else {
-      cabecalho = `<th>Data</th><th>Hora</th><th>Aluno</th><th>Curso</th><th>Igreja</th>
-        <th>Pagamento</th><th>Depositante</th><th>Banco Dep.</th><th>Banco Rec.</th><th>Valor</th>`;
-      linhas = this.filteredData
-        .map((item) => {
-          const data = item.dataDeposito ? item.dataDeposito.split('-').reverse().join('/') : '—';
-          return `<tr><td>${data}</td><td>${item.horaDeposito || '—'}</td>
-          <td>${escHtml(item.nomeAluno || '—')}</td><td>${escHtml(item.curso || '—')}</td>
-          <td>${escHtml(item.igreja || '—')}</td><td>${escHtml(item.formaPagamento || '—')}</td>
-          <td>${escHtml(item.nomeDepositante || '—')}</td><td>${escHtml(item.bancoDepositante || '—')}</td>
-          <td>${escHtml(item.bancoRecebedor || '—')}</td><td>R$ ${escHtml(item.valor || '0,00')}</td></tr>`;
-        })
-        .join('');
-    }
-
-    document.getElementById('printArea').innerHTML = `
-      <div class="print-header">
-        <h1>IETEB — ${titulo}</h1>
-        <p>Gerado em: ${agora} &nbsp;|&nbsp; Total: ${this.filteredData.length} registro(s)</p>
-      </div>
-      <table class="print-table">
-        <thead><tr>${cabecalho}</tr></thead>
-        <tbody>${linhas}</tbody>
-      </table>
-      <div class="print-footer">IETEB — Centro Educacional Teológico</div>`;
+    document.getElementById('printArea').innerHTML = this._buildPrintHTML(
+      this.filteredData,
+      isSaidas,
+      agora
+    );
 
     const reabilitar = () => {
       btns.forEach((b) => {
@@ -581,10 +605,26 @@ class RelatorioPage {
             9: { cellWidth: 60, halign: 'right' }, // Valor
           };
 
+      // Rodapé com o TOTAL (soma de Entradas/Saídas). A coluna Valor pode
+      // NÃO ser a última (em saídas mobile vem "Obs." depois), então
+      // posicionamos o valor no índice certo e preenchemos o resto.
+      const totalLabel = isSaidas ? 'Total de Saídas' : 'Total de Entradas';
+      const valorColIdx = isSaidas ? 5 : 9; // índice da coluna Valor no head mobile
+      const totalCols = head[0].length;
+      const totalValor = somarValores(this.filteredData);
+      const footRow = [
+        { content: totalLabel, colSpan: valorColIdx, styles: { halign: 'right' } },
+        { content: `R$ ${formatBRL(totalValor)}`, styles: { halign: 'right' } },
+      ];
+      // Colunas que sobram depois de Valor (ex.: "Obs." em saídas) ficam vazias.
+      for (let c = valorColIdx + 1; c < totalCols; c++) footRow.push({ content: '' });
+      const foot = [footRow];
+
       // Tabela
       doc.autoTable({
         head,
         body,
+        foot,
         startY: 64,
         theme: 'grid',
         styles: {
@@ -603,6 +643,12 @@ class RelatorioPage {
           halign: 'center',
         },
         bodyStyles: { textColor: [33, 33, 33] },
+        footStyles: {
+          fillColor: [240, 242, 248],
+          textColor: [11, 31, 92],
+          fontStyle: 'bold',
+          fontSize: 8,
+        },
         alternateRowStyles: { fillColor: [248, 250, 252] },
         columnStyles,
         margin: { top: 64, left: 24, right: 24, bottom: 30 },

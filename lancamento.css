@@ -2803,11 +2803,58 @@ body.modal-open {
   .print-table tbody tr:nth-child(even) td {
     background: #f9f9f9;
   }
+  /* Coluna Valor alinhada à direita (números) */
+  .print-table .print-col-valor {
+    text-align: right;
+    white-space: nowrap;
+  }
+  /* Linha de TOTAL (soma de entradas/saídas) no rodapé da tabela */
+  .print-table tfoot .print-total-row td {
+    border-top: 2px solid #0b1f5c;
+    border-bottom: none;
+    background: #f0f2f8 !important;
+    font-weight: 700;
+    color: #0b1f5c;
+    padding: 9px 10px;
+    font-size: 0.82rem;
+  }
+  .print-table tfoot .print-total-label {
+    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
   .print-footer {
     margin-top: 18px;
     font-size: 0.72rem;
     color: #888;
     text-align: right;
+  }
+
+  /* ── RETRATO: encolhe pra caber TODAS as colunas numa folha A4 ──
+     Em paisagem a tabela cabe folgada (font 0.76rem). Em retrato a
+     largura é bem menor e, sem isso, as últimas colunas (Valor) eram
+     CORTADAS. table-layout fixed + quebra de palavra força tudo a caber
+     dentro da largura da página, distribuindo as colunas e quebrando
+     textos longos (nome de aluno/igreja) em mais linhas em vez de vazar. */
+  @media (orientation: portrait) {
+    .print-table {
+      table-layout: fixed;
+      font-size: 0.6rem;
+    }
+    .print-table th {
+      padding: 5px 4px;
+      font-size: 0.54rem;
+      letter-spacing: 0.02em;
+    }
+    .print-table td {
+      padding: 4px 4px;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .print-table tfoot .print-total-row td {
+      padding: 6px 4px;
+      font-size: 0.66rem;
+    }
   }
 }
 

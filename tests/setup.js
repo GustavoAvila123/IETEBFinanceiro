@@ -58,6 +58,7 @@ export function loadProjectGlobals(relativePaths) {
     try { globalThis.diasDoMes      = typeof diasDoMes      !== 'undefined' ? diasDoMes      : globalThis.diasDoMes;      } catch(_){}
     try { globalThis.inicioFimDoMes = typeof inicioFimDoMes !== 'undefined' ? inicioFimDoMes : globalThis.inicioFimDoMes; } catch(_){}
     try { globalThis.badgePagamento = typeof badgePagamento !== 'undefined' ? badgePagamento : globalThis.badgePagamento; } catch(_){}
+    try { globalThis.RelatorioPage  = typeof RelatorioPage  !== 'undefined' ? RelatorioPage  : globalThis.RelatorioPage;  } catch(_){}
     try { globalThis.getCurrentUser = typeof getCurrentUser !== 'undefined' ? getCurrentUser : globalThis.getCurrentUser; } catch(_){}
     try { globalThis.getEntradasData = typeof getEntradasData !== 'undefined' ? getEntradasData : globalThis.getEntradasData; } catch(_){}
     try { globalThis.getSaidasData   = typeof getSaidasData   !== 'undefined' ? getSaidasData   : globalThis.getSaidasData;   } catch(_){}

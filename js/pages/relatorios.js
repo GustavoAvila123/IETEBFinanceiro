@@ -417,14 +417,16 @@ class RelatorioPage {
     }
 
     // Linha de total — soma dos valores filtrados. colspan deixa o rótulo
-    // alinhado à direita logo antes da coluna Valor.
+    // alinhado à direita logo antes da coluna Valor. Vai como ÚLTIMA linha
+    // do tbody (não em <tfoot>) pra aparecer UMA vez no fim do relatório;
+    // tfoot seria repetido no rodapé de cada página impressa.
     const totalLabel = isSaidas ? 'Total de Saídas' : 'Total de Entradas';
     const totalColspan = isSaidas ? 5 : 9;
     const totalValor = somarValores(items);
-    const rodapeTotal = `<tfoot><tr class="print-total-row">
+    const linhaTotal = `<tr class="print-total-row">
         <td colspan="${totalColspan}" class="print-total-label">${totalLabel}</td>
         <td class="print-col-valor">R$ ${escHtml(formatBRL(totalValor))}</td>
-      </tr></tfoot>`;
+      </tr>`;
 
     return `
       <div class="print-header">
@@ -433,8 +435,7 @@ class RelatorioPage {
       </div>
       <table class="print-table">
         <thead><tr>${cabecalho}</tr></thead>
-        <tbody>${linhas}</tbody>
-        ${rodapeTotal}
+        <tbody>${linhas}${linhaTotal}</tbody>
       </table>
       <div class="print-footer">IETEB — Centro Educacional Teológico</div>`;
   }

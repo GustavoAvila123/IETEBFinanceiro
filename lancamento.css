@@ -2808,8 +2808,8 @@ body.modal-open {
     text-align: right;
     white-space: nowrap;
   }
-  /* Linha de TOTAL (soma de entradas/saídas) no rodapé da tabela */
-  .print-table tfoot .print-total-row td {
+  /* Linha de TOTAL (soma de entradas/saídas) — última linha do tbody */
+  .print-table .print-total-row td {
     border-top: 2px solid #0b1f5c;
     border-bottom: none;
     background: #f0f2f8 !important;
@@ -2818,7 +2818,7 @@ body.modal-open {
     padding: 9px 10px;
     font-size: 0.82rem;
   }
-  .print-table tfoot .print-total-label {
+  .print-table .print-total-label {
     text-align: right;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -2851,7 +2851,7 @@ body.modal-open {
       word-break: break-word;
       overflow-wrap: anywhere;
     }
-    .print-table tfoot .print-total-row td {
+    .print-table .print-total-row td {
       padding: 6px 4px;
       font-size: 0.66rem;
     }
@@ -7033,6 +7033,29 @@ textarea:focus-visible {
 
   body {
     background: #fff !important;
+  }
+
+  /* CRÍTICO: a exportação de PDF abre o modal "Preparando..." ANTES de
+     window.print(), e modal.open() coloca body.modal-open (position:fixed
+     + overflow:hidden) pra travar o scroll. Sem resetar isso na impressão,
+     o body fica preso à altura da viewport e o relatório era CORTADO em
+     1 página — linhas além da primeira e o TOTAL (no fim) sumiam. */
+  body.modal-open {
+    position: static !important;
+    overflow: visible !important;
+    top: auto !important;
+    width: auto !important;
+    touch-action: auto !important;
+  }
+
+  /* Repete o cabeçalho das colunas em cada página e evita cortar uma
+     linha no meio entre páginas. */
+  .print-table thead {
+    display: table-header-group;
+  }
+  .print-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
 

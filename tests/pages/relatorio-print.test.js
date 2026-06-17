@@ -134,6 +134,22 @@ describe('relatório de impressão — linha de TOTAL', () => {
     expect(ent).toContain('colspan="9"');
     expect(sai).toContain('colspan="5"');
   });
+
+  // Regressão do bug PROD (2026-06-17): a impressão era cortada em 1 página
+  // e o total (no fim) sumia. Parte da correção foi tirar a linha do <tfoot>
+  // (que repetiria no rodapé de CADA página) e colocá-la como ÚLTIMA linha
+  // do <tbody> (aparece UMA vez, no fim do relatório).
+  it('total fica DENTRO do tbody (não em tfoot) e como última linha', () => {
+    const html = makePage()._buildPrintHTML(ENTRADAS, false, 'x');
+    expect(html).not.toContain('<tfoot');
+    // A linha de total vem depois da última linha de dados e antes de </tbody>
+    const idxTotal = html.indexOf('print-total-row');
+    const idxCloseTbody = html.indexOf('</tbody>');
+    expect(idxTotal).toBeGreaterThan(-1);
+    expect(idxTotal).toBeLessThan(idxCloseTbody);
+    // Aparece só uma vez
+    expect(html.split('print-total-row').length - 1).toBe(1);
+  });
 });
 
 describe('relatório de impressão — XSS', () => {

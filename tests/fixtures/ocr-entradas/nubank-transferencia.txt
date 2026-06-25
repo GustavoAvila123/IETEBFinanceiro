@@ -1,34 +1,34 @@
-nu
+NU
+o
 Comprovante de
 transferência
-15 JUN 2026 - 19:34:02
-
+15JUN 2026 - 19:34:02
 Valor R$ 240,00
 Tipo de transferência Pix
-ID da transação E182361202026061
-52234s14e39e1e3f
-
+= E182361202026061
+ID da transação 52234s14e39e1e3f
 Destino
-Nome Centro Educacional e Teologico Ieteb
+Nome Centro Educacional e Teologico
+Ieteb
 CNPJ 04280682000194
-Instituição BCO BRADESCO S.A.
+Instituição BCO BRADESCO S.A
 Agência 2963
 Conta 10131-1
 Tipo de conta Conta
-
 Origem
 Nome Flávia Silva Alves de Barros
 Instituição NU PAGAMENTOS - IP
 Agência 0001
 Conta 43718913-6
-CPF ...372.708...
-
-Nu Pagamentos S.A. - Instituição de Pagamento
+CPF ....372.708--
+Nu Pagamentos S.A. - Instituição de
+Pagamento
 CNPJ 18.236.120/0001-58
 ID da transação:
 E18236120202606152234s14e39e1e3f
-Estamos aqui para ajudar se você tiver alguma dúvida.
+Fstamos aqui para ajudar se você tiver alguma
+dúvida
 Me ajuda >
 Ouvidoria: 0800 887 0463 ou demais canais em
-nubank.com.br/contatos#ouvidoria (Atendimento
+nubank.com.br/contatosttouvidoria (Atendimento
 das 8h às 18h em dias úteis).

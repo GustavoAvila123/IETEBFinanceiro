@@ -514,11 +514,13 @@ class OCREntradas {
       dezembro: '12',
       dez: '12',
     };
-    // Separador entre dia/mês/ano aceita "/" "-" " de " OU espaço simples.
-    // O espaço cobre o Nubank "Comprovante de transferência" cujo cabeçalho
-    // é "15 JUN 2026 - 19:34:02" (dia MÊS ano só com espaços).
+    // Separador entre dia/mês/ano é OPCIONAL: aceita "/" "-" "de", espaço
+    // ou NADA. O "nada" cobre o Nubank "Comprovante de transferência", cujo
+    // OCR gruda o dia no mês: "15JUN 2026 - 19:34:02" (sem espaço entre
+    // "15" e "JUN"). O nome do mês é âncora forte, então separador
+    // zero-largura não gera falso positivo.
     const dataNomeMes = full.match(
-      /\b(\d{1,2})(?:\s*[\/\-]\s*|\s+de\s+|\s+)(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)(?:\s*[\/\-]\s*|\s+de\s+|\s+)(\d{4})\b/i
+      /\b(\d{1,2})\s*(?:[\/\-]|\bde\b)?\s*(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s*(?:[\/\-]|\bde\b)?\s*(\d{4})\b/i
     );
     if (dataNomeMes) {
       const dia = String(dataNomeMes[1]).padStart(2, '0');

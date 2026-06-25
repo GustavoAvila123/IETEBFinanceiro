@@ -42,13 +42,14 @@ describe('OCR Entradas — fixtures de bancos', () => {
   });
 
   // Comprovante real reportado em prod 2026-06-25: Nubank "Comprovante de
-  // transferência". Duas falhas: (1) data "15 JUN 2026" (dia MÊS ano só com
-  // espaços) não era lida; (2) recebedor sob o rótulo "Destino" (não
-  // "Destinatário"/"Favorecido"/"Para") ficava vazio.
-  it('Nubank Comprovante de transferência (data "15 JUN 2026" + rótulo "Destino")', () => {
+  // transferência". Duas falhas: (1) data "15JUN 2026" — o OCR grudou o dia
+  // no mês (sem espaço), e o regex exigia separador; (2) recebedor sob o
+  // rótulo "Destino" (não "Destinatário"/"Favorecido"/"Para") ficava vazio.
+  // Fixture é o dump OCR REAL (window.__ietebOcrEntradasText).
+  it('Nubank Comprovante de transferência (data "15JUN 2026" colada + rótulo "Destino")', () => {
     const r = extract(fix('nubank-transferencia.txt'));
     expect(r.valor).toBe('R$ 240,00');
-    expect(r.data).toBe('2026-06-15'); // "15 JUN 2026" separado por espaços
+    expect(r.data).toBe('2026-06-15'); // "15JUN 2026" — dia colado no mês
     expect(r.hora).toBe('19:34');
     expect(r.formaPagamento).toBe('Pix');
     // "Destino" → nomeRecebedor = Centro Educacional e Teologico Ieteb

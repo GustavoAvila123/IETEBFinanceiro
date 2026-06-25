@@ -41,6 +41,22 @@ describe('OCR Entradas — fixtures de bancos', () => {
     expect(r.nomeRecebedor).toMatch(/Igreja Batista/i);
   });
 
+  // Comprovante real reportado em prod 2026-06-25: Nubank "Comprovante de
+  // transferência". Duas falhas: (1) data "15 JUN 2026" (dia MÊS ano só com
+  // espaços) não era lida; (2) recebedor sob o rótulo "Destino" (não
+  // "Destinatário"/"Favorecido"/"Para") ficava vazio.
+  it('Nubank Comprovante de transferência (data "15 JUN 2026" + rótulo "Destino")', () => {
+    const r = extract(fix('nubank-transferencia.txt'));
+    expect(r.valor).toBe('R$ 240,00');
+    expect(r.data).toBe('2026-06-15'); // "15 JUN 2026" separado por espaços
+    expect(r.hora).toBe('19:34');
+    expect(r.formaPagamento).toBe('Pix');
+    // "Destino" → nomeRecebedor = Centro Educacional e Teologico Ieteb
+    expect(r.nomeRecebedor).toMatch(/Centro Educacional/i);
+    // "Origem" → depositante = Flávia
+    expect(r.nomeDepositante).toMatch(/Flávia/i);
+  });
+
   it('Itaú PIX (com Itaú Unibanco)', () => {
     const r = extract(fix('itau-pix.txt'));
     expect(r.valor).toBe('R$ 480,50');

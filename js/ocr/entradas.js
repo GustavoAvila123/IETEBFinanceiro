@@ -514,8 +514,11 @@ class OCREntradas {
       dezembro: '12',
       dez: '12',
     };
+    // Separador entre dia/mês/ano aceita "/" "-" " de " OU espaço simples.
+    // O espaço cobre o Nubank "Comprovante de transferência" cujo cabeçalho
+    // é "15 JUN 2026 - 19:34:02" (dia MÊS ano só com espaços).
     const dataNomeMes = full.match(
-      /\b(\d{1,2})\s*(?:[\/\-]|\sde\s)\s*(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\s*(?:[\/\-]|\sde\s)\s*(\d{4})\b/i
+      /\b(\d{1,2})(?:\s*[\/\-]\s*|\s+de\s+|\s+)(janeiro|fevereiro|mar[çc]o|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)(?:\s*[\/\-]\s*|\s+de\s+|\s+)(\d{4})\b/i
     );
     if (dataNomeMes) {
       const dia = String(dataNomeMes[1]).padStart(2, '0');
@@ -909,7 +912,11 @@ class OCREntradas {
         new RegExp(`conta\\s+destino[\\s\\S]{0,200}?(?:nome\\s*[:\\-]?\\s*)?${NOME_PAT_LOOSE}`, 'i')
       ) ||
       // BB usa "Recebedor\nNome" sem dois-pontos nem rótulo "Nome:"
-      full.match(new RegExp(`recebedor\\s*\\n+\\s*${NOME_PAT_LOOSE}`, 'i'));
+      full.match(new RegExp(`recebedor\\s*\\n+\\s*${NOME_PAT_LOOSE}`, 'i')) ||
+      // Nubank "Comprovante de transferência": bloco "Destino" seguido de
+      // "Nome <razão social>". Última prioridade — só dispara se nenhum
+      // rótulo acima casou (não colide com "Destinatário"/"Conta destino").
+      full.match(new RegExp(`\\bdestino\\b[\\s\\S]{0,150}?nome\\s*[:\\-]?\\s*${NOME_PAT_LOOSE}`, 'i'));
     if (blocoRecebeu && (blocoRecebeu[1] || blocoRecebeu[2])) {
       const nomeRaw = blocoRecebeu[1] || blocoRecebeu[2];
       result.nomeRecebedor = toTitleCase(nomeRaw.trim().replace(/\s{2,}/g, ' '));

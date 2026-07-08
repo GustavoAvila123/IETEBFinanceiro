@@ -253,7 +253,10 @@ test.describe('Regressão #7 — PickList unifica todos os <select> data-picklis
       return out;
     });
 
-    expect(result.total).toBeGreaterThanOrEqual(6); // 6 selects esperados
+    // 5 selects data-picklist esperados. Era 6 até 2026-07-08, quando o
+    // filtro de Pagamento (relatórios) virou multi-seleção (checkboxes) e
+    // deixou de ser um <select data-picklist>.
+    expect(result.total).toBeGreaterThanOrEqual(5);
     expect(result.missing).toEqual([]);
     expect(result.ok).toBe(result.total);
   });
@@ -409,6 +412,70 @@ test.describe('Regressão #11 — Relatórios tem botões Filtrar e Limpar filtr
     expect(await limpar.count()).toBe(1);
     const onclick = await limpar.getAttribute('onclick');
     expect(onclick).toContain('limparFiltros');
+  });
+});
+
+test.describe('Regressão #27 — Filtro de Pagamento (relatórios) é multi-seleção', () => {
+  // 2026-07-08: o filtro de Pagamento virou checkboxes (marca 1+ formas,
+  // ex.: Débito + Crédito). Protege a existência do multi-select, dos 4
+  // checkboxes com os valores canônicos e da fiação de eventos.
+  test('multi-select existe com trigger e 4 checkboxes (Pix/Débito/Crédito/Dinheiro)', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      const el = document.getElementById('pageRelatorios');
+      if (el) el.classList.remove('page-content--hidden');
+    });
+
+    const wrap = page.locator('#filtroPagamentoWrap');
+    expect(await wrap.count()).toBe(1);
+
+    const trigger = page.locator('#filtroPagamentoTrigger');
+    expect(await trigger.count()).toBe(1);
+    expect(await trigger.getAttribute('onclick')).toContain('toggleFiltroPagamento');
+
+    const values = await page.$$eval(
+      '#filtroPagamentoPanel input[type="checkbox"]',
+      (els) => els.map((e) => e.value)
+    );
+    expect(values).toEqual(['Pix', 'Débito', 'Crédito', 'Dinheiro']);
+  });
+
+  test('marcar Débito + Crédito atualiza o rótulo para "2 selecionados"', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForFunction(() => typeof window.onFiltroPagamentoChange === 'function', {
+      timeout: 5000,
+    });
+    await page.evaluate(() => {
+      // Remove o login screen (sem sessão ele cobre a tela e intercepta
+      // cliques — mesmo padrão da Regressão #21).
+      const ls = document.getElementById('loginScreen');
+      if (ls) ls.remove();
+      const el = document.getElementById('pageRelatorios');
+      if (el) el.classList.remove('page-content--hidden');
+      // #reportFilters nasce com display:none (só aparece após escolher o
+      // tipo). Revela pra que o multi-select seja clicável no teste.
+      const rf = document.getElementById('reportFilters');
+      if (rf) rf.style.display = '';
+    });
+
+    const label = page.locator('#filtroPagamentoLabel');
+    expect((await label.innerText()).trim()).toBe('Todos');
+
+    // Abre o painel e clica nas LINHAS (o checkbox nativo é escondido de
+    // propósito; o usuário clica no rótulo). Clicar no <label> alterna o
+    // checkbox e dispara onFiltroPagamentoChange → atualiza o rótulo.
+    await page.click('#filtroPagamentoTrigger');
+    await page.click('#filtroPagamentoPanel label.picklist-check-row:has(input[value="Débito"])');
+    await page.click('#filtroPagamentoPanel label.picklist-check-row:has(input[value="Crédito"])');
+
+    expect((await label.innerText()).trim()).toBe('2 selecionados');
+
+    // Marcar todas volta a "Todos" (todas marcadas = sem filtro)
+    await page.click('#filtroPagamentoPanel label.picklist-check-row:has(input[value="Pix"])');
+    await page.click('#filtroPagamentoPanel label.picklist-check-row:has(input[value="Dinheiro"])');
+    expect((await label.innerText()).trim()).toBe('Todos');
   });
 });
 

@@ -1052,6 +1052,106 @@ html[data-theme='dark'] .theme-icon-moon {
   }
 }
 
+/* ─── PICKLIST MULTI (filtro Pagamento) ───────────────────────────────
+   Reaproveita .picklist / .picklist-trigger / .picklist-panel do PickList
+   pra casar visualmente com o filtro de Curso ao lado, mas cada opção é um
+   checkbox (múltipla seleção: Débito + Crédito, etc.). */
+.picklist--multi {
+  position: relative;
+  width: 100%;
+}
+
+.picklist-check-item {
+  display: block;
+  padding: 0; /* o padding vive no .picklist-check-row (área clicável cheia) */
+  cursor: pointer;
+}
+
+/* hover/focus herdados do .picklist-option seriam com justify-content:
+   space-between; aqui neutralizamos pra o checkbox ocupar a linha toda. */
+.picklist-option.picklist-check-item {
+  display: block;
+}
+
+.picklist-check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.picklist-check-item:hover {
+  background: var(--gold-bg, #fef7e0);
+}
+
+/* Esconde o checkbox nativo, mantendo acessível (foco via teclado). */
+.picklist-check-row input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+}
+
+.picklist-check-box {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 5px;
+  background: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.picklist-check-box svg {
+  width: 12px;
+  height: 12px;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.picklist-check-row input[type='checkbox']:checked + .picklist-check-box {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.picklist-check-row input[type='checkbox']:checked + .picklist-check-box svg {
+  opacity: 1;
+}
+
+.picklist-check-row input[type='checkbox']:focus-visible + .picklist-check-box {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+}
+
+.picklist-check-text {
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.picklist-check-row input[type='checkbox']:checked ~ .picklist-check-text {
+  font-weight: 600;
+  color: var(--text-strong, #1a1a1a);
+}
+
+/* Mobile: touch targets maiores (igual .picklist-option no mobile). */
+@media (max-width: 640px) {
+  .picklist-check-row {
+    padding: 12px 14px;
+  }
+  .picklist-check-text {
+    font-size: 0.92rem;
+  }
+}
+
 /* ─── BUSCA IGREJA ─── */
 .select-search-wrap {
   position: relative;

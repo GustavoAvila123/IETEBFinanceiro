@@ -38,7 +38,7 @@ class RelatorioPage {
     setVal('filtroDataAte', '');
     setVal('filtroAluno', '');
     setVal('filtroCurso', '');
-    setVal('filtroPagamento', '');
+    this._limparPagamento();
     this._toggleClearAluno();
     this.closeAlunoDropdown();
     this.carregar();
@@ -212,21 +212,15 @@ class RelatorioPage {
       const el = document.getElementById(id);
       return el ? el.value : '';
     };
-    const de = dateInputToISO(v('filtroDataDe'));
-    const ate = dateInputToISO(v('filtroDataAte'));
-    const aluno = v('filtroAluno').trim().toLowerCase();
-    const curso = v('filtroCurso');
-    const pagamento = v('filtroPagamento');
     const isSaidas = this.tipo === 'saidas';
 
-    this.filteredData = this.reportData.filter((item) => {
-      const itemDate = isSaidas ? item.data : item.dataDeposito;
-      if (de && itemDate < de) return false;
-      if (ate && itemDate > ate) return false;
-      if (!isSaidas && aluno && !(item.nomeAluno || '').toLowerCase().includes(aluno)) return false;
-      if (!isSaidas && curso && item.curso !== curso) return false;
-      if (pagamento && item.formaPagamento !== pagamento) return false;
-      return true;
+    this.filteredData = this._filtrarEOrdenar(this.reportData, {
+      de: dateInputToISO(v('filtroDataDe')),
+      ate: dateInputToISO(v('filtroDataAte')),
+      aluno: v('filtroAluno').trim().toLowerCase(),
+      curso: v('filtroCurso'),
+      pagamentos: this._pagamentosSelecionados(),
+      isSaidas,
     });
 
     this.currentPage = 1;
@@ -234,6 +228,125 @@ class RelatorioPage {
     this.renderPaginacao();
     document.getElementById('reportCount').textContent =
       `${this.filteredData.length} registro${this.filteredData.length !== 1 ? 's' : ''}`;
+  }
+
+  // Filtro + ordenação PUROS (sem DOM) — testável em Node. `pagamentos` é
+  // um array das formas de pagamento selecionadas ([] = todas / sem filtro).
+  _filtrarEOrdenar(data, criterios) {
+    const { de, ate, aluno, curso, pagamentos, isSaidas } = criterios;
+    const filtrado = (data || []).filter((item) => {
+      const itemDate = isSaidas ? item.data : item.dataDeposito;
+      if (de && itemDate < de) return false;
+      if (ate && itemDate > ate) return false;
+      if (!isSaidas && aluno && !(item.nomeAluno || '').toLowerCase().includes(aluno)) return false;
+      if (!isSaidas && curso && item.curso !== curso) return false;
+      if (pagamentos && pagamentos.length && !pagamentos.includes(item.formaPagamento)) return false;
+      return true;
+    });
+    return this._ordenarPorData(filtrado, isSaidas);
+  }
+
+  // Ordena SEMPRE do menor para o maior dia (data crescente), desempatando
+  // pela hora. Registros sem data vão para o fim. Puro e estável — usado
+  // tanto na tabela quanto na impressão/exportação, pra que tudo saia na
+  // mesma ordem cronológica.
+  _ordenarPorData(items, isSaidas) {
+    const getD = (it) => (isSaidas ? it.data : it.dataDeposito) || '';
+    const getH = (it) => (isSaidas ? it.hora : it.horaDeposito) || '';
+    return (items || []).slice().sort((a, b) => {
+      const da = getD(a);
+      const db = getD(b);
+      if (da !== db) {
+        if (!da) return 1;
+        if (!db) return -1;
+        return da < db ? -1 : 1;
+      }
+      const ha = getH(a);
+      const hb = getH(b);
+      if (ha === hb) return 0;
+      if (!ha) return 1;
+      if (!hb) return -1;
+      return ha < hb ? -1 : 1;
+    });
+  }
+
+  // ── Filtro de Pagamento (múltipla seleção) ─────────────────────────────
+  // Substitui o <select> single por checkboxes: o usuário marca uma ou mais
+  // formas (ex.: Débito + Crédito) e o relatório mostra/soma só essas.
+  // Fonte da verdade = os próprios checkboxes no DOM.
+  _pagamentoChecks() {
+    const panel = document.getElementById('filtroPagamentoPanel');
+    if (!panel) return [];
+    return Array.from(panel.querySelectorAll('input[type="checkbox"]'));
+  }
+
+  // Retorna as formas marcadas. Nenhuma marcada OU todas marcadas = "Todos"
+  // (array vazio → sem filtro por pagamento).
+  _pagamentosSelecionados() {
+    const checks = this._pagamentoChecks();
+    if (!checks.length) return [];
+    const marcados = checks.filter((c) => c.checked).map((c) => c.value);
+    if (marcados.length === 0 || marcados.length === checks.length) return [];
+    return marcados;
+  }
+
+  _updateFiltroPagamentoLabel() {
+    const labelEl = document.getElementById('filtroPagamentoLabel');
+    if (!labelEl) return;
+    const checks = this._pagamentoChecks();
+    const marcados = checks.filter((c) => c.checked);
+    const isTodos = marcados.length === 0 || marcados.length === checks.length;
+    let texto;
+    if (isTodos) {
+      texto = 'Todos';
+    } else if (marcados.length === 1) {
+      const span = marcados[0].closest('.picklist-check-item').querySelector('.picklist-check-text');
+      texto = span ? span.textContent : '1 selecionado';
+    } else {
+      texto = `${marcados.length} selecionados`;
+    }
+    labelEl.textContent = texto;
+    labelEl.classList.toggle('picklist-value--empty', isTodos);
+  }
+
+  onFiltroPagamentoChange() {
+    this._updateFiltroPagamentoLabel();
+    this.aplicarFiltros();
+  }
+
+  toggleFiltroPagamento(ev) {
+    if (ev) ev.stopPropagation();
+    const wrap = document.getElementById('filtroPagamentoWrap');
+    const trigger = document.getElementById('filtroPagamentoTrigger');
+    if (!wrap) return;
+    const aberto = wrap.classList.toggle('picklist--open');
+    if (trigger) trigger.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+  }
+
+  closeFiltroPagamento() {
+    const wrap = document.getElementById('filtroPagamentoWrap');
+    const trigger = document.getElementById('filtroPagamentoTrigger');
+    if (wrap) wrap.classList.remove('picklist--open');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  // Desmarca todas as formas e volta o rótulo pra "Todos". Não chama
+  // aplicarFiltros (quem chama decide) — usado por resetPage e limparFiltros.
+  _limparPagamento() {
+    this._pagamentoChecks().forEach((c) => {
+      c.checked = false;
+    });
+    this._updateFiltroPagamentoLabel();
+    this.closeFiltroPagamento();
+  }
+
+  // Fecha o painel ao clicar fora — chamado uma vez no init (main.js).
+  bindPagamentoOutsideClose() {
+    document.addEventListener('click', (ev) => {
+      const wrap = document.getElementById('filtroPagamentoWrap');
+      if (!wrap) return;
+      if (!wrap.contains(ev.target)) this.closeFiltroPagamento();
+    });
   }
 
   limparFiltros() {
@@ -253,7 +366,7 @@ class RelatorioPage {
     setVal('filtroDataAte', isoToDateInput(ate));
     setVal('filtroAluno', '');
     setVal('filtroCurso', '');
-    setVal('filtroPagamento', '');
+    this._limparPagamento();
     this._toggleClearAluno();
     this.closeAlunoDropdown();
     this.aplicarFiltros();
@@ -389,6 +502,9 @@ class RelatorioPage {
   // tabela, visível tanto no modo retrato quanto paisagem.
   _buildPrintHTML(items, isSaidas, agora) {
     const titulo = isSaidas ? 'Relatório de Saídas' : 'Relatório de Lançamentos';
+    // Garante ordem cronológica (menor → maior dia) na impressão, mesmo se
+    // o chamador passar dados fora de ordem.
+    items = this._ordenarPorData(items, isSaidas);
     let cabecalho, linhas;
 
     if (isSaidas) {

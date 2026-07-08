@@ -47,12 +47,12 @@
       rel="stylesheet"
       referrerpolicy="no-referrer"
     />
-    <link rel="stylesheet" href="lancamento.css?v=20260625b" />
+    <link rel="stylesheet" href="lancamento.css?v=20260708a" />
     <!-- CSS modular extraído (admin pages, onboarding, utils) — carrega
          em paralelo após o principal. Ver MIGRATION.md item #5 do roadmap. -->
-    <link rel="stylesheet" href="css/admin.css?v=20260625b" />
-    <link rel="stylesheet" href="css/onboarding.css?v=20260625b" />
-    <link rel="stylesheet" href="css/utils.css?v=20260625b" />
+    <link rel="stylesheet" href="css/admin.css?v=20260708a" />
+    <link rel="stylesheet" href="css/onboarding.css?v=20260708a" />
+    <link rel="stylesheet" href="css/utils.css?v=20260708a" />
     <!-- Anti-FOUC: aplica o tema ANTES do CSS render. Sem isso, o user
          em dark mode veria flash branco enquanto o JS tradicional
          carrega. Roda sincronamente, lê localStorage e seta data-theme. -->
@@ -1882,20 +1882,89 @@
               <option value="Capacitação de Professor">Capacitação de Professor</option>
             </select>
           </div>
-          <div class="filter-group">
-            <label class="form-label" for="filtroPagamento">Pagamento</label>
-            <select
-              class="form-select filter-input"
-              id="filtroPagamento"
-              data-picklist
-              onchange="aplicarFiltros()"
-            >
-              <option value="">Todos</option>
-              <option value="Pix">PIX</option>
-              <option value="Débito">Débito</option>
-              <option value="Crédito">Crédito</option>
-              <option value="Dinheiro">Dinheiro</option>
-            </select>
+          <div class="filter-group" id="filtroPagamentoGrupo">
+            <label class="form-label" for="filtroPagamentoTrigger">Pagamento</label>
+            <!-- Multi-seleção: marque uma ou mais formas (ex.: Débito +
+                 Crédito) e o relatório mostra/soma só as selecionadas.
+                 Reaproveita o visual do PickList (.picklist-*) pra casar
+                 com o filtro de Curso ao lado. -->
+            <div class="picklist picklist--multi" id="filtroPagamentoWrap">
+              <button
+                type="button"
+                class="picklist-trigger"
+                id="filtroPagamentoTrigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                onclick="toggleFiltroPagamento(event)"
+              >
+                <span class="picklist-value picklist-value--empty" id="filtroPagamentoLabel"
+                  >Todos</span
+                >
+                <svg
+                  class="picklist-chevron"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  aria-hidden="true"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              <div
+                class="picklist-panel"
+                id="filtroPagamentoPanel"
+                role="listbox"
+                aria-multiselectable="true"
+              >
+                <ul class="picklist-options">
+                  <li class="picklist-option picklist-check-item">
+                    <label class="picklist-check-row">
+                      <input type="checkbox" value="Pix" onchange="onFiltroPagamentoChange()" />
+                      <span class="picklist-check-box" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </span>
+                      <span class="picklist-check-text">PIX</span>
+                    </label>
+                  </li>
+                  <li class="picklist-option picklist-check-item">
+                    <label class="picklist-check-row">
+                      <input type="checkbox" value="Débito" onchange="onFiltroPagamentoChange()" />
+                      <span class="picklist-check-box" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </span>
+                      <span class="picklist-check-text">Débito</span>
+                    </label>
+                  </li>
+                  <li class="picklist-option picklist-check-item">
+                    <label class="picklist-check-row">
+                      <input type="checkbox" value="Crédito" onchange="onFiltroPagamentoChange()" />
+                      <span class="picklist-check-box" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </span>
+                      <span class="picklist-check-text">Crédito</span>
+                    </label>
+                  </li>
+                  <li class="picklist-option picklist-check-item">
+                    <label class="picklist-check-row">
+                      <input type="checkbox" value="Dinheiro" onchange="onFiltroPagamentoChange()" />
+                      <span class="picklist-check-box" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </span>
+                      <span class="picklist-check-text">Dinheiro</span>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
           <div class="filter-actions">
             <button class="btn-primary btn-filter" onclick="aplicarFiltros()">
@@ -3348,53 +3417,53 @@
     ></script>
 
     <!-- Constantes globais -->
-    <script src="js/config.js?v=20260625b"></script>
+    <script src="js/config.js?v=20260708a"></script>
 
     <!-- i18n (deve vir antes dos demais para t() estar disponível) -->
-    <script src="js/i18n/strings.js?v=20260625b"></script>
-    <script src="js/i18n/i18n.js?v=20260625b"></script>
+    <script src="js/i18n/strings.js?v=20260708a"></script>
+    <script src="js/i18n/i18n.js?v=20260708a"></script>
 
     <!-- Utilitários -->
-    <script src="js/utils/helpers.js?v=20260625b"></script>
-    <script src="js/utils/format.js?v=20260625b"></script>
-    <script src="js/utils/no-emoji.js?v=20260625b"></script>
-    <script src="js/utils/tooltip.js?v=20260625b"></script>
-    <script src="js/utils/a11y.js?v=20260625b"></script>
-    <script src="js/utils/shortcuts.js?v=20260625b"></script>
-    <script src="js/utils/theme.js?v=20260625b"></script>
-    <script src="js/utils/onboarding.js?v=20260625b"></script>
-    <script src="js/utils/form-persist.js?v=20260625b"></script>
+    <script src="js/utils/helpers.js?v=20260708a"></script>
+    <script src="js/utils/format.js?v=20260708a"></script>
+    <script src="js/utils/no-emoji.js?v=20260708a"></script>
+    <script src="js/utils/tooltip.js?v=20260708a"></script>
+    <script src="js/utils/a11y.js?v=20260708a"></script>
+    <script src="js/utils/shortcuts.js?v=20260708a"></script>
+    <script src="js/utils/theme.js?v=20260708a"></script>
+    <script src="js/utils/onboarding.js?v=20260708a"></script>
+    <script src="js/utils/form-persist.js?v=20260708a"></script>
 
     <!-- Domínio -->
-    <script src="js/domain/financeiro.js?v=20260625b"></script>
+    <script src="js/domain/financeiro.js?v=20260708a"></script>
 
     <!-- Componentes -->
-    <script src="js/components/picklist.js?v=20260625b"></script>
-    <script src="js/components/igreja-dropdown.js?v=20260625b"></script>
-    <script src="js/components/alunos-manager.js?v=20260625b"></script>
+    <script src="js/components/picklist.js?v=20260708a"></script>
+    <script src="js/components/igreja-dropdown.js?v=20260708a"></script>
+    <script src="js/components/alunos-manager.js?v=20260708a"></script>
 
     <!-- Core -->
-    <script src="js/core/modal.js?v=20260625b"></script>
-    <script src="js/core/firebase.js?v=20260625b"></script>
+    <script src="js/core/modal.js?v=20260708a"></script>
+    <script src="js/core/firebase.js?v=20260708a"></script>
 
     <!-- OCR -->
-    <script src="js/ocr/entradas.js?v=20260625b"></script>
-    <script src="js/ocr/saidas.js?v=20260625b"></script>
+    <script src="js/ocr/entradas.js?v=20260708a"></script>
+    <script src="js/ocr/saidas.js?v=20260708a"></script>
 
     <!-- Pages -->
-    <script src="js/pages/login.js?v=20260625b"></script>
-    <script src="js/pages/entradas.js?v=20260625b"></script>
-    <script src="js/pages/saidas.js?v=20260625b"></script>
-    <script src="js/pages/relatorios.js?v=20260625b"></script>
-    <script src="js/pages/tesouraria.js?v=20260625b"></script>
-    <script src="js/pages/dashboard.js?v=20260625b"></script>
-    <script src="js/pages/auditoria.js?v=20260625b"></script>
-    <script src="js/pages/backup.js?v=20260625b"></script>
+    <script src="js/pages/login.js?v=20260708a"></script>
+    <script src="js/pages/entradas.js?v=20260708a"></script>
+    <script src="js/pages/saidas.js?v=20260708a"></script>
+    <script src="js/pages/relatorios.js?v=20260708a"></script>
+    <script src="js/pages/tesouraria.js?v=20260708a"></script>
+    <script src="js/pages/dashboard.js?v=20260708a"></script>
+    <script src="js/pages/auditoria.js?v=20260708a"></script>
+    <script src="js/pages/backup.js?v=20260708a"></script>
 
     <!-- Navegação (depende das pages) -->
-    <script src="js/core/navigation.js?v=20260625b"></script>
+    <script src="js/core/navigation.js?v=20260708a"></script>
 
     <!-- Entry point -->
-    <script src="js/main.js?v=20260625b"></script>
+    <script src="js/main.js?v=20260708a"></script>
   </body>
 </html>

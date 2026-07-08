@@ -16,6 +16,7 @@ const entradas = new EntradaPage(modal, firebase, ocrEntradas, igrejaDD, alunosM
 const saidas = new SaidaPage(modal, firebase, ocrSaidas);
 const relatorios = new RelatorioPage(modal, firebase);
 relatorios.bindAlunoOutsideClose();
+relatorios.bindPagamentoOutsideClose();
 const tesouraria = new TesourariaPage(modal);
 const dashboard = new DashboardPage(modal);
 const auditoria = new AuditoriaPage(firebase);
@@ -177,6 +178,8 @@ window.onFiltroAteChange = () => relatorios.onFiltroAteChange();
 window.fecharFiltroDataModal = () => relatorios.fecharFiltroDataModal();
 window.aplicarFiltros = () => relatorios.aplicarFiltros();
 window.limparFiltros = () => relatorios.limparFiltros();
+window.toggleFiltroPagamento = (ev) => relatorios.toggleFiltroPagamento(ev);
+window.onFiltroPagamentoChange = () => relatorios.onFiltroPagamentoChange();
 window.onFiltroAlunoFocus = () => relatorios.onFiltroAlunoFocus();
 window.onFiltroAlunoInput = () => relatorios.onFiltroAlunoInput();
 window.onFiltroAlunoClear = () => relatorios.onFiltroAlunoClear();
